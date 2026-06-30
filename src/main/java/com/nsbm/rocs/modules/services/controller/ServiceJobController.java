@@ -1,0 +1,129 @@
+package com.nsbm.rocs.modules.services.controller;
+
+import com.nsbm.rocs.entity.services.SaleService;
+import com.nsbm.rocs.entity.services.RepairJob;
+import com.nsbm.rocs.modules.services.dto.SaleServiceRequestDTO;
+import com.nsbm.rocs.modules.services.dto.RepairJobRequestDTO;
+import com.nsbm.rocs.modules.services.service.SaleServiceJob;
+import com.nsbm.rocs.modules.services.service.RepairJobService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.math.BigDecimal;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/v1/services")
+@RequiredArgsConstructor
+public class ServiceJobController {
+
+    private final RepairJobService repairJobService;
+    private final SaleServiceJob saleServiceJob;
+
+    @PostMapping("/repairs")
+    public ResponseEntity<RepairJob> logRepairJob(@RequestBody RepairJobRequestDTO requestDTO) {
+        return ResponseEntity.ok(repairJobService.logRepairJob(requestDTO));
+    }
+
+    @GetMapping("/repairs")
+    public ResponseEntity<List<RepairJob>> getRepairs(@RequestParam(required = false) Long branchId) {
+        if (branchId != null) {
+            return ResponseEntity.ok(repairJobService.getRepairsByBranch(branchId));
+        }
+        return ResponseEntity.ok(repairJobService.getAllRepairs());
+    }
+
+    @GetMapping("/repairs/search")
+    public ResponseEntity<List<Map<String, Object>>> searchRepairs(@RequestParam String query) {
+        return ResponseEntity.ok(repairJobService.searchRepairs(query));
+    }
+
+    @PostMapping("/dtv")
+    public ResponseEntity<SaleService> createDtvService(@RequestBody SaleServiceRequestDTO requestDTO) {
+        return ResponseEntity.ok(saleServiceJob.requestDtvService(requestDTO));
+    }
+
+    @GetMapping("/dtv")
+    public ResponseEntity<List<SaleService>> getDtvServices(@RequestParam(required = false) Long technicianId) {
+        if (technicianId != null) {
+            return ResponseEntity.ok(saleServiceJob.getDtvServicesByTechnician(technicianId));
+        }
+        return ResponseEntity.ok(saleServiceJob.getAllDtvServices());
+    }
+
+    @PutMapping("/dtv/{id}/status")
+    public ResponseEntity<SaleService> updateDtvStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+        String status = (String) payload.get("status");
+        Long technicianId = null;
+        if (payload.containsKey("technicianId") && payload.get("technicianId") != null) {
+            technicianId = Long.valueOf(payload.get("technicianId").toString());
+        }
+        
+        BigDecimal balanceCollected = null;
+        if (payload.containsKey("balanceCollected") && payload.get("balanceCollected") != null) {
+            balanceCollected = new BigDecimal(payload.get("balanceCollected").toString());
+        }
+        
+        String additionalItems = null;
+        if (payload.containsKey("additionalItems")) {
+            additionalItems = (String) payload.get("additionalItems");
+        }
+        
+        return ResponseEntity.ok(saleServiceJob.updateDtvStatus(id, status, technicianId, balanceCollected, additionalItems));
+    }
+
+    @PutMapping("/repairs/{id}/status")
+    public ResponseEntity<RepairJob> updateRepairStatus(
+            @PathVariable Long id, 
+            @RequestBody Map<String, Object> payload) {
+        String status = (String) payload.get("status");
+        Long technicianId = null;
+        if (payload.containsKey("technicianId") && payload.get("technicianId") != null) {
+            technicianId = Long.valueOf(payload.get("technicianId").toString());
+        }
+        String notes = (String) payload.get("notes");
+        return ResponseEntity.ok(repairJobService.updateRepairStatus(id, status, technicianId, notes));
+    }
+
+    @PutMapping("/repairs/{id}/request-finalize")
+    public ResponseEntity<RepairJob> requestFinalizeCost(
+            @PathVariable Long id, 
+            @RequestBody Map<String, Object> payload) {
+        Long managerId = Long.valueOf(payload.get("managerId").toString());
+        BigDecimal estimatedCost = BigDecimal.ZERO;
+        if (payload.containsKey("estimatedCost") && payload.get("estimatedCost") != null && !payload.get("estimatedCost").toString().isEmpty()) {
+            estimatedCost = new BigDecimal(payload.get("estimatedCost").toString());
+        }
+        String costNote = (String) payload.get("costNote");
+        
+        return ResponseEntity.ok(repairJobService.requestFinalizeCost(id, managerId, estimatedCost, costNote));
+    }
+
+    @PutMapping("/repairs/{id}/finalize")
+    public ResponseEntity<RepairJob> finalizeRepairCost(
+            @PathVariable Long id, 
+            @RequestBody Map<String, Object> payload) {
+        BigDecimal finalCost = payload.get("finalCost") != null
+                ? new BigDecimal(payload.get("finalCost").toString()) : BigDecimal.ZERO;
+        Long managerId = payload.get("managerId") != null
+                ? Long.valueOf(payload.get("managerId").toString()) : null;
+        return ResponseEntity.ok(repairJobService.finalizeRepairCost(id, finalCost, managerId));
+    }
+
+    @PutMapping("/repairs/{id}/pay")
+    public ResponseEntity<RepairJob> markRepairPaid(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+        BigDecimal amount = new BigDecimal(payload.get("amount").toString());
+        String paymentMethod = payload.containsKey("paymentMethod") ? (String) payload.get("paymentMethod") : "CASH";
+        Long receivedBy = payload.containsKey("receivedBy") && payload.get("receivedBy") != null
+                ? Long.valueOf(payload.get("receivedBy").toString()) : null;
+        return ResponseEntity.ok(repairJobService.markRepairPaid(id, amount, paymentMethod, receivedBy));
+    }
+}
+
+

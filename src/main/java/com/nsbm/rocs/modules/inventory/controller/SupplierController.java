@@ -1,0 +1,76 @@
+package com.nsbm.rocs.modules.inventory.controller;
+
+import com.nsbm.rocs.shared.response.ApiResponse;
+import com.nsbm.rocs.modules.inventory.dto.SupplierRequestDTO;
+import com.nsbm.rocs.modules.inventory.dto.SupplierResponseDTO;
+import com.nsbm.rocs.modules.inventory.service.SupplierService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/inventory/suppliers")
+@RequiredArgsConstructor
+public class SupplierController {
+
+    private final SupplierService supplierService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<SupplierResponseDTO>>> getAllSuppliers() {
+        log.info("Fetching all suppliers");
+        List<SupplierResponseDTO> suppliers = supplierService.getAllSuppliers();
+        return ResponseEntity.ok(ApiResponse.success("Suppliers retrieved successfully", suppliers));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<SupplierResponseDTO>> getSupplierById(@PathVariable Long id) {
+        log.info("Fetching supplier ID: {}", id);
+        SupplierResponseDTO supplier = supplierService.getSupplierById(id);
+        return ResponseEntity.ok(ApiResponse.success("Supplier retrieved successfully", supplier));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<SupplierResponseDTO>> createSupplier(@Valid @RequestBody SupplierRequestDTO requestDTO) {
+        log.info("Creating supplier: {}", requestDTO.getName());
+        // Ensure collections are not null
+        if (requestDTO.getContacts() == null) requestDTO.setContacts(new ArrayList<>());
+        if (requestDTO.getBranches() == null) requestDTO.setBranches(new ArrayList<>());
+
+        SupplierResponseDTO createdSupplier = supplierService.createSupplier(requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Supplier created successfully", createdSupplier));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<SupplierResponseDTO>> updateSupplier(
+            @PathVariable Long id,
+            @Valid @RequestBody SupplierRequestDTO requestDTO) {
+        log.info("Updating supplier ID: {}", id);
+        if (requestDTO.getContacts() == null) requestDTO.setContacts(new ArrayList<>());
+        if (requestDTO.getBranches() == null) requestDTO.setBranches(new ArrayList<>());
+
+        SupplierResponseDTO updatedSupplier = supplierService.updateSupplier(id, requestDTO);
+        return ResponseEntity.ok(ApiResponse.success("Supplier updated successfully", updatedSupplier));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteSupplier(@PathVariable Long id) {
+        log.info("Deleting supplier ID: {}", id);
+        supplierService.deleteSupplier(id);
+        return ResponseEntity.ok(ApiResponse.success("Supplier deleted successfully"));
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<SupplierResponseDTO>>> getActiveSuppliers() {
+        log.info("Fetching active suppliers");
+        List<SupplierResponseDTO> suppliers = supplierService.getActiveSuppliers();
+        return ResponseEntity.ok(ApiResponse.success("Active suppliers retrieved successfully", suppliers));
+    }
+}
