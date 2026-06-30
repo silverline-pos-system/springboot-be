@@ -25,7 +25,7 @@ import com.silverline.erp.common.exception.DispatchException;
 import com.silverline.erp.module.procurement.repository.DispatchRepository;
 import com.silverline.erp.module.procurement.repository.DispatchItemRepository;
 import com.silverline.erp.module.inventory.repository.SupplierRepository;
-import com.silverline.erp.module.inventory.repository.InventoryStockRepository;
+import com.silverline.erp.module.inventory.repository.StockRepository;
 import com.silverline.erp.module.inventory.repository.BatchRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.repository.ProductSerialRepository;
@@ -66,7 +66,7 @@ public class DispatchServiceImpl implements DispatchService {
     private ProductRepository productRepository;
 
     @Autowired
-    private InventoryStockRepository stockRepository;
+    private StockRepository stockRepository;
 
     @Autowired
     private BatchRepository batchRepository;
