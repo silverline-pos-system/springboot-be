@@ -39,7 +39,7 @@ jwt:
 logging:
   level:
     root: INFO
-    com.nsbm.rocs: DEBUG
+    com.silverline.erp: DEBUG
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
   pattern:
