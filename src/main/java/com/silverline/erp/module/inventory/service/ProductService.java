@@ -4,7 +4,7 @@ import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.module.inventory.dto.ProductDTO;
 import com.silverline.erp.module.inventory.dto.ProductDetailsDTO;
 import com.silverline.erp.domain.inventory.Batch;
-import com.silverline.erp.domain.inventory.Product;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.inventory.Supplier;
 import com.silverline.erp.domain.inventory.SupplierProduct;
 import com.silverline.erp.common.exception.DuplicateResourceException;

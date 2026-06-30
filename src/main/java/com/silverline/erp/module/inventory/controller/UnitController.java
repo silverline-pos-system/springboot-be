@@ -1,6 +1,6 @@
 package com.silverline.erp.module.inventory.controller;
 
-import com.silverline.erp.domain.pos.Unit;
+import com.silverline.erp.domain.product.Unit;
 import com.silverline.erp.common.dto.ApiResponse;
 
 import com.silverline.erp.module.inventory.dto.UnitDTO;

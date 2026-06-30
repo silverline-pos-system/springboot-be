@@ -26,7 +26,7 @@ import com.silverline.erp.domain.audit.Approval;
 import com.silverline.erp.domain.audit.UserActivityLog;
 import com.silverline.erp.domain.inventory.Batch;
 import com.silverline.erp.domain.inventory.Dispatch;
-import com.silverline.erp.domain.inventory.Product;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.inventory.Supplier;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.domain.pos.Sale;

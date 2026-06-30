@@ -1,6 +1,6 @@
 package com.silverline.erp.module.inventory.repository;
 
-import com.silverline.erp.domain.inventory.Unit;
+import com.silverline.erp.domain.product.Unit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

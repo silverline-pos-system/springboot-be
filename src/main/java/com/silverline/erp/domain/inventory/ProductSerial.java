@@ -8,7 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity(name = "InventoryProductSerial")
+@Entity(name = "ProductSerial")
 @Table(name = "product_serials")
 @Data
 @NoArgsConstructor

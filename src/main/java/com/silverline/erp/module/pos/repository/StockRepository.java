@@ -1,7 +1,7 @@
 package com.silverline.erp.module.pos.repository;
 
 import com.silverline.erp.domain.branch.Branch;
-import com.silverline.erp.domain.pos.Product;
+import com.silverline.erp.domain.product.Product;
 /**
  * PURPOSE: Handle stock updates during sales
  */

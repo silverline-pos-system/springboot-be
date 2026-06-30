@@ -1,6 +1,6 @@
 package com.silverline.erp.module.pos.service;
 
-import com.silverline.erp.domain.inventory.Product;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.pos.QuickPickItem;
 import com.silverline.erp.module.pos.repository.QuickPickRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;

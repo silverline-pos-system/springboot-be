@@ -12,7 +12,7 @@ import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.repository.StockRepository;
 import com.silverline.erp.domain.inventory.Stock;
 import lombok.extern.slf4j.Slf4j;
-import com.silverline.erp.domain.inventory.Product;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.module.pos.dto.sale.CreateSaleRequest;
 import com.silverline.erp.module.pos.dto.sale.PaymentRequest;
 import com.silverline.erp.module.pos.dto.sale.SaleItemRequest;

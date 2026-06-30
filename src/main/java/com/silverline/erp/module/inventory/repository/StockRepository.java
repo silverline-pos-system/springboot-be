@@ -1,5 +1,6 @@
 package com.silverline.erp.module.inventory.repository;
 
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.inventory.Stock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -19,7 +20,7 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 
     List<Stock> findByProductId(Long productId);
 
-    @Query("SELECT s FROM InventoryStock s JOIN InventoryProduct p ON s.productId = p.productId " +
+    @Query("SELECT s FROM InventoryStock s JOIN Product p ON s.productId = p.productId " +
            "WHERE s.branchId = :branchId AND s.availableQty <= p.reorderLevel")
     List<Stock> findLowStockByBranch(@Param("branchId") Long branchId);
 
