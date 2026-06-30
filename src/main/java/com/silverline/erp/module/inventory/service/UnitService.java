@@ -1,7 +1,7 @@
 package com.silverline.erp.module.inventory.service;
 
 import com.silverline.erp.module.inventory.dto.UnitDTO;
-import com.silverline.erp.domain.inventory.Unit;
+import com.silverline.erp.domain.product.Unit;
 import com.silverline.erp.common.exception.ResourceNotFoundException;
 import com.silverline.erp.module.inventory.repository.UnitRepository;
 import lombok.RequiredArgsConstructor;

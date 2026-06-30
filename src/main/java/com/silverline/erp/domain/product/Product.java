@@ -1,17 +1,19 @@
-package com.silverline.erp.domain.pos;
+package com.silverline.erp.domain.product;
 
-import com.silverline.erp.domain.inventory.Stock;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "products")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Product {
 
     @Id
@@ -33,75 +35,79 @@ public class Product {
 
     /* -------------------- Relationships -------------------- */
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", insertable = false, updatable = false)
     private Category category;
 
-    @ManyToOne
-    @JoinColumn(name = "subcategory_id")
+    @Column(name = "category_id")
+    private Long categoryId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subcategory_id", insertable = false, updatable = false)
     private SubCategory subCategory;
 
-    @ManyToOne
-    @JoinColumn(name = "brand_id")
+    @Column(name = "subcategory_id")
+    private Long subcategoryId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id", insertable = false, updatable = false)
     private Brand brand;
 
-    @ManyToOne
-    @JoinColumn(name = "unit_id")
+    @Column(name = "brand_id")
+    private Long brandId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "unit_id", insertable = false, updatable = false)
     private Unit unit;
+
+    @Column(name = "unit_id")
+    private Long unitId;
 
     /* -------------------- Pricing -------------------- */
 
     @Column(name = "cost_price", precision = 15, scale = 2)
+    @Builder.Default
     private BigDecimal costPrice = BigDecimal.ZERO;
 
     @Column(name = "selling_price", precision = 15, scale = 2)
+    @Builder.Default
     private BigDecimal sellingPrice = BigDecimal.ZERO;
 
     @Column(precision = 15, scale = 2)
+    @Builder.Default
     private BigDecimal mrp = BigDecimal.ZERO;
 
     /* -------------------- Stock Management -------------------- */
 
     @Column(name = "reorder_level", precision = 15, scale = 3)
+    @Builder.Default
     private BigDecimal reorderLevel = BigDecimal.ZERO;
 
     @Column(name = "max_stock_level", precision = 15, scale = 3)
+    @Builder.Default
     private BigDecimal maxStockLevel = BigDecimal.ZERO;
 
     @Column(name = "is_serialized")
+    @Builder.Default
     private Boolean isSerialized = false;
 
     /* -------------------- Tax & Warranty -------------------- */
 
-
     @Column(name = "warranty_months")
+    @Builder.Default
     private Integer warrantyMonths = 0;
 
     /* -------------------- Status & Audit -------------------- */
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
 
+    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    /* -------------------- Lifecycle Hooks -------------------- */
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-    /* -------------------- Getters & Setters -------------------- */
-
-    // Generate getters and setters using IDE (recommended)
 }

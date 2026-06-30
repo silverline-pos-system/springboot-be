@@ -1,18 +1,17 @@
-package com.silverline.erp.domain.inventory;
+package com.silverline.erp.domain.product;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity(name = "InventoryUnit")
+@Entity
 @Table(name = "units")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Unit {
 
     @Id
@@ -20,14 +19,13 @@ public class Unit {
     @Column(name = "unit_id")
     private Long unitId;
 
-    @Column(name = "name", nullable = false, length = 50)
+    @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(name = "symbol", length = 10)
+    @Column(length = 10)
     private String symbol;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }
-

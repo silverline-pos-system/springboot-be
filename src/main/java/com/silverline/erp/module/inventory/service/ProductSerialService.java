@@ -2,7 +2,7 @@ package com.silverline.erp.module.inventory.service;
 
 import com.silverline.erp.module.inventory.dto.DamagedProductDTO;
 import com.silverline.erp.module.inventory.dto.ProductSerialDTO;
-import com.silverline.erp.domain.inventory.Product;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.inventory.ProductSerial;
 import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.common.exception.DuplicateResourceException;

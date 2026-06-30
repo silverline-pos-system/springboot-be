@@ -1,6 +1,6 @@
 package com.silverline.erp.module.finance.service;
 
-import com.silverline.erp.domain.pos.Category;
+import com.silverline.erp.domain.product.Category;
 import com.silverline.erp.domain.pos.Payment;
 import com.silverline.erp.domain.finance.Expense;
 import com.silverline.erp.domain.finance.ExpenseCategory;

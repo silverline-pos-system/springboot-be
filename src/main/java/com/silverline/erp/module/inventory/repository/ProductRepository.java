@@ -1,6 +1,6 @@
 package com.silverline.erp.module.inventory.repository;
 
-import com.silverline.erp.domain.inventory.Product;
+import com.silverline.erp.domain.product.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,14 +34,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     boolean existsByBarcode(String barcode);
 
-    @Query("SELECT p FROM InventoryProduct p WHERE " +
+    @Query("SELECT p FROM Product p WHERE " +
            "p.isActive = true AND (" +
            "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(p.sku) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(p.barcode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Product> searchProducts(@Param("keyword") String keyword);
 
-    @Query("SELECT MAX(p.productId) FROM InventoryProduct p")
+    @Query("SELECT MAX(p.productId) FROM Product p")
     Long getMaxProductId();
 }
 

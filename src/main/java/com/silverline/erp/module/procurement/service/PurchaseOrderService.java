@@ -2,7 +2,7 @@ package com.silverline.erp.module.procurement.service;
 
 import com.silverline.erp.domain.inventory.Supplier;
 import com.silverline.erp.domain.pos.Payment;
-import com.silverline.erp.domain.pos.Product;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.module.inventory.dto.ProcessPORequest;
 import com.silverline.erp.module.procurement.dto.PurchaseOrderDTO;
 import com.silverline.erp.module.procurement.dto.PurchaseOrderItemDTO;

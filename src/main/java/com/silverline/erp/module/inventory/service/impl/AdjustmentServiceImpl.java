@@ -1,6 +1,6 @@
 package com.silverline.erp.module.inventory.service.impl;
 
-import com.silverline.erp.domain.pos.Product;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.inventory.Stock;
 import com.silverline.erp.module.inventory.dto.StockAdjustmentDTO;
 import com.silverline.erp.common.exception.InsufficientStockException;

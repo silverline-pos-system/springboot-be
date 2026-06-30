@@ -1,6 +1,6 @@
 package com.silverline.erp.module.inventory.dto;
 
-import com.silverline.erp.domain.inventory.Product;
+import com.silverline.erp.domain.product.Product;
 import lombok.Builder;
 import lombok.Data;
 

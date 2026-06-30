@@ -1,7 +1,7 @@
 package com.silverline.erp.module.pos.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
-import com.silverline.erp.domain.inventory.Product;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.inventory.Stock;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.inventory.repository.ProductRepository;

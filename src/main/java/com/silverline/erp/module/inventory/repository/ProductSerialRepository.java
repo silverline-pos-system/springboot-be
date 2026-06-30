@@ -32,13 +32,13 @@ public interface ProductSerialRepository extends JpaRepository<ProductSerial, Lo
 
     boolean existsBySerialNo(String serialNo);
 
-    @Query("SELECT ps FROM InventoryProductSerial ps WHERE ps.branchId = :branchId AND ps.status = 'IN_STOCK'")
+    @Query("SELECT ps FROM ProductSerial ps WHERE ps.branchId = :branchId AND ps.status = 'IN_STOCK'")
     List<ProductSerial> findAvailableSerials(@Param("branchId") Long branchId);
 
-    @Query("SELECT COUNT(ps) FROM InventoryProductSerial ps WHERE ps.productId = :productId AND ps.branchId = :branchId AND ps.status = 'IN_STOCK'")
+    @Query("SELECT COUNT(ps) FROM ProductSerial ps WHERE ps.productId = :productId AND ps.branchId = :branchId AND ps.status = 'IN_STOCK'")
     Long countAvailableSerialsByProduct(@Param("productId") Long productId, @Param("branchId") Long branchId);
 
-        @Query("SELECT ps FROM InventoryProductSerial ps WHERE " +
+        @Query("SELECT ps FROM ProductSerial ps WHERE " +
             "(:branchId IS NULL OR ps.branchId = :branchId) AND " +
             "(:productId IS NULL OR ps.productId = :productId) AND " +
             "(:status IS NULL OR ps.status = :status) AND " +
@@ -50,7 +50,7 @@ public interface ProductSerialRepository extends JpaRepository<ProductSerial, Lo
             @Param("search") String search,
             Pageable pageable);
 
-        @Query("SELECT ps FROM InventoryProductSerial ps WHERE " +
+        @Query("SELECT ps FROM ProductSerial ps WHERE " +
             "(:status IS NULL OR ps.status = :status) AND " +
             "(:search IS NULL OR lower(ps.serialNo) LIKE lower(concat('%', :search, '%'))) AND " +
             "ps.branchId IN :branchIds AND ps.productId IN :productIds")

@@ -3,7 +3,7 @@ package com.silverline.erp.module.procurement.service.impl;
 import com.silverline.erp.domain.audit.Approval;
 import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.domain.pos.Payment;
-import com.silverline.erp.domain.pos.Unit;
+import com.silverline.erp.domain.product.Unit;
 import com.silverline.erp.module.procurement.dto.DispatchCreateRequestDTO;
 import com.silverline.erp.module.procurement.dto.DispatchFilterDTO;
 import com.silverline.erp.module.procurement.dto.DispatchItemDTO;
@@ -15,7 +15,7 @@ import com.silverline.erp.domain.inventory.DispatchItem;
 import com.silverline.erp.domain.inventory.ProductSerial;
 import com.silverline.erp.domain.inventory.PurchaseOrder;
 import com.silverline.erp.domain.inventory.PurchaseOrderItem;
-import com.silverline.erp.domain.inventory.Product;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.inventory.Supplier;
 import com.silverline.erp.domain.inventory.Stock;
 import com.silverline.erp.domain.inventory.Batch;
@@ -25,7 +25,7 @@ import com.silverline.erp.common.exception.DispatchException;
 import com.silverline.erp.module.procurement.repository.DispatchRepository;
 import com.silverline.erp.module.procurement.repository.DispatchItemRepository;
 import com.silverline.erp.module.inventory.repository.SupplierRepository;
-import com.silverline.erp.module.inventory.repository.InventoryStockRepository;
+import com.silverline.erp.module.inventory.repository.StockRepository;
 import com.silverline.erp.module.inventory.repository.BatchRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.repository.ProductSerialRepository;
@@ -66,7 +66,7 @@ public class DispatchServiceImpl implements DispatchService {
     private ProductRepository productRepository;
 
     @Autowired
-    private InventoryStockRepository stockRepository;
+    private StockRepository stockRepository;
 
     @Autowired
     private BatchRepository batchRepository;
