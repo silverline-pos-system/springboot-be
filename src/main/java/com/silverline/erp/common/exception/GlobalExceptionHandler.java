@@ -1,6 +1,7 @@
 package com.silverline.erp.common.exception;
 
 import com.silverline.erp.common.dto.ApiResponse;
+import com.silverline.erp.common.dto.ErrorDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -57,13 +60,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
+    public ResponseEntity<ApiResponse<List<ErrorDetail>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        List<ErrorDetail> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(fieldError -> new ErrorDetail(fieldError.getField(), fieldError.getDefaultMessage()))
+                .collect(Collectors.toList());
         log.warn("Validation failed: {}", errors);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

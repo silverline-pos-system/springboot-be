@@ -1,7 +1,9 @@
 package com.silverline.erp.common.dto;
 
+import lombok.Getter;
 import java.time.LocalDateTime;
 
+@Getter
 public class ApiResponse<T> {
 
     private boolean success;
@@ -55,23 +57,6 @@ public class ApiResponse<T> {
         response.message = message;
         response.data = data;
         return response;
-    }
-
-    // Getters
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
     }
 }
 
