@@ -6,7 +6,7 @@ import com.silverline.erp.module.repair.dto.RepairJobRequestDTO;
 import java.util.List;
 import java.util.Map;
 
-public interface RepairJobService {
+public interface RepairService {
     RepairJob logRepairJob(RepairJobRequestDTO requestDTO);
     List<RepairJob> getAllRepairs();
     List<RepairJob> getRepairsByBranch(Long branchId);
@@ -16,5 +16,3 @@ public interface RepairJobService {
     List<Map<String, Object>> searchRepairs(String query);
     RepairJob markRepairPaid(Long repairId, java.math.BigDecimal amount, String paymentMethod, Long receivedBy);
 }
-
-

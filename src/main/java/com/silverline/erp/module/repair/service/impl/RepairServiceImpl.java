@@ -1,6 +1,5 @@
 package com.silverline.erp.module.repair.service.impl;
 
-import com.silverline.erp.domain.pos.Payment;
 import com.silverline.erp.domain.pos.Customer;
 import com.silverline.erp.domain.service.RepairJob;
 import com.silverline.erp.domain.service.RepairPayment;
@@ -11,7 +10,7 @@ import com.silverline.erp.module.repair.dto.RepairJobRequestDTO;
 import com.silverline.erp.module.repair.repository.RepairJobRepository;
 import com.silverline.erp.module.repair.repository.RepairStatusHistoryRepository;
 import com.silverline.erp.module.repair.repository.RepairPaymentRepository;
-import com.silverline.erp.module.repair.service.RepairJobService;
+import com.silverline.erp.module.repair.service.RepairService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class RepairJobServiceImpl implements RepairJobService {
+public class RepairServiceImpl implements RepairService {
 
     private final RepairJobRepository repairJobRepository;
     private final RepairStatusHistoryRepository historyRepository;
@@ -32,7 +31,6 @@ public class RepairJobServiceImpl implements RepairJobService {
     @Override
     @Transactional
     public RepairJob logRepairJob(RepairJobRequestDTO requestDTO) {
-        // Find or create customer
         Customer customer = customerRepository.findByPhone(requestDTO.getContactNo())
                 .orElseGet(() -> {
                     Customer newCustomer = new Customer();
@@ -54,7 +52,6 @@ public class RepairJobServiceImpl implements RepairJobService {
 
         RepairJob savedJob = repairJobRepository.save(job);
 
-        // Save advance payment if provided
         if (requestDTO.getAdvancePayment() != null && requestDTO.getAdvancePayment().compareTo(BigDecimal.ZERO) > 0) {
             RepairPayment payment = new RepairPayment();
             payment.setRepairId(savedJob.getRepairId());
@@ -64,7 +61,6 @@ public class RepairJobServiceImpl implements RepairJobService {
             paymentRepository.save(payment);
         }
 
-        // Save history
         RepairStatusHistory history = new RepairStatusHistory();
         history.setRepairId(savedJob.getRepairId());
         history.setOldStatus(null);
@@ -100,7 +96,6 @@ public class RepairJobServiceImpl implements RepairJobService {
 
         RepairJob savedJob = repairJobRepository.save(job);
 
-        // Save history
         RepairStatusHistory history = new RepairStatusHistory();
         history.setRepairId(savedJob.getRepairId());
         history.setOldStatus(oldStatus);
@@ -131,7 +126,6 @@ public class RepairJobServiceImpl implements RepairJobService {
 
         RepairJob savedJob = repairJobRepository.save(job);
 
-        // Save history
         RepairStatusHistory history = new RepairStatusHistory();
         history.setRepairId(savedJob.getRepairId());
         history.setOldStatus(oldStatus);
@@ -157,7 +151,6 @@ public class RepairJobServiceImpl implements RepairJobService {
 
         RepairJob savedJob = repairJobRepository.save(job);
 
-        // Save history
         RepairStatusHistory history = new RepairStatusHistory();
         history.setRepairId(savedJob.getRepairId());
         history.setOldStatus(oldStatus);
@@ -169,7 +162,6 @@ public class RepairJobServiceImpl implements RepairJobService {
         return savedJob;
     }
 
-
     @Override
     public List<Map<String, Object>> searchRepairs(String query) {
         if (query == null || query.trim().isEmpty()) {
@@ -180,7 +172,6 @@ public class RepairJobServiceImpl implements RepairJobService {
         Set<Long> foundRepairIds = new LinkedHashSet<>();
         Map<Long, RepairJob> repairMap = new LinkedHashMap<>();
 
-        // 1. Search by phone number (find customers first, then their repairs)
         List<Customer> customersByPhone = customerRepository.findByPhoneContaining(q);
         if (!customersByPhone.isEmpty()) {
             List<Long> customerIds = customersByPhone.stream()
@@ -193,30 +184,25 @@ public class RepairJobServiceImpl implements RepairJobService {
             }
         }
 
-        // 2. Search by device model
         List<RepairJob> byModel = repairJobRepository.findByDeviceModelContainingIgnoreCase(q);
         for (RepairJob rj : byModel) {
             foundRepairIds.add(rj.getRepairId());
             repairMap.put(rj.getRepairId(), rj);
         }
 
-        // 3. Search by device brand
         List<RepairJob> byBrand = repairJobRepository.findByDeviceBrandContainingIgnoreCase(q);
         for (RepairJob rj : byBrand) {
             foundRepairIds.add(rj.getRepairId());
             repairMap.put(rj.getRepairId(), rj);
         }
 
-        // 4. Search by repair no
         List<RepairJob> byRepairNo = repairJobRepository.findByRepairNoContainingIgnoreCase(q);
         for (RepairJob rj : byRepairNo) {
             foundRepairIds.add(rj.getRepairId());
             repairMap.put(rj.getRepairId(), rj);
         }
 
-        // Build enriched results with customer info
         List<Map<String, Object>> results = new ArrayList<>();
-        // Build a customer lookup map
         Set<Long> allCustomerIds = repairMap.values().stream()
                 .map(RepairJob::getCustomerId)
                 .collect(Collectors.toSet());
@@ -225,7 +211,6 @@ public class RepairJobServiceImpl implements RepairJobService {
             customerRepository.findById(custId).ifPresent(c -> customerMap.put(custId, c));
         }
 
-        // Also gather payment info
         for (Long repairId : foundRepairIds) {
             RepairJob job = repairMap.get(repairId);
             Customer cust = customerMap.get(job.getCustomerId());
@@ -272,7 +257,6 @@ public class RepairJobServiceImpl implements RepairJobService {
 
         RepairStatus oldStatus = job.getStatus();
 
-        // Record payment
         RepairPayment payment = new RepairPayment();
         payment.setRepairId(repairId);
         payment.setAmount(amount);
@@ -280,7 +264,6 @@ public class RepairJobServiceImpl implements RepairJobService {
         payment.setReceivedBy(receivedBy);
         paymentRepository.save(payment);
 
-        // Step 1: Mark as PAID and log history
         job.setStatus(RepairStatus.PAID);
         repairJobRepository.save(job);
 
@@ -292,7 +275,6 @@ public class RepairJobServiceImpl implements RepairJobService {
         paidHistory.setChangedBy(receivedBy);
         historyRepository.save(paidHistory);
 
-        // Step 2: Immediately mark as DELIVERED (device given to customer)
         job.setStatus(RepairStatus.DELIVERED);
         RepairJob savedJob = repairJobRepository.save(job);
 
@@ -307,6 +289,3 @@ public class RepairJobServiceImpl implements RepairJobService {
         return savedJob;
     }
 }
-
-
-
