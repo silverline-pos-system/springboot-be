@@ -7,7 +7,10 @@ import com.silverline.erp.module.pos.dto.returns.ReturnRequest;
 import com.silverline.erp.module.pos.dto.sale.CreateSaleRequest;
 import com.silverline.erp.module.pos.dto.sale.SaleResponse;
 import com.silverline.erp.module.pos.dto.sale.SaleSummaryDTO;
-import com.silverline.erp.module.pos.service.PosService;
+import com.silverline.erp.module.pos.service.SaleService;
+import com.silverline.erp.module.pos.service.ReturnService;
+import com.silverline.erp.module.pos.service.LoyaltyService;
+import com.silverline.erp.module.pos.service.SaleQueryService;
 import com.silverline.erp.module.pos.service.ShiftService;
 import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.common.security.SecurityUtils;
@@ -27,13 +30,16 @@ import java.util.Map;
 @CrossOrigin
 public class PosController {
 
-    private final PosService posService;
+    private final SaleService saleService;
+    private final ReturnService returnService;
+    private final LoyaltyService loyaltyService;
+    private final SaleQueryService saleQueryService;
     private final ShiftService shiftService;
 
     @GetMapping({"/sales/last-invoice", "/orders/last-invoice"})
     public ResponseEntity<ApiResponse<Map<String, Object>>> getLastInvoice() {
         log.info("Fetching last invoice info");
-        Map<String, Object> invoiceInfo = posService.getLastInvoiceInfo();
+        Map<String, Object> invoiceInfo = saleQueryService.getLastInvoiceInfo();
         return ResponseEntity.ok(ApiResponse.success("Invoice info fetched", invoiceInfo));
     }
 
@@ -55,7 +61,7 @@ public class PosController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
         }
 
-        SaleResponse response = posService.createSale(request, branchId, cashierId, shiftId);
+        SaleResponse response = saleService.createSale(request, branchId, cashierId, shiftId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Order created successfully", response));
     }
 
@@ -66,15 +72,15 @@ public class PosController {
             @RequestParam(required = false) String endDate
     ) {
         log.info("Fetching bills with status: {}", status);
-        Long branchId = 1L; // Should ideally come from context or header
-        List<SaleSummaryDTO> response = posService.getSaleSummaries(branchId, status, startDate, endDate);
+        Long branchId = 1L; 
+        List<SaleSummaryDTO> response = saleQueryService.getSaleSummaries(branchId, status, startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success("Orders fetched", response));
     }
 
     @GetMapping({"/orders/{id}", "/sales/{id}"})
     public ResponseEntity<ApiResponse<SaleResponse>> getBillById(@PathVariable Long id) {
         log.info("Fetching bill ID: {}", id);
-        SaleResponse response = posService.getSaleById(id);
+        SaleResponse response = saleQueryService.getSaleById(id);
         if (response == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Bill not found"));
         }
@@ -91,13 +97,13 @@ public class PosController {
     @GetMapping("/sales/held")
     public ResponseEntity<ApiResponse<List<SaleSummaryDTO>>> getHeldBills(@RequestParam(required = false) Long branchId) {
         log.info("Fetching held bills for branch: {}", branchId);
-        return ResponseEntity.ok(ApiResponse.success("Fetched held bills", posService.getHeldBills(branchId)));
+        return ResponseEntity.ok(ApiResponse.success("Fetched held bills", saleQueryService.getHeldBills(branchId)));
     }
 
     @PostMapping("/sales/{id}/recall")
     public ResponseEntity<ApiResponse<SaleResponse>> recallBill(@PathVariable Long id) {
         log.info("Recalling bill ID: {}", id);
-        posService.updateSaleStatus(id, "PENDING");
+        saleService.updateSaleStatus(id, "PENDING");
         return getBillById(id);
     }
 
@@ -107,14 +113,14 @@ public class PosController {
     ) {
         log.info("Fetching returnable sales for last {} days", days);
         Long branchId = 1L; 
-        List<SaleResponse> sales = posService.getReturnableSales(branchId, days);
+        List<SaleResponse> sales = saleQueryService.getReturnableSales(branchId, days);
         return ResponseEntity.ok(ApiResponse.success("Returnable sales fetched", sales));
     }
 
     @GetMapping("/sales/invoice/{invoiceNo}")
     public ResponseEntity<ApiResponse<SaleResponse>> getSaleByInvoice(@PathVariable String invoiceNo) {
         log.info("Searching sale by invoice: {}", invoiceNo);
-        SaleResponse response = posService.getSaleByInvoiceNo(invoiceNo);
+        SaleResponse response = saleQueryService.getSaleByInvoiceNo(invoiceNo);
         if (response == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Invoice not found"));
         }
@@ -124,21 +130,21 @@ public class PosController {
     @PostMapping("/returns")
     public ResponseEntity<ApiResponse<Map<String, Object>>> processReturn(@RequestBody com.silverline.erp.module.pos.dto.returns.ReturnRequest request) {
         log.info("Processing return for sale ID: {}", request.getSaleId());
-        Long returnId = posService.processReturn(request);
+        Long returnId = returnService.processReturn(request);
         return ResponseEntity.ok(ApiResponse.success("Return processed successfully", Map.of("returnId", returnId)));
     }
 
     @PostMapping("/customers/loyalty/request-redeem")
     public ResponseEntity<ApiResponse<String>> requestLoyaltyRedemption(@RequestBody com.silverline.erp.module.pos.dto.customer.LoyaltyRedeemRequest request) {
         log.info("Requesting loyalty redemption for customer: {}", request.getCustomerId());
-        posService.requestLoyaltyRedemption(request.getCustomerId(), request.getPointsToRedeem());
+        loyaltyService.requestLoyaltyRedemption(request.getCustomerId(), request.getPointsToRedeem());
         return ResponseEntity.ok(ApiResponse.success("Verification code sent", null));
     }
 
     @PostMapping("/customers/loyalty/verify-redeem")
     public ResponseEntity<ApiResponse<Map<String, java.math.BigDecimal>>> verifyLoyaltyRedemption(@RequestBody com.silverline.erp.module.pos.dto.customer.LoyaltyRedeemVerifyRequest request) {
         log.info("Verifying loyalty redemption for customer: {}", request.getCustomerId());
-        java.math.BigDecimal discountValue = posService.verifyLoyaltyRedemption(request.getCustomerId(), request.getPointsToRedeem(), request.getOtpCode());
+        java.math.BigDecimal discountValue = loyaltyService.verifyLoyaltyRedemption(request.getCustomerId(), request.getPointsToRedeem(), request.getOtpCode());
         return ResponseEntity.ok(ApiResponse.success("Redemption verified", Map.of("discountValue", discountValue)));
     }
 }

@@ -1,7 +1,7 @@
 package com.silverline.erp.module.pos.controller;
 
 import com.silverline.erp.module.pos.dto.sale.ProductSalesHistoryDTO;
-import com.silverline.erp.module.pos.service.PosService;
+import com.silverline.erp.module.pos.service.SaleQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SalesController {
 
-    private final PosService posService;
+    private final SaleQueryService saleQueryService;
 
     @GetMapping("/products/{productId}")
     public ResponseEntity<List<ProductSalesHistoryDTO>> getProductSalesHistory(
@@ -26,7 +26,7 @@ public class SalesController {
         if (from == null) from = LocalDate.now().minusDays(30);
         if (to == null) to = LocalDate.now();
 
-        List<ProductSalesHistoryDTO> history = posService.getProductSalesHistory(productId, from, to);
+        List<ProductSalesHistoryDTO> history = saleQueryService.getProductSalesHistory(productId, from, to);
         return ResponseEntity.ok(history);
     }
 }

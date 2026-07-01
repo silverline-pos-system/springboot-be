@@ -7,6 +7,7 @@ import com.silverline.erp.domain.pos.CashShift;
 import com.silverline.erp.module.pos.dto.ShiftStartRequest;
 import com.silverline.erp.module.pos.dto.shift.CloseShiftRequest;
 import com.silverline.erp.module.pos.service.ShiftService;
+import com.silverline.erp.module.pos.service.CashReconciliationService;
 import com.silverline.erp.common.dto.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,14 +26,14 @@ public class ShiftController {
     @Autowired
     private ShiftService shiftService;
 
+    @Autowired
+    private CashReconciliationService cashReconciliationService;
+
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof UserProfile) {
             return ((UserProfile) auth.getPrincipal()).getUserId();
         }
-        // Fallback for development/testing if auth not fully set up or for non-user principals
-        // But ideally should throw error if not authenticated
-        // throw new RuntimeException("User not authenticated");
         return 1001L; // Keeping fallback for safety during dev, but ideally remove
     }
 
@@ -44,7 +45,6 @@ public class ShiftController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
-            // Catch RuntimeExceptions (like "Invalid supervisor credentials") as 400/401
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Internal Server Error: " + e.getMessage()));
@@ -69,7 +69,7 @@ public class ShiftController {
     @GetMapping({"/shift/{shiftId}/totals", "/shifts/{shiftId}/totals"})
     public ResponseEntity<ApiResponse<Map<String, Object>>> getShiftTotals(@PathVariable Long shiftId) {
         try {
-            Map<String, Object> totals = shiftService.getShiftTotals(shiftId);
+            Map<String, Object> totals = cashReconciliationService.getShiftTotals(shiftId);
             return ResponseEntity.ok(ApiResponse.success("Shift totals", totals));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
@@ -122,7 +122,7 @@ public class ShiftController {
              cashierId = 1001L;
         }
         try {
-            com.silverline.erp.domain.pos.CashFlow flow = shiftService.recordCashFlow(cashierId, request);
+            com.silverline.erp.domain.pos.CashFlow flow = cashReconciliationService.recordCashFlow(cashierId, request);
             return ResponseEntity.ok(ApiResponse.success("Cash flow recorded", flow));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
@@ -132,7 +132,7 @@ public class ShiftController {
     @GetMapping("/cash-flows/shift/{shiftId}")
     public ResponseEntity<ApiResponse<java.util.List<com.silverline.erp.domain.pos.CashFlow>>> getCashFlowsByShift(@PathVariable Long shiftId) {
         try {
-            java.util.List<com.silverline.erp.domain.pos.CashFlow> flows = shiftService.getShiftCashFlows(shiftId);
+            java.util.List<com.silverline.erp.domain.pos.CashFlow> flows = cashReconciliationService.getShiftCashFlows(shiftId);
             return ResponseEntity.ok(ApiResponse.success("Cash flows retrieved", flows));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
