@@ -23,6 +23,8 @@ import com.silverline.erp.module.pos.repository.SaleRepository;
 import com.silverline.erp.module.pos.service.SaleService;
 import com.silverline.erp.module.pos.service.SaleQueryService;
 import com.silverline.erp.module.admin.service.SaasFeatureService;
+import com.silverline.erp.common.event.SaleCompletedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,7 +48,7 @@ public class SaleServiceImpl implements SaleService {
     private final ProductService productService;
     private final StockService stockService;
     private final UserProfileRepo userProfileRepo;
-    private final AuditLogService activityLogService;
+    private final ApplicationEventPublisher eventPublisher;
     private final BatchService batchService;
     private final SaasFeatureService featureService;
     private final ProductSerialService productSerialService;
@@ -264,18 +266,16 @@ public class SaleServiceImpl implements SaleService {
                 .map(UserProfile::getUsername)
                 .orElse("Cashier #" + cashierId);
 
-        activityLogService.logActivity(
+        // Publish SaleCompletedEvent to log activity asynchronously
+        eventPublisher.publishEvent(new SaleCompletedEvent(
+                sale.getSaleId(),
+                sale.getInvoiceNo(),
                 branchId,
-                null,
                 cashierId,
-                cashierUsername, 
-                "CASHIER",
-                "SALE",
-                "ORDER",
-                sale.getSaleId(), 
-                "Retail Sale " + sale.getInvoiceNo() + ". Total: " + sale.getNetTotal(),
-                "{\"itemCount\":" + saleItems.size() + "}"
-        );
+                cashierUsername,
+                sale.getNetTotal(),
+                saleItems.size()
+        ));
 
         return saleQueryService.mapToResponse(sale, saleItems, payments);
     }

@@ -9,6 +9,8 @@ import com.silverline.erp.common.exception.ResourceNotFoundException;
 import com.silverline.erp.module.inventory.repository.StockRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.service.StockService;
+import com.silverline.erp.common.event.StockAdjustedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class StockServiceImpl implements StockService {
 
     private final StockRepository stockRepository;
     private final ProductRepository productRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public List<StockDTO> getAllStock() {
@@ -91,6 +94,14 @@ public class StockServiceImpl implements StockService {
         stock.setAvailableQty(newQty.subtract(stock.getReservedQty()));
 
         Stock saved = stockRepository.save(stock);
+
+        eventPublisher.publishEvent(new StockAdjustedEvent(
+                saved.getProductId(),
+                saved.getBranchId(),
+                saved.getQuantity(),
+                adjustmentDTO.getAdjustmentType()
+        ));
+
         return mapToDTO(saved);
     }
 
