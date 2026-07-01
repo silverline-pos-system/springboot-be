@@ -42,3 +42,5 @@ logs/
 
 ### Build ###
 build_output.log
+compile_out.txt
+compile_log.txt
