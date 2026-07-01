@@ -3,7 +3,7 @@ package com.silverline.erp.module.manager.controller;
 import com.silverline.erp.module.manager.dto.AssignSecondaryRoleRequest;
 import com.silverline.erp.module.manager.dto.MySecondaryRoleResponse;
 import com.silverline.erp.module.manager.dto.SecondaryRoleAssignmentDTO;
-import com.silverline.erp.module.manager.service.SecondaryRoleService;
+import com.silverline.erp.module.admin.service.SecondaryRoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -52,16 +52,12 @@ public class SecondaryRoleController {
     }
 
     // GET /api/v1/manager/secondary-roles/me
-    // Override class-level auth â€” any logged-in user can call this
+    // Override class-level auth — any logged-in user can call this
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MySecondaryRoleResponse> getMySecondaryRole(@AuthenticationPrincipal UserDetails userDetails) {
         log.info("Fetching secondary role for user: {}", userDetails.getUsername());
         MySecondaryRoleResponse response = secondaryRoleService.getMySecondaryRole(userDetails);
-        // Return 200 with null body if no active secondary role exists
-        // (Avoids 404 console errors in frontend loggers)
         return ResponseEntity.ok(response);
     }
 }
-
-

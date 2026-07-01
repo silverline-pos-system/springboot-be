@@ -1,4 +1,4 @@
-package com.silverline.erp.module.manager.service;
+package com.silverline.erp.module.admin.service;
 
 import com.silverline.erp.domain.user.SecondaryRoleAssignment;
 import com.silverline.erp.domain.user.UserProfile;
@@ -54,21 +54,17 @@ public class SecondaryRoleService {
     }
 
     public SecondaryRoleAssignmentDTO assignRole(AssignSecondaryRoleRequest request) {
-        // 1. Validate role
         if (!ALLOWED_ROLES.contains(request.getSecondaryRole())) {
             throw new ValidationException("Invalid secondary role");
         }
 
-        // 2. Validate user exists
         UserProfile user = userRepo.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // 3. Cannot assign same as primary
         if (user.getRole() != null && user.getRole().name().equalsIgnoreCase(request.getSecondaryRole())) {
             throw new ValidationException("Cannot assign same role as primary");
         }
 
-        // 4. Parse and validate expiry
         LocalDateTime expiresAt = LocalDateTime.parse(
                 request.getExpiresAt(), DateTimeFormatter.ISO_DATE_TIME
         );
@@ -76,13 +72,11 @@ public class SecondaryRoleService {
             throw new ValidationException("Expiry must be in the future");
         }
 
-        // 5. Check no active assignment exists
         if (assignmentRepo.existsByUserIdAndRevokedFalseAndExpiresAtAfter(
                 request.getUserId(), LocalDateTime.now())) {
             throw new DuplicateResourceException("User already has an active secondary role");
         }
 
-        // 6. Create assignment
         SecondaryRoleAssignment assignment = new SecondaryRoleAssignment();
         assignment.setUserId(request.getUserId());
         assignment.setSecondaryRole(request.getSecondaryRole());
@@ -92,7 +86,6 @@ public class SecondaryRoleService {
 
         SecondaryRoleAssignment saved = assignmentRepo.save(assignment);
 
-        // 7. Return DTO
         SecondaryRoleAssignmentDTO dto = new SecondaryRoleAssignmentDTO();
         dto.setId(saved.getId());
         dto.setUserId(saved.getUserId());
@@ -118,7 +111,6 @@ public class SecondaryRoleService {
     }
 
     public MySecondaryRoleResponse getMySecondaryRole(UserDetails userDetails) {
-        // Resolve userId from UserDetails
         UserProfile user = userRepo.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -128,7 +120,7 @@ public class SecondaryRoleService {
                 );
 
         if (active.isEmpty()) {
-            return null; // Controller returns 404
+            return null;
         }
 
         SecondaryRoleAssignment a = active.get();
@@ -139,5 +131,3 @@ public class SecondaryRoleService {
         return response;
     }
 }
-
-

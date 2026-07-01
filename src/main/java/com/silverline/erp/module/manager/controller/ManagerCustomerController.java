@@ -1,10 +1,9 @@
 package com.silverline.erp.module.manager.controller;
 
-import com.silverline.erp.domain.pos.Customer;
 import com.silverline.erp.module.manager.dto.ManagerSaleDTO;
 import com.silverline.erp.module.analytics.dto.LoyaltyStatsDTO;
 import com.silverline.erp.module.manager.dto.ManagerCustomerDTO;
-import com.silverline.erp.module.manager.service.ManagerCustomerService;
+import com.silverline.erp.module.pos.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ManagerCustomerController {
 
-    private final ManagerCustomerService customerService;
+    private final CustomerService customerService;
 
     @GetMapping
     public ResponseEntity<List<ManagerCustomerDTO>> getAllCustomers() {
@@ -56,8 +55,7 @@ public class ManagerCustomerController {
     }
     
     @GetMapping("/{id}/sales")
-    public ResponseEntity<List<com.silverline.erp.module.manager.dto.ManagerSaleDTO>> getCustomerSales(@PathVariable Long id) {
+    public ResponseEntity<List<ManagerSaleDTO>> getCustomerSales(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getCustomerSales(id));
     }
 }
-

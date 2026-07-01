@@ -2,7 +2,7 @@ package com.silverline.erp.module.procurement.controller;
 
 import com.silverline.erp.domain.inventory.Dispatch;
 import com.silverline.erp.domain.pos.Payment;
-import com.silverline.erp.module.analytics.service.JasperReportService;
+import com.silverline.erp.infrastructure.reporting.JasperReportService;
 import com.silverline.erp.module.procurement.dto.DispatchCreateRequestDTO;
 import com.silverline.erp.module.procurement.dto.DispatchFilterDTO;
 import com.silverline.erp.module.procurement.dto.DispatchItemDTO;
@@ -33,7 +33,7 @@ import java.util.List;
 public class DispatchController {
 
     private final DispatchService dispatchService;
-    private final com.silverline.erp.module.analytics.service.JasperReportService jasperReportService;
+    private final JasperReportService jasperReportService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<DispatchResponseDTO>> createDispatch(

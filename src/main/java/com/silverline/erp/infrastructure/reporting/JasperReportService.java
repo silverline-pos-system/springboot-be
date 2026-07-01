@@ -1,7 +1,8 @@
-package com.silverline.erp.module.analytics.service;
+package com.silverline.erp.infrastructure.reporting;
 
-import com.silverline.erp.module.manager.service.ManagerCustomerService;
+import com.silverline.erp.module.pos.service.CustomerService;
 import com.silverline.erp.module.manager.service.ManagerService;
+import com.silverline.erp.module.analytics.service.SalesAnalyticsService;
 import com.silverline.erp.domain.inventory.Dispatch;
 import com.silverline.erp.domain.inventory.Supplier;
 import com.silverline.erp.module.procurement.repository.DispatchRepository;
@@ -33,7 +34,10 @@ public class JasperReportService {
     private ManagerService managerService;
     
     @Autowired
-    private ManagerCustomerService managerCustomerService;
+    private CustomerService customerService;
+
+    @Autowired
+    private SalesAnalyticsService salesAnalyticsService;
     
     @Autowired
     private DispatchRepository dispatchRepository;
@@ -47,7 +51,7 @@ public class JasperReportService {
     }
     
     public byte[] generateSalesReportsPdf(String startDate, String endDate, Long branchId) throws Exception {
-        List<SalesReportDTO> reports = managerService.getSalesReports(startDate, endDate, branchId);
+        List<SalesReportDTO> reports = salesAnalyticsService.getSalesReports(startDate, endDate, branchId);
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("startDate", startDate);
         parameters.put("endDate", endDate);
@@ -60,7 +64,7 @@ public class JasperReportService {
     }
     
     public byte[] generateLoyaltyCustomersPdf() throws Exception {
-        List<ManagerCustomerDTO> customers = managerCustomerService.getAllCustomers();
+        List<ManagerCustomerDTO> customers = customerService.getAllCustomers();
         return generatePdf("/reports/loyalty_customers.jrxml", customers, null);
     }
     
