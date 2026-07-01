@@ -1,10 +1,9 @@
-package com.silverline.erp.module.manager.service;
+package com.silverline.erp.module.pos.service;
 
-import com.silverline.erp.module.manager.dto.ManagerSaleDTO;
 import com.silverline.erp.domain.pos.Customer;
-import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.module.analytics.dto.LoyaltyStatsDTO;
 import com.silverline.erp.module.manager.dto.ManagerCustomerDTO;
+import com.silverline.erp.module.manager.dto.ManagerSaleDTO;
 import com.silverline.erp.module.manager.repository.ManagerCustomerRepository;
 import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ManagerCustomerService {
+public class CustomerService {
 
     private final ManagerCustomerRepository customerRepository;
     private final ManagerSaleRepository saleRepository;
@@ -71,21 +70,12 @@ public class ManagerCustomerService {
 
     public List<ManagerCustomerDTO> getAllCustomers() {
         List<Customer> customers = customerRepository.findAll();
-        
-        // In a real app, fetching last purchase for ALL customers N+1 is bad.
-        // For this project scale (100-1000 customers), it's acceptable.
-        // Optimization: Find all sales and group by customer in memory or complex query.
-        
-        // Let's assume we do a simple map for now.
         return customers.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     private ManagerCustomerDTO mapToDTO(Customer customer) {
         BigDecimal spend = customer.getTotalPurchases() != null ? customer.getTotalPurchases() : BigDecimal.ZERO;
         String tier = calculateTier(spend);
-        
-        // Note: Visit count and Last Purchase would ideally come from DB queries.
-        // For now, we will leave them generic or would need saleRepository calls.
         
         return ManagerCustomerDTO.builder()
                 .id(customer.getCustomerId())
@@ -97,7 +87,7 @@ public class ManagerCustomerService {
                 .availablePoints(String.valueOf(customer.getLoyaltyPoints()))
                 .totalSpend("LKR " + String.format("%,.2f", spend))
                 .lastPurchase(customer.getUpdatedAt() != null ? customer.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : "Never")
-                .visitCount(0) // Requires heavy query, skipping for list view performance for now
+                .visitCount(0)
                 .status(customer.getIsActive() ? "Active" : "Inactive")
                 .address(customer.getAddress())
                 .city(customer.getCity())
@@ -161,9 +151,9 @@ public class ManagerCustomerService {
         customerRepository.save(customer);
     }
     
-    public List<com.silverline.erp.module.manager.dto.ManagerSaleDTO> getCustomerSales(Long customerId) {
+    public List<ManagerSaleDTO> getCustomerSales(Long customerId) {
         return saleRepository.findTop10ByCustomerIdOrderBySaleDateDesc(customerId).stream()
-            .map(s -> com.silverline.erp.module.manager.dto.ManagerSaleDTO.builder()
+            .map(s -> ManagerSaleDTO.builder()
                 .id(s.getSaleId())
                 .date(s.getSaleDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
                 .amount(s.getNetTotal())
@@ -173,4 +163,3 @@ public class ManagerCustomerService {
             .collect(Collectors.toList());
     }
 }
-
