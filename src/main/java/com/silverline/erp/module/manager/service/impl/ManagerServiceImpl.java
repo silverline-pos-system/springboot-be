@@ -13,7 +13,7 @@ import com.silverline.erp.module.manager.dto.ApprovalDTO;
 import com.silverline.erp.module.manager.repository.ManagerUserRepository;
 import com.silverline.erp.common.audit.repository.ApprovalRepository;
 import com.silverline.erp.common.audit.repository.UserActivityLogRepository;
-import com.silverline.erp.module.pos.repository.CashFlowRepository;
+import com.silverline.erp.module.pos.service.CashReconciliationService;
 import com.silverline.erp.module.manager.service.ManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,7 @@ public class ManagerServiceImpl implements ManagerService {
     private final ManagerUserRepository userRepository;
     private final ApprovalRepository approvalRepository;
     private final UserActivityLogRepository activityLogRepository;
-    private final CashFlowRepository cashFlowRepository;
+    private final CashReconciliationService cashReconciliationService;
     private final EmailService emailService;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -233,11 +233,13 @@ public class ManagerServiceImpl implements ManagerService {
         }
 
         if (approval.getType() != null && approval.getType().startsWith("CASH_FLOW_")) {
-            CashFlow cashFlow = cashFlowRepository.findById(approval.getReferenceId())
-                    .orElseThrow(() -> new RuntimeException("Cash Flow not found: " + approval.getReferenceId()));
+            CashFlow cashFlow = cashReconciliationService.findCashFlowById(approval.getReferenceId());
+            if (cashFlow == null) {
+                throw new RuntimeException("Cash Flow not found: " + approval.getReferenceId());
+            }
 
             cashFlow.setStatus(status.toUpperCase());
-            cashFlowRepository.save(cashFlow);
+            cashReconciliationService.saveCashFlow(cashFlow);
         }
 
         approvalRepository.save(approval);
@@ -267,7 +269,7 @@ public class ManagerServiceImpl implements ManagerService {
         String referenceNo = approval.getReferenceNo();
 
         if (approval.getType() != null && approval.getType().startsWith("CASH_FLOW_") && approval.getReferenceId() != null) {
-            CashFlow cashFlow = cashFlowRepository.findById(approval.getReferenceId()).orElse(null);
+            CashFlow cashFlow = cashReconciliationService.findCashFlowById(approval.getReferenceId());
             if (cashFlow != null) {
                 amount = cashFlow.getAmount();
                 reason = cashFlow.getReason();

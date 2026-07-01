@@ -27,4 +27,8 @@ public interface ProductService {
     Product findById(Long id);
     List<Product> findByBranch(Long branchId);
     Product findByBarcode(String barcode);
+    List<Product> findProductsByIds(List<Long> ids);
+    Product findBySku(String sku);
+    List<Product> searchProductEntities(String keyword);
+    List<Product> getActiveProductsLimit(int limit);
 }

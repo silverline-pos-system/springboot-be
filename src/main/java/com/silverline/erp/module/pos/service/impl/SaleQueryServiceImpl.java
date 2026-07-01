@@ -4,7 +4,7 @@ import com.silverline.erp.domain.pos.Payment;
 import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.domain.pos.SaleItem;
 import com.silverline.erp.domain.product.Product;
-import com.silverline.erp.module.inventory.repository.ProductRepository;
+import com.silverline.erp.module.inventory.service.ProductService;
 import com.silverline.erp.module.pos.dto.sale.PaymentResponse;
 import com.silverline.erp.module.pos.dto.sale.ProductSalesHistoryDTO;
 import com.silverline.erp.module.pos.dto.sale.SaleItemResponse;
@@ -38,7 +38,7 @@ public class SaleQueryServiceImpl implements SaleQueryService {
     private final SaleItemRepository saleItemRepository;
     private final PaymentRepository paymentRepository;
     private final CustomerRepository customerRepository;
-    private final ProductRepository productRepository;
+    private final ProductService productService;
     private final ManagerSaleRepository managerSaleRepository;
     private final ManagerSaleItemRepository managerSaleItemRepository;
     private final SalesReturnRepository salesReturnRepository;
@@ -250,7 +250,7 @@ public class SaleQueryServiceImpl implements SaleQueryService {
         }
 
         List<Long> productIds = items.stream().map(SaleItem::getProductId).collect(Collectors.toList());
-        Map<Long, Product> productMap = productRepository.findAllById(productIds).stream()
+        Map<Long, Product> productMap = productService.findProductsByIds(productIds).stream()
                 .collect(Collectors.toMap(Product::getProductId, Function.identity()));
 
         List<SaleItemResponse> itemResponses = items.stream().map(item -> {
@@ -360,5 +360,10 @@ public class SaleQueryServiceImpl implements SaleQueryService {
     @Override
     public List<com.silverline.erp.domain.pos.Payment> findPaymentsBySaleId(Long saleId) {
         return paymentRepository.findBySaleId(saleId);
+    }
+
+    @Override
+    public List<com.silverline.erp.domain.pos.Sale> findTop10ByCustomerIdOrderBySaleDateDesc(Long customerId) {
+        return managerSaleRepository.findTop10ByCustomerIdOrderBySaleDateDesc(customerId);
     }
 }

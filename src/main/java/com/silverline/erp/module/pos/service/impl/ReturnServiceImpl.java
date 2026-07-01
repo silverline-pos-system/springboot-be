@@ -6,7 +6,7 @@ import com.silverline.erp.domain.pos.SalesReturn;
 import com.silverline.erp.domain.pos.SalesReturnItem;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.auth.repo.UserProfileRepo;
-import com.silverline.erp.module.inventory.repository.StockRepository;
+import com.silverline.erp.module.inventory.service.StockService;
 import com.silverline.erp.module.pos.dto.returns.ReturnRequest;
 import com.silverline.erp.module.pos.repository.SalesReturnItemRepository;
 import com.silverline.erp.module.pos.repository.SalesReturnRepository;
@@ -33,7 +33,7 @@ public class ReturnServiceImpl implements ReturnService {
     private final SalesReturnItemRepository salesReturnItemRepository;
     private final UserProfileRepo userProfileRepo;
     private final AuthenticationManager authenticationManager;
-    private final StockRepository stockRepository;
+    private final StockService stockService;
     private final AuditLogService activityLogService;
 
     @Override
@@ -94,22 +94,7 @@ public class ReturnServiceImpl implements ReturnService {
                  totalRefund = totalRefund.add(item.getTotal());
 
                  try {
-                     Stock stock = stockRepository.findByBranchIdAndProductId(request.getBranchId(), itemReq.getProductId())
-                             .orElse(null);
-                     
-                     if (stock != null) {
-                         stock.setQuantity(stock.getQuantity().add(itemReq.getQty()));
-                         stock.setAvailableQty(stock.getAvailableQty().add(itemReq.getQty()));
-                         stockRepository.save(stock);
-                     } else {
-                         Stock newStock = new Stock();
-                         newStock.setBranchId(request.getBranchId());
-                         newStock.setProductId(itemReq.getProductId());
-                         newStock.setQuantity(itemReq.getQty());
-                         newStock.setAvailableQty(itemReq.getQty());
-                         newStock.setReservedQty(BigDecimal.ZERO);
-                         stockRepository.save(newStock);
-                     }
+                     stockService.increaseStock(request.getBranchId(), itemReq.getProductId(), itemReq.getQty().intValue());
                  } catch (Exception e) {
                      System.err.println("Failed to restock product " + itemReq.getProductId() + ": " + e.getMessage());
                  }

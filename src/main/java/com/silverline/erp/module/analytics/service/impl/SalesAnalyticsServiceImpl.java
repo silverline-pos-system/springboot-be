@@ -6,15 +6,11 @@ import com.silverline.erp.domain.pos.SaleItem;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.analytics.dto.*;
 import com.silverline.erp.module.analytics.service.SalesAnalyticsService;
-import com.silverline.erp.module.manager.repository.ManagerSaleItemRepository;
-import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
-import com.silverline.erp.module.manager.repository.ManagerUserRepository;
-import com.silverline.erp.module.pos.repository.PaymentRepository;
-import com.silverline.erp.module.pos.repository.SaleItemRepository;
-import com.silverline.erp.module.pos.repository.SalesReturnRepository;
+import com.silverline.erp.module.pos.service.SaleQueryService;
+import com.silverline.erp.module.admin.service.UserService;
+import com.silverline.erp.module.admin.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,12 +31,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
 
-    private final ManagerSaleRepository saleRepository;
-    private final ManagerSaleItemRepository saleItemRepository;
-    private final ManagerUserRepository userRepository;
-    private final PaymentRepository paymentRepository;
-    private final SalesReturnRepository salesReturnRepository;
-    private final SaleItemRepository posSaleItemRepository;
+    private final SaleQueryService saleQueryService;
+    private final UserService userService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -64,11 +56,11 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
             BigDecimal dailySales;
             Long transactions;
             if (branchId != null) {
-                dailySales = saleRepository.sumNetTotalByBranchAndDateRange(branchId, dayStart, dayEnd);
-                transactions = saleRepository.countByBranchAndDateRange(branchId, dayStart, dayEnd);
+                dailySales = saleQueryService.sumNetTotalByBranchAndDateRange(branchId, dayStart, dayEnd);
+                transactions = saleQueryService.countByBranchAndDateRange(branchId, dayStart, dayEnd);
             } else {
-                dailySales = saleRepository.sumNetTotalByDateRange(dayStart, dayEnd);
-                transactions = saleRepository.countByDateRange(dayStart, dayEnd);
+                dailySales = saleQueryService.sumNetTotalByDateRange(dayStart, dayEnd);
+                transactions = saleQueryService.countByDateRange(dayStart, dayEnd);
             }
 
             salesData.add(SalesDataDTO.builder()
@@ -88,9 +80,9 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
 
         List<Object[]> results;
         if (branchId != null) {
-            results = saleItemRepository.findTopSellingProductsByBranch(branchId, weekStart, weekEnd, limit);
+            results = saleQueryService.findTopSellingProductsByBranch(branchId, weekStart, weekEnd, limit);
         } else {
-            results = saleItemRepository.findTopSellingProducts(weekStart, weekEnd, limit);
+            results = saleQueryService.findTopSellingProducts(weekStart, weekEnd, limit);
         }
 
         return results.stream()
@@ -125,17 +117,17 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
         Long customersServed;
 
         if (branchId != null) {
-            todaySales = saleRepository.sumNetTotalByBranchAndDateRange(branchId, todayStart, todayEnd);
-            yesterdaySales = saleRepository.sumNetTotalByBranchAndDateRange(branchId, yesterdayStart, yesterdayEnd);
-            todayTransactions = saleRepository.countByBranchAndDateRange(branchId, todayStart, todayEnd);
-            yesterdayTransactions = saleRepository.countByBranchAndDateRange(branchId, yesterdayStart, yesterdayEnd);
-            customersServed = saleRepository.countDistinctCustomers(todayStart, todayEnd, branchId);
+            todaySales = saleQueryService.sumNetTotalByBranchAndDateRange(branchId, todayStart, todayEnd);
+            yesterdaySales = saleQueryService.sumNetTotalByBranchAndDateRange(branchId, yesterdayStart, yesterdayEnd);
+            todayTransactions = saleQueryService.countByBranchAndDateRange(branchId, todayStart, todayEnd);
+            yesterdayTransactions = saleQueryService.countByBranchAndDateRange(branchId, yesterdayStart, yesterdayEnd);
+            customersServed = saleQueryService.countDistinctCustomers(todayStart, todayEnd, branchId);
         } else {
-            todaySales = saleRepository.sumNetTotalByDateRange(todayStart, todayEnd);
-            yesterdaySales = saleRepository.sumNetTotalByDateRange(yesterdayStart, yesterdayEnd);
-            todayTransactions = saleRepository.countByDateRange(todayStart, todayEnd);
-            yesterdayTransactions = saleRepository.countByDateRange(yesterdayStart, yesterdayEnd);
-            customersServed = saleRepository.countDistinctCustomers(todayStart, todayEnd, null);
+            todaySales = saleQueryService.sumNetTotalByDateRange(todayStart, todayEnd);
+            yesterdaySales = saleQueryService.sumNetTotalByDateRange(yesterdayStart, yesterdayEnd);
+            todayTransactions = saleQueryService.countByDateRange(todayStart, todayEnd);
+            yesterdayTransactions = saleQueryService.countByDateRange(yesterdayStart, yesterdayEnd);
+            customersServed = saleQueryService.countDistinctCustomers(todayStart, todayEnd, null);
         }
 
         todaySales = todaySales != null ? todaySales : BigDecimal.ZERO;
@@ -197,28 +189,28 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
             Long invoiceCount;
 
             if (branchId != null) {
-                revenue = saleRepository.sumNetTotalByBranchAndDateRange(branchId, dayStart, dayEnd);
-                grossTotal = saleRepository.sumGrossTotalByDateRange(dayStart, dayEnd, branchId);
-                invoiceCount = saleRepository.countByBranchAndDateRange(branchId, dayStart, dayEnd);
+                revenue = saleQueryService.sumNetTotalByBranchAndDateRange(branchId, dayStart, dayEnd);
+                grossTotal = saleQueryService.sumGrossTotalByDateRange(dayStart, dayEnd, branchId);
+                invoiceCount = saleQueryService.countByBranchAndDateRange(branchId, dayStart, dayEnd);
             } else {
-                revenue = saleRepository.sumNetTotalByDateRange(dayStart, dayEnd);
-                grossTotal = saleRepository.sumGrossTotalByDateRange(dayStart, dayEnd, null);
-                invoiceCount = saleRepository.countByDateRange(dayStart, dayEnd);
+                revenue = saleQueryService.sumNetTotalByDateRange(dayStart, dayEnd);
+                grossTotal = saleQueryService.sumGrossTotalByDateRange(dayStart, dayEnd, null);
+                invoiceCount = saleQueryService.countByDateRange(dayStart, dayEnd);
             }
 
             revenue = revenue != null ? revenue : BigDecimal.ZERO;
             grossTotal = grossTotal != null ? grossTotal : BigDecimal.ZERO;
             int invoices = invoiceCount != null ? invoiceCount.intValue() : 0;
 
-            BigDecimal cashSales = paymentRepository.sumByTypeAndDateRange(dayStart, dayEnd, "CASH", branchId);
-            BigDecimal cardSales = paymentRepository.sumByTypeAndDateRange(dayStart, dayEnd, "CARD", branchId);
-            BigDecimal qrSales = paymentRepository.sumByTypeAndDateRange(dayStart, dayEnd, "QR", branchId);
+            BigDecimal cashSales = saleQueryService.sumPaymentByTypeAndDateRange(dayStart, dayEnd, "CASH", branchId);
+            BigDecimal cardSales = saleQueryService.sumPaymentByTypeAndDateRange(dayStart, dayEnd, "CARD", branchId);
+            BigDecimal qrSales = saleQueryService.sumPaymentByTypeAndDateRange(dayStart, dayEnd, "QR", branchId);
 
             cashSales = cashSales != null ? cashSales : BigDecimal.ZERO;
             cardSales = cardSales != null ? cardSales : BigDecimal.ZERO;
             qrSales = qrSales != null ? qrSales : BigDecimal.ZERO;
 
-            BigDecimal returns = salesReturnRepository.sumTotalAmountByDateRange(dayStart, dayEnd, branchId);
+            BigDecimal returns = saleQueryService.sumReturnTotalByDateRange(dayStart, dayEnd, branchId);
             returns = returns != null ? returns : BigDecimal.ZERO;
 
             BigDecimal cost = revenue.multiply(BigDecimal.valueOf(0.70)).setScale(2, RoundingMode.HALF_UP);
@@ -259,12 +251,12 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
     private BigDecimal calculateWeeklyAverage() {
         LocalDateTime weekStart = LocalDate.now().minusDays(6).atStartOfDay();
         LocalDateTime weekEnd = LocalDateTime.now();
-        BigDecimal weekTotal = saleRepository.sumNetTotalByDateRange(weekStart, weekEnd);
+        BigDecimal weekTotal = saleQueryService.sumNetTotalByDateRange(weekStart, weekEnd);
         return weekTotal != null ? weekTotal.divide(BigDecimal.valueOf(7), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
     }
 
     private List<PaymentBreakdownDTO> getPaymentBreakdown(LocalDateTime startDate, LocalDateTime endDate, Long branchId) {
-        List<Object[]> results = paymentRepository.findPaymentBreakdownByDateRange(startDate, endDate, branchId);
+        List<Object[]> results = saleQueryService.findPaymentBreakdownByDateRange(startDate, endDate, branchId);
         BigDecimal total = results.stream()
                 .map(row -> (BigDecimal) row[1])
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -289,7 +281,7 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
     }
 
     private List<HourlySalesDTO> getHourlySales(LocalDateTime targetDate, Long branchId) {
-        List<Object[]> results = saleRepository.findHourlySales(targetDate, branchId);
+        List<Object[]> results = saleQueryService.findHourlySales(targetDate, branchId);
 
         Map<Integer, Object[]> hourlyMap = results.stream()
                 .collect(Collectors.toMap(
@@ -322,20 +314,20 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
     private List<RecentTransactionDTO> getRecentTransactions(int limit, Long branchId) {
         List<Sale> recentSales;
         if (branchId != null) {
-            recentSales = saleRepository.findRecentSalesByBranch(branchId, PageRequest.of(0, limit));
+            recentSales = saleQueryService.findRecentSalesByBranch(branchId, limit);
         } else {
-            recentSales = saleRepository.findRecentSales(PageRequest.of(0, limit));
+            recentSales = saleQueryService.findRecentSales(limit);
         }
 
-        Map<Long, String> userNames = userRepository.findAll().stream()
-                .collect(Collectors.toMap(UserProfile::getUserId, UserProfile::getFullName, (a, b) -> a));
+        Map<Long, String> userNames = userService.getAllUsers().stream()
+                .collect(Collectors.toMap(UserDTO::getUserId, UserDTO::getFullName, (a, b) -> a));
 
         return recentSales.stream()
                 .map(sale -> {
-                    List<SaleItem> items = posSaleItemRepository.findBySaleId(sale.getSaleId());
+                    List<SaleItem> items = saleQueryService.findSaleItemsBySaleId(sale.getSaleId());
                     int itemCount = items != null ? items.size() : 0;
 
-                    List<Payment> payments = paymentRepository.findBySaleId(sale.getSaleId());
+                    List<Payment> payments = saleQueryService.findPaymentsBySaleId(sale.getSaleId());
                     String paymentMethod = payments != null && !payments.isEmpty()
                             ? payments.get(0).getPaymentType()
                             : "CASH";

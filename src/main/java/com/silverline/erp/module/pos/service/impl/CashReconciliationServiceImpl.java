@@ -169,4 +169,14 @@ public class CashReconciliationServiceImpl implements CashReconciliationService 
     public List<CashFlow> getShiftCashFlows(Long shiftId) {
         return cashFlowRepository.findByShiftId(shiftId);
     }
+
+    @Override
+    public CashFlow findCashFlowById(Long id) {
+        return cashFlowRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public CashFlow saveCashFlow(CashFlow cashFlow) {
+        return cashFlowRepository.save(cashFlow);
+    }
 }

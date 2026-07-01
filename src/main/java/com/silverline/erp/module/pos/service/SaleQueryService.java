@@ -37,4 +37,5 @@ public interface SaleQueryService {
     List<com.silverline.erp.domain.pos.Sale> findRecentSales(int limit);
     List<com.silverline.erp.domain.pos.SaleItem> findSaleItemsBySaleId(Long saleId);
     List<com.silverline.erp.domain.pos.Payment> findPaymentsBySaleId(Long saleId);
+    List<com.silverline.erp.domain.pos.Sale> findTop10ByCustomerIdOrderBySaleDateDesc(Long customerId);
 }

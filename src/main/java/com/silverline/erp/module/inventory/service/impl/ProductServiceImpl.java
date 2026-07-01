@@ -330,4 +330,24 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
     }
+
+    @Override
+    public List<Product> findProductsByIds(List<Long> ids) {
+        return productRepository.findAllById(ids);
+    }
+
+    @Override
+    public Product findBySku(String sku) {
+        return productRepository.findBySku(sku).orElse(null);
+    }
+
+    @Override
+    public List<Product> searchProductEntities(String keyword) {
+        return productRepository.searchProducts(keyword);
+    }
+
+    @Override
+    public List<Product> getActiveProductsLimit(int limit) {
+        return productRepository.findByIsActiveTrue(org.springframework.data.domain.PageRequest.of(0, limit)).getContent();
+    }
 }
