@@ -20,7 +20,7 @@ import com.silverline.erp.module.pos.dto.sale.SaleResponse;
 import com.silverline.erp.module.pos.repository.PaymentRepository;
 import com.silverline.erp.module.pos.repository.SaleItemRepository;
 import com.silverline.erp.module.pos.repository.SaleRepository;
-import com.silverline.erp.module.pos.service.SaleService;
+import com.silverline.erp.module.pos.service.PosSaleService;
 import com.silverline.erp.module.pos.service.SaleQueryService;
 import com.silverline.erp.module.admin.service.SaasFeatureService;
 import com.silverline.erp.common.event.SaleCompletedEvent;
@@ -40,7 +40,7 @@ import java.util.Optional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SaleServiceImpl implements SaleService {
+public class PosSaleServiceImpl implements PosSaleService {
 
     private final SaleRepository saleRepository;
     private final SaleItemRepository saleItemRepository;

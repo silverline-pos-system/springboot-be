@@ -1,6 +1,6 @@
 package com.silverline.erp.module.admin.controller;
 
-import com.silverline.erp.module.admin.service.SaleService;
+import com.silverline.erp.module.admin.service.AdminSaleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,10 +15,10 @@ import java.time.format.DateTimeFormatter;
 @RequestMapping("/api/v1/admin/sales")
 public class SaleController {
 
-    private final SaleService saleService;
+    private final AdminSaleService saleService;
 
     @Autowired
-    public SaleController(SaleService saleService) {
+    public SaleController(AdminSaleService saleService) {
         this.saleService = saleService;
     }
 

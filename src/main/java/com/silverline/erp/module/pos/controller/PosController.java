@@ -7,7 +7,7 @@ import com.silverline.erp.module.pos.dto.returns.ReturnRequest;
 import com.silverline.erp.module.pos.dto.sale.CreateSaleRequest;
 import com.silverline.erp.module.pos.dto.sale.SaleResponse;
 import com.silverline.erp.module.pos.dto.sale.SaleSummaryDTO;
-import com.silverline.erp.module.pos.service.SaleService;
+import com.silverline.erp.module.pos.service.PosSaleService;
 import com.silverline.erp.module.pos.service.ReturnService;
 import com.silverline.erp.module.pos.service.LoyaltyService;
 import com.silverline.erp.module.pos.service.SaleQueryService;
@@ -30,7 +30,7 @@ import java.util.Map;
 @CrossOrigin
 public class PosController {
 
-    private final SaleService saleService;
+    private final PosSaleService saleService;
     private final ReturnService returnService;
     private final LoyaltyService loyaltyService;
     private final SaleQueryService saleQueryService;
