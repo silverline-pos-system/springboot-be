@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-@Service
+@Service("adminSaleService")
 public class SaleServiceImpl implements SaleService {
 
     private final SaleRepository saleRepository;

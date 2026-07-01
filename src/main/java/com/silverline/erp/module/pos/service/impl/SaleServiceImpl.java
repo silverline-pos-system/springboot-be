@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Service
+@Service("posSaleService")
 @Slf4j
 @RequiredArgsConstructor
 public class SaleServiceImpl implements SaleService {
