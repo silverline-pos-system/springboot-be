@@ -12,10 +12,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.nsbm</groupId>
-    <artifactId>rocs</artifactId>
+    <groupId>com.silverline</groupId>
+    <artifactId>erp</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>rocs</name>
+    <name>erp</name>
     <description>retail_operation_control_system</description>
 
     <properties>
