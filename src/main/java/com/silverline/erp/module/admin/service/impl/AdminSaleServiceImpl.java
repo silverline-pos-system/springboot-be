@@ -1,6 +1,6 @@
 package com.silverline.erp.module.admin.service.impl;
 
-import com.silverline.erp.module.admin.service.SaleService;
+import com.silverline.erp.module.admin.service.AdminSaleService;
 import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.module.admin.repository.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,13 +11,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-@Service("adminSaleService")
-public class SaleServiceImpl implements SaleService {
+@Service
+public class AdminSaleServiceImpl implements AdminSaleService {
 
     private final SaleRepository saleRepository;
 
     @Autowired
-    public SaleServiceImpl(SaleRepository saleRepository) {
+    public AdminSaleServiceImpl(SaleRepository saleRepository) {
         this.saleRepository = saleRepository;
     }
 
