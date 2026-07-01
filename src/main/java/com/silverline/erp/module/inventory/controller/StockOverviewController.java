@@ -1,16 +1,16 @@
 package com.silverline.erp.module.inventory.controller;
 
-import com.silverline.erp.domain.inventory.Stock;
 import com.silverline.erp.common.dto.ApiResponse;
-
 import com.silverline.erp.module.inventory.dto.StockDTO;
 import com.silverline.erp.module.inventory.service.StockOverviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/inventory/stock-overview")

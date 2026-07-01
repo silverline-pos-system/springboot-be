@@ -1,6 +1,5 @@
 package com.silverline.erp.module.pos.dto.sale;
 
-import com.silverline.erp.domain.branch.Branch;
 import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

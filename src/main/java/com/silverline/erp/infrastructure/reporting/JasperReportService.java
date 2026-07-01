@@ -1,16 +1,16 @@
 package com.silverline.erp.infrastructure.reporting;
 
-import com.silverline.erp.module.pos.service.CustomerService;
-import com.silverline.erp.module.manager.service.ManagerService;
-import com.silverline.erp.module.analytics.service.SalesAnalyticsService;
 import com.silverline.erp.domain.inventory.Dispatch;
 import com.silverline.erp.domain.inventory.Supplier;
-import com.silverline.erp.module.procurement.repository.DispatchRepository;
+import com.silverline.erp.module.analytics.dto.SalesReportDTO;
+import com.silverline.erp.module.analytics.service.SalesAnalyticsService;
 import com.silverline.erp.module.inventory.repository.SupplierRepository;
 import com.silverline.erp.module.manager.dto.ActivityLogDTO;
 import com.silverline.erp.module.manager.dto.ApprovalDTO;
 import com.silverline.erp.module.manager.dto.ManagerCustomerDTO;
-import com.silverline.erp.module.analytics.dto.SalesReportDTO;
+import com.silverline.erp.module.manager.service.ManagerService;
+import com.silverline.erp.module.pos.service.CustomerService;
+import com.silverline.erp.module.procurement.repository.DispatchRepository;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

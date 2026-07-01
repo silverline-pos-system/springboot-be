@@ -1,17 +1,11 @@
 package com.silverline.erp.module.finance.service;
 
-import com.silverline.erp.domain.finance.Account;
-import com.silverline.erp.domain.finance.Expense;
+import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.module.analytics.dto.SalesReportDTO;
 import com.silverline.erp.module.finance.dto.ChartOfAccountDTO;
-import com.silverline.erp.module.finance.dto.ExpenseDTO;
 import com.silverline.erp.module.finance.dto.JournalEntryDTO;
 import com.silverline.erp.module.finance.dto.JournalEntryRequest;
 import com.silverline.erp.module.finance.dto.ProfitLossDTO;
-import com.silverline.erp.domain.pos.Sale;
-import com.silverline.erp.module.manager.dto.*;
-import com.silverline.erp.module.finance.dto.*;
-import com.silverline.erp.module.analytics.dto.*;
 import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

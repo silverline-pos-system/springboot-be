@@ -1,6 +1,7 @@
 package com.silverline.erp.module.pos.dto.customer;
 
 import lombok.Data;
+
 import java.time.LocalDate;
 
 @Data

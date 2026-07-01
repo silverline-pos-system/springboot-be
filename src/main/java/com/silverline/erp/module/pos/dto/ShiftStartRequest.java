@@ -1,6 +1,5 @@
 package com.silverline.erp.module.pos.dto;
 
-import com.silverline.erp.domain.branch.Branch;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;

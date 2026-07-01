@@ -1,11 +1,11 @@
 package com.silverline.erp.module.manager.controller;
 
+import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.module.analytics.dto.StaffSummaryDTO;
 import com.silverline.erp.module.manager.dto.ActivityLogDTO;
 import com.silverline.erp.module.manager.dto.ApprovalDTO;
 import com.silverline.erp.module.manager.dto.ApprovalUpdateRequest;
 import com.silverline.erp.module.manager.service.ManagerService;
-import com.silverline.erp.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

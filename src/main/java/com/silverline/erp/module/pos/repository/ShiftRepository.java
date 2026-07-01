@@ -1,9 +1,9 @@
 package com.silverline.erp.module.pos.repository;
 
-import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.domain.pos.CashShift;
-import java.util.Optional;
+
 import java.util.List;
+import java.util.Optional;
 
 /**
  * PURPOSE: Interface for all shift-related database operations

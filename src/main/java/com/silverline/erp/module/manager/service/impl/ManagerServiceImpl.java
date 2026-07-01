@@ -1,5 +1,7 @@
 package com.silverline.erp.module.manager.service.impl;
 
+import com.silverline.erp.common.audit.repository.ApprovalRepository;
+import com.silverline.erp.common.audit.repository.UserActivityLogRepository;
 import com.silverline.erp.common.email.EmailService;
 import com.silverline.erp.domain.audit.Approval;
 import com.silverline.erp.domain.audit.UserActivityLog;
@@ -11,10 +13,8 @@ import com.silverline.erp.module.analytics.dto.StaffSummaryDTO;
 import com.silverline.erp.module.manager.dto.ActivityLogDTO;
 import com.silverline.erp.module.manager.dto.ApprovalDTO;
 import com.silverline.erp.module.manager.repository.ManagerUserRepository;
-import com.silverline.erp.common.audit.repository.ApprovalRepository;
-import com.silverline.erp.common.audit.repository.UserActivityLogRepository;
-import com.silverline.erp.module.pos.service.CashReconciliationService;
 import com.silverline.erp.module.manager.service.ManagerService;
+import com.silverline.erp.module.pos.service.CashReconciliationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;

@@ -1,10 +1,9 @@
 package com.silverline.erp.module.auth.repo;
 
-import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.domain.enums.Role;
+import com.silverline.erp.domain.user.UserProfile;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

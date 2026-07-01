@@ -1,19 +1,10 @@
 package com.silverline.erp.module.pos.controller;
 
-import com.silverline.erp.domain.pos.Sale;
-import com.silverline.erp.module.pos.dto.customer.LoyaltyRedeemRequest;
-import com.silverline.erp.module.pos.dto.customer.LoyaltyRedeemVerifyRequest;
-import com.silverline.erp.module.pos.dto.returns.ReturnRequest;
-import com.silverline.erp.module.pos.dto.sale.CreateSaleRequest;
-import com.silverline.erp.module.pos.dto.sale.SaleResponse;
-import com.silverline.erp.module.pos.dto.sale.SaleSummaryDTO;
-import com.silverline.erp.module.pos.service.PosSaleService;
-import com.silverline.erp.module.pos.service.ReturnService;
-import com.silverline.erp.module.pos.service.LoyaltyService;
-import com.silverline.erp.module.pos.service.SaleQueryService;
-import com.silverline.erp.module.pos.service.ShiftService;
 import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.common.security.SecurityUtils;
+import com.silverline.erp.module.pos.dto.sale.SaleResponse;
+import com.silverline.erp.module.pos.dto.sale.SaleSummaryDTO;
+import com.silverline.erp.module.pos.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

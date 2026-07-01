@@ -1,9 +1,8 @@
 package com.silverline.erp.module.procurement.service;
 
-import com.silverline.erp.domain.inventory.Dispatch;
-import com.silverline.erp.module.procurement.dto.DispatchPaymentRequestDTO;
-import com.silverline.erp.module.inventory.dto.TransferToManagerRequest;
 import com.silverline.erp.module.inventory.dto.ProcessPaymentRequest;
+import com.silverline.erp.module.inventory.dto.TransferToManagerRequest;
+import com.silverline.erp.module.procurement.dto.DispatchPaymentRequestDTO;
 
 import java.util.List;
 

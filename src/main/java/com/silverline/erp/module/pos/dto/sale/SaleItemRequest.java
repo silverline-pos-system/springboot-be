@@ -1,7 +1,5 @@
 package com.silverline.erp.module.pos.dto.sale;
 
-import com.silverline.erp.domain.product.Product;
-import com.silverline.erp.domain.product.Unit;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;

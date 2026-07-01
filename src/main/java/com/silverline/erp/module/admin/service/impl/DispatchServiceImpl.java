@@ -1,6 +1,5 @@
 package com.silverline.erp.module.admin.service.impl;
 
-import com.silverline.erp.domain.inventory.Dispatch;
 import com.silverline.erp.module.admin.dto.DispatchDTO;
 import com.silverline.erp.module.admin.service.DispatchService;
 import com.silverline.erp.module.procurement.repository.DispatchRepository;

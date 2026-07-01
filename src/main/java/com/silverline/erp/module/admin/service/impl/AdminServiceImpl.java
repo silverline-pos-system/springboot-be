@@ -1,17 +1,19 @@
 package com.silverline.erp.module.admin.service.impl;
 
-import com.silverline.erp.domain.branch.Branch;
-import com.silverline.erp.module.admin.service.AdminService;
 import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.pos.repository.SaleRepository;
 import com.silverline.erp.module.admin.repository.BranchRepository;
+import com.silverline.erp.module.admin.service.AdminService;
 import com.silverline.erp.module.auth.repository.UserRepository;
+import com.silverline.erp.module.pos.repository.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service

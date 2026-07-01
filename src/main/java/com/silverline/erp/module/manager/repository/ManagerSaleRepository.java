@@ -1,6 +1,5 @@
 package com.silverline.erp.module.manager.repository;
 
-import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.domain.pos.Sale;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

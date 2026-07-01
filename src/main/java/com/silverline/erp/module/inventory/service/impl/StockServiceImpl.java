@@ -1,17 +1,17 @@
 package com.silverline.erp.module.inventory.service.impl;
 
-import com.silverline.erp.domain.inventory.Stock;
-import com.silverline.erp.module.inventory.dto.StockDTO;
-import com.silverline.erp.module.inventory.dto.StockAdjustmentDTO;
-import com.silverline.erp.module.inventory.dto.StockReportDTO;
-import com.silverline.erp.module.inventory.dto.LowStockAlertDTO;
-import com.silverline.erp.common.exception.ResourceNotFoundException;
-import com.silverline.erp.module.inventory.repository.StockRepository;
-import com.silverline.erp.module.inventory.repository.ProductRepository;
-import com.silverline.erp.module.inventory.service.StockService;
 import com.silverline.erp.common.event.StockAdjustedEvent;
-import org.springframework.context.ApplicationEventPublisher;
+import com.silverline.erp.common.exception.ResourceNotFoundException;
+import com.silverline.erp.domain.inventory.Stock;
+import com.silverline.erp.module.inventory.dto.LowStockAlertDTO;
+import com.silverline.erp.module.inventory.dto.StockAdjustmentDTO;
+import com.silverline.erp.module.inventory.dto.StockDTO;
+import com.silverline.erp.module.inventory.dto.StockReportDTO;
+import com.silverline.erp.module.inventory.repository.ProductRepository;
+import com.silverline.erp.module.inventory.repository.StockRepository;
+import com.silverline.erp.module.inventory.service.StockService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

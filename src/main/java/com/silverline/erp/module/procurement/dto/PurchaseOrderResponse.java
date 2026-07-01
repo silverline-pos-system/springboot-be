@@ -1,7 +1,7 @@
 package com.silverline.erp.module.procurement.dto;
 
-import com.silverline.erp.domain.pos.Payment;
 import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

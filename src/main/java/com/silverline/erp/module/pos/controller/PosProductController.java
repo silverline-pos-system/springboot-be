@@ -2,21 +2,17 @@ package com.silverline.erp.module.pos.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.domain.product.Product;
-import com.silverline.erp.domain.inventory.Stock;
-import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.inventory.service.ProductService;
-import com.silverline.erp.module.inventory.service.StockService;
 import com.silverline.erp.module.inventory.service.BatchService;
 import com.silverline.erp.module.inventory.service.ProductSerialService;
+import com.silverline.erp.module.inventory.service.ProductService;
+import com.silverline.erp.module.inventory.service.StockService;
 import com.silverline.erp.module.pos.dto.PosProductDTO;
+import com.silverline.erp.module.pos.service.QuickPickService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import com.silverline.erp.module.pos.service.QuickPickService;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;

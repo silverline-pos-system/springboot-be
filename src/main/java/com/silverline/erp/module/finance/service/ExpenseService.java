@@ -1,18 +1,15 @@
 package com.silverline.erp.module.finance.service;
 
-import com.silverline.erp.domain.product.Category;
-import com.silverline.erp.domain.pos.Payment;
+import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.domain.finance.Expense;
 import com.silverline.erp.domain.finance.ExpenseCategory;
 import com.silverline.erp.domain.finance.ExpensePayment;
-import com.silverline.erp.domain.branch.Branch;
-import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.module.admin.repository.BranchRepository;
+import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.finance.dto.ExpenseCategoryDTO;
 import com.silverline.erp.module.finance.dto.ExpenseDTO;
 import com.silverline.erp.module.finance.dto.ExpenseDashboardDTO;
 import com.silverline.erp.module.finance.dto.ExpensePaymentDTO;
-import com.silverline.erp.module.admin.repository.BranchRepository;
-import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.finance.repository.ExpenseCategoryRepository;
 import com.silverline.erp.module.finance.repository.ExpensePaymentRepository;
 import com.silverline.erp.module.finance.repository.ExpenseRepository;

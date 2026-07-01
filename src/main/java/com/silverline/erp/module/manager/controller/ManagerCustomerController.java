@@ -1,8 +1,8 @@
 package com.silverline.erp.module.manager.controller;
 
-import com.silverline.erp.module.manager.dto.ManagerSaleDTO;
 import com.silverline.erp.module.analytics.dto.LoyaltyStatsDTO;
 import com.silverline.erp.module.manager.dto.ManagerCustomerDTO;
+import com.silverline.erp.module.manager.dto.ManagerSaleDTO;
 import com.silverline.erp.module.pos.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

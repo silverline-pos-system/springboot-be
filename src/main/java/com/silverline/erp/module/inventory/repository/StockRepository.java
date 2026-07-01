@@ -1,6 +1,5 @@
 package com.silverline.erp.module.inventory.repository;
 
-import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.inventory.Stock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

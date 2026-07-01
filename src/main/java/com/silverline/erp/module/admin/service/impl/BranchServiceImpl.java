@@ -1,25 +1,23 @@
 package com.silverline.erp.module.admin.service.impl;
 
-import com.silverline.erp.module.admin.dto.BranchDTO;
-import com.silverline.erp.module.admin.service.BranchService;
-import com.silverline.erp.domain.enums.Role;
+import com.silverline.erp.common.exception.ResourceNotFoundException;
 import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.module.admin.dto.BranchDTO;
+import com.silverline.erp.module.admin.dto.UserDTO;
 import com.silverline.erp.module.admin.repository.BranchRepository;
+import com.silverline.erp.module.admin.repository.SaleRepository;
+import com.silverline.erp.module.admin.service.BranchService;
 import com.silverline.erp.module.auth.repository.UserRepository;
+import com.silverline.erp.module.pos.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.silverline.erp.common.exception.ResourceNotFoundException;
 
-import com.silverline.erp.module.admin.dto.UserDTO;
-import com.silverline.erp.module.admin.repository.SaleRepository;
-import com.silverline.erp.module.pos.repository.CustomerRepository;
-import java.time.LocalDate;
-import java.util.Map;
-import java.util.HashMap;
 import java.math.BigDecimal;
-
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service

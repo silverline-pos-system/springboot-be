@@ -1,8 +1,8 @@
 package com.silverline.erp.module.inventory.service;
 
-import com.silverline.erp.module.inventory.dto.BrandDTO;
-import com.silverline.erp.domain.product.Brand;
 import com.silverline.erp.common.exception.ResourceNotFoundException;
+import com.silverline.erp.domain.product.Brand;
+import com.silverline.erp.module.inventory.dto.BrandDTO;
 import com.silverline.erp.module.inventory.repository.BrandRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

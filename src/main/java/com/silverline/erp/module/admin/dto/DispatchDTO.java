@@ -1,6 +1,5 @@
 package com.silverline.erp.module.admin.dto;
 
-import com.silverline.erp.domain.inventory.Dispatch;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

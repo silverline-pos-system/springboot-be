@@ -1,6 +1,5 @@
 package com.silverline.erp.module.inventory.dto;
 
-import com.silverline.erp.domain.inventory.Batch;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

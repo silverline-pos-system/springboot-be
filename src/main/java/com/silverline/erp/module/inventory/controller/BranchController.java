@@ -1,6 +1,5 @@
 package com.silverline.erp.module.inventory.controller;
 
-import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.module.admin.dto.BranchDTO;
 import com.silverline.erp.module.admin.service.BranchService;

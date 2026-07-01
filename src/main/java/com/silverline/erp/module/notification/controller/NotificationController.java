@@ -1,6 +1,5 @@
 package com.silverline.erp.module.notification.controller;
 
-import com.silverline.erp.domain.notification.Notification;
 import com.silverline.erp.domain.notification.NotificationRecipient;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.notification.service.NotificationService;

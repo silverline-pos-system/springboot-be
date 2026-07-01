@@ -1,6 +1,5 @@
 package com.silverline.erp.domain.inventory;
 
-import com.silverline.erp.domain.pos.Payment;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

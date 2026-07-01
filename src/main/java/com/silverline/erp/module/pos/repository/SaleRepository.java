@@ -1,7 +1,7 @@
 package com.silverline.erp.module.pos.repository;
 
-import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.domain.pos.Sale;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;

@@ -1,7 +1,5 @@
 package com.silverline.erp.common.constants;
 
-import com.silverline.erp.domain.pos.Payment;
-import com.silverline.erp.domain.pos.Sale;
 public class PosConstants {
 
     public static final String SHIFT_STATUS_OPEN = "OPEN";

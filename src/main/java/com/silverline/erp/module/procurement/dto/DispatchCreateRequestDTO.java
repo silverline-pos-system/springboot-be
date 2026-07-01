@@ -1,18 +1,12 @@
 package com.silverline.erp.module.procurement.dto;
 
-import com.silverline.erp.domain.branch.Branch;
-import com.silverline.erp.domain.inventory.Dispatch;
-import com.silverline.erp.domain.inventory.Supplier;
-import com.silverline.erp.domain.product.Product;
-import com.silverline.erp.domain.product.Unit;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;

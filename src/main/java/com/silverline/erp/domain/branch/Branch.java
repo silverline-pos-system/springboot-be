@@ -1,6 +1,5 @@
 package com.silverline.erp.domain.branch;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 

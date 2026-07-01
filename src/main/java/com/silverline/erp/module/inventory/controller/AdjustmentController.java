@@ -1,7 +1,6 @@
 package com.silverline.erp.module.inventory.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
-
 import com.silverline.erp.module.inventory.dto.StockAdjustmentDTO;
 import com.silverline.erp.module.inventory.service.AdjustmentService;
 import jakarta.validation.Valid;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/inventory/adjustments")

@@ -1,10 +1,11 @@
 package com.silverline.erp.domain.inventory;
 
-import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.branch.Branch;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.user.UserProfile;
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 

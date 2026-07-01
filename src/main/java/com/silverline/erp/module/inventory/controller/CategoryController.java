@@ -1,8 +1,6 @@
 package com.silverline.erp.module.inventory.controller;
 
-import com.silverline.erp.domain.product.Category;
 import com.silverline.erp.common.dto.ApiResponse;
-
 import com.silverline.erp.module.inventory.dto.CategoryDTO;
 import com.silverline.erp.module.inventory.service.CategoryService;
 import jakarta.validation.Valid;
@@ -12,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/inventory/categories")

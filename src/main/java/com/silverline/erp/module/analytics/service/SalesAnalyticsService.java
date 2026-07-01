@@ -1,10 +1,6 @@
 package com.silverline.erp.module.analytics.service;
 
-import com.silverline.erp.module.analytics.dto.SalesAnalyticsDTO;
-import com.silverline.erp.module.analytics.dto.SalesDataDTO;
-import com.silverline.erp.module.analytics.dto.SalesReportDTO;
-import com.silverline.erp.module.analytics.dto.TerminalSalesDTO;
-import com.silverline.erp.module.analytics.dto.TopSellingProductDTO;
+import com.silverline.erp.module.analytics.dto.*;
 
 import java.util.List;
 

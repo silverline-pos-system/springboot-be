@@ -1,8 +1,8 @@
 package com.silverline.erp.module.pos.service;
 
+import com.silverline.erp.module.pos.dto.sale.ProductSalesHistoryDTO;
 import com.silverline.erp.module.pos.dto.sale.SaleResponse;
 import com.silverline.erp.module.pos.dto.sale.SaleSummaryDTO;
-import com.silverline.erp.module.pos.dto.sale.ProductSalesHistoryDTO;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

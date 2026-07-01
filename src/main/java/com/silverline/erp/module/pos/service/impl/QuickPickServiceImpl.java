@@ -1,9 +1,9 @@
 package com.silverline.erp.module.pos.service.impl;
 
-import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.pos.QuickPickItem;
-import com.silverline.erp.module.pos.repository.QuickPickRepository;
+import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.module.inventory.service.ProductService;
+import com.silverline.erp.module.pos.repository.QuickPickRepository;
 import com.silverline.erp.module.pos.service.QuickPickService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

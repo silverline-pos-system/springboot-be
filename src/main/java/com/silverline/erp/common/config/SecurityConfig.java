@@ -1,6 +1,5 @@
 package com.silverline.erp.common.config;
 
-import com.silverline.erp.domain.notification.Notification;
 import com.silverline.erp.common.filter.JwtFilter;
 import com.silverline.erp.module.auth.service.MyUserDetailsService;
 import org.jspecify.annotations.NullMarked;

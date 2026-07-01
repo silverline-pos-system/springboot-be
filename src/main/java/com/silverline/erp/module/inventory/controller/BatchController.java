@@ -1,8 +1,6 @@
 package com.silverline.erp.module.inventory.controller;
 
-import com.silverline.erp.domain.inventory.Batch;
 import com.silverline.erp.common.dto.ApiResponse;
-
 import com.silverline.erp.module.inventory.dto.BatchDTO;
 import com.silverline.erp.module.inventory.dto.ExpiryAlertDTO;
 import com.silverline.erp.module.inventory.service.BatchService;
@@ -13,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/inventory/batches")

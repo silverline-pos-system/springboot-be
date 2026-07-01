@@ -1,6 +1,5 @@
 package com.silverline.erp.module.pos.repository;
 
-import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.domain.pos.Payment;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,8 +1,8 @@
 package com.silverline.erp.module.admin.service.impl;
 
-import com.silverline.erp.module.admin.service.ActivityLogService;
-import com.silverline.erp.domain.audit.UserActivityLog;
 import com.silverline.erp.common.audit.repository.UserActivityLogRepository;
+import com.silverline.erp.domain.audit.UserActivityLog;
+import com.silverline.erp.module.admin.service.ActivityLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;

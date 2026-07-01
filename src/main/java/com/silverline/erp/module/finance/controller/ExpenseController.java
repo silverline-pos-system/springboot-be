@@ -1,13 +1,11 @@
 package com.silverline.erp.module.finance.controller;
 
-import com.silverline.erp.domain.finance.Expense;
-import com.silverline.erp.domain.pos.Payment;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.finance.dto.ExpenseDTO;
 import com.silverline.erp.module.finance.dto.ExpenseDashboardDTO;
 import com.silverline.erp.module.finance.dto.ExpensePaymentDTO;
 import com.silverline.erp.module.finance.service.ExpenseService;
-import com.silverline.erp.module.auth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

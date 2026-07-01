@@ -1,6 +1,5 @@
 package com.silverline.erp.module.procurement.service.impl;
 
-import com.silverline.erp.domain.inventory.Dispatch;
 import com.silverline.erp.module.procurement.dto.DispatchCreateRequestDTO;
 import com.silverline.erp.module.procurement.dto.DispatchResponseDTO;
 import com.silverline.erp.module.procurement.service.DispatchService;

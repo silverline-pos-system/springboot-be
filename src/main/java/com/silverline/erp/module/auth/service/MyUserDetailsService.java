@@ -1,9 +1,7 @@
 package com.silverline.erp.module.auth.service;
 
-import com.silverline.erp.domain.branch.Branch;
-import com.silverline.erp.domain.finance.Account;
-import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.domain.enums.AccountStatus;
+import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.auth.repo.UserProfileRepo;
 import lombok.Data;
 import org.jspecify.annotations.NullMarked;

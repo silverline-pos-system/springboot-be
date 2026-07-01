@@ -1,6 +1,5 @@
 package com.silverline.erp.module.pos.dto.sale;
 
-import com.silverline.erp.domain.pos.Payment;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

@@ -1,10 +1,9 @@
 package com.silverline.erp.module.inventory.service.impl;
 
-import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.domain.inventory.Stock;
 import com.silverline.erp.module.inventory.dto.StockDTO;
-import com.silverline.erp.module.inventory.repository.StockRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
+import com.silverline.erp.module.inventory.repository.StockRepository;
 import com.silverline.erp.module.inventory.service.StockOverviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

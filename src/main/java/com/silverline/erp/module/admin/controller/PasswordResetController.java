@@ -1,16 +1,13 @@
 package com.silverline.erp.module.admin.controller;
 
-import com.silverline.erp.module.admin.dto.PasswordResetResponseDTO;
+import com.silverline.erp.common.audit.repository.PasswordResetRequestRepository;
 import com.silverline.erp.common.email.EmailService;
 import com.silverline.erp.domain.audit.PasswordResetRequest;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.domain.enums.Role;
+import com.silverline.erp.module.admin.dto.PasswordResetResponseDTO;
 import com.silverline.erp.module.auth.repository.UserRepository;
-import com.silverline.erp.common.audit.repository.PasswordResetRequestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;

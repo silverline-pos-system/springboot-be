@@ -1,7 +1,7 @@
 package com.silverline.erp.module.manager.controller;
 
-import com.silverline.erp.domain.audit.BranchActivity;
 import com.silverline.erp.common.audit.AuditLogService;
+import com.silverline.erp.domain.audit.BranchActivity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;

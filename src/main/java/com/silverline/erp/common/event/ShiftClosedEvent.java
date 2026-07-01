@@ -2,6 +2,7 @@ package com.silverline.erp.common.event;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
 import java.math.BigDecimal;
 
 @Getter

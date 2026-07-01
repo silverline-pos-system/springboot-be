@@ -1,6 +1,5 @@
 package com.silverline.erp.module.inventory.dto;
 
-import com.silverline.erp.domain.product.Category;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

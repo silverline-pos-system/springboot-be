@@ -1,8 +1,8 @@
 package com.silverline.erp.module.inventory.service;
 
-import com.silverline.erp.module.inventory.dto.CategoryDTO;
-import com.silverline.erp.domain.product.Category;
 import com.silverline.erp.common.exception.ResourceNotFoundException;
+import com.silverline.erp.domain.product.Category;
+import com.silverline.erp.module.inventory.dto.CategoryDTO;
 import com.silverline.erp.module.inventory.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

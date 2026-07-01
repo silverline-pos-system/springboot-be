@@ -1,8 +1,8 @@
 package com.silverline.erp.module.inventory.service.impl;
 
+import com.silverline.erp.common.exception.ResourceNotFoundException;
 import com.silverline.erp.domain.inventory.ProductSerial;
 import com.silverline.erp.module.inventory.dto.DamagedProductDTO;
-import com.silverline.erp.common.exception.ResourceNotFoundException;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.repository.ProductSerialRepository;
 import com.silverline.erp.module.inventory.service.DamageService;

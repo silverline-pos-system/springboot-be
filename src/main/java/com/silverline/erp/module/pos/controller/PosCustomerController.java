@@ -1,9 +1,9 @@
 package com.silverline.erp.module.pos.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
+import com.silverline.erp.domain.pos.Customer;
 import com.silverline.erp.module.pos.dto.customer.CreateCustomerRequest;
 import com.silverline.erp.module.pos.service.LoyaltyService;
-import com.silverline.erp.domain.pos.Customer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

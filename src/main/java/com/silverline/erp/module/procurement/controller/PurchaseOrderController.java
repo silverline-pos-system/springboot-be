@@ -1,11 +1,9 @@
 package com.silverline.erp.module.procurement.controller;
 
+import com.silverline.erp.domain.inventory.PurchaseOrder;
 import com.silverline.erp.module.inventory.dto.ProcessPORequest;
 import com.silverline.erp.module.procurement.dto.PurchaseOrderDTO;
 import com.silverline.erp.module.procurement.dto.PurchaseOrderResponse;
-import com.silverline.erp.domain.inventory.PurchaseOrder;
-import com.silverline.erp.module.inventory.dto.*;
-import com.silverline.erp.module.procurement.dto.*;
 import com.silverline.erp.module.procurement.service.PurchaseOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,5 @@
 package com.silverline.erp.module.inventory.controller;
 
-import com.silverline.erp.domain.inventory.Supplier;
 import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.module.inventory.dto.SupplierRequestDTO;
 import com.silverline.erp.module.inventory.dto.SupplierResponseDTO;

@@ -2,6 +2,7 @@ package com.silverline.erp.domain.pos;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Data

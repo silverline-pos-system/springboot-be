@@ -1,6 +1,5 @@
 package com.silverline.erp.module.inventory.service.impl;
 
-import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.inventory.Batch;
 import com.silverline.erp.module.inventory.dto.ExpiryAlertDTO;
 import com.silverline.erp.module.inventory.repository.BatchRepository;

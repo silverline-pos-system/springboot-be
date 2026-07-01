@@ -1,9 +1,9 @@
 package com.silverline.erp.module.inventory.service;
 
-import com.silverline.erp.module.inventory.dto.StockDTO;
-import com.silverline.erp.module.inventory.dto.StockAdjustmentDTO;
-import com.silverline.erp.module.inventory.dto.StockReportDTO;
 import com.silverline.erp.module.inventory.dto.LowStockAlertDTO;
+import com.silverline.erp.module.inventory.dto.StockAdjustmentDTO;
+import com.silverline.erp.module.inventory.dto.StockDTO;
+import com.silverline.erp.module.inventory.dto.StockReportDTO;
 
 import java.util.List;
 

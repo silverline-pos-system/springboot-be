@@ -1,8 +1,8 @@
 package com.silverline.erp.module.pos.dto.shift;
 
-import com.silverline.erp.domain.branch.Branch;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+
 import java.math.BigDecimal;
 
 /**

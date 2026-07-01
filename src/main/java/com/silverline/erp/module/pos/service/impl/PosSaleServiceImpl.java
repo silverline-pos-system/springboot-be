@@ -1,17 +1,16 @@
 package com.silverline.erp.module.pos.service.impl;
 
-import com.silverline.erp.common.audit.AuditLogService;
-import com.silverline.erp.domain.inventory.Stock;
+import com.silverline.erp.common.event.SaleCompletedEvent;
 import com.silverline.erp.domain.pos.Payment;
 import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.domain.pos.SaleItem;
 import com.silverline.erp.domain.product.Product;
-import com.silverline.erp.domain.system.SaasFeature;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.module.admin.service.SaasFeatureService;
 import com.silverline.erp.module.auth.repo.UserProfileRepo;
 import com.silverline.erp.module.inventory.service.BatchService;
-import com.silverline.erp.module.inventory.service.ProductService;
 import com.silverline.erp.module.inventory.service.ProductSerialService;
+import com.silverline.erp.module.inventory.service.ProductService;
 import com.silverline.erp.module.inventory.service.StockService;
 import com.silverline.erp.module.pos.dto.sale.CreateSaleRequest;
 import com.silverline.erp.module.pos.dto.sale.PaymentRequest;
@@ -22,11 +21,9 @@ import com.silverline.erp.module.pos.repository.SaleItemRepository;
 import com.silverline.erp.module.pos.repository.SaleRepository;
 import com.silverline.erp.module.pos.service.PosSaleService;
 import com.silverline.erp.module.pos.service.SaleQueryService;
-import com.silverline.erp.module.admin.service.SaasFeatureService;
-import com.silverline.erp.common.event.SaleCompletedEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +32,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j

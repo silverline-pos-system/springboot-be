@@ -1,6 +1,5 @@
 package com.silverline.erp.module.auth.dto;
 
-import com.silverline.erp.module.inventory.dto.BranchDTO;
 import com.silverline.erp.domain.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

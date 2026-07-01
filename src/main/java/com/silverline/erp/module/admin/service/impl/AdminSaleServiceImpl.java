@@ -1,8 +1,8 @@
 package com.silverline.erp.module.admin.service.impl;
 
-import com.silverline.erp.module.admin.service.AdminSaleService;
 import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.module.admin.repository.SaleRepository;
+import com.silverline.erp.module.admin.service.AdminSaleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

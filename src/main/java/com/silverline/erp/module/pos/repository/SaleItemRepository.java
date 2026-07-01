@@ -1,6 +1,5 @@
 package com.silverline.erp.module.pos.repository;
 
-import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.domain.pos.SaleItem;
 import com.silverline.erp.module.pos.dto.sale.ProductSalesHistoryDTO;
 import org.jspecify.annotations.NonNull;

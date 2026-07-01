@@ -1,7 +1,6 @@
 package com.silverline.erp.common.audit.repository;
 
 import com.silverline.erp.domain.audit.Approval;
-import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

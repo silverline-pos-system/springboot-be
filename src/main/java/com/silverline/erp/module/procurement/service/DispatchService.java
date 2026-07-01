@@ -1,12 +1,5 @@
 package com.silverline.erp.module.procurement.service;
 
-import com.silverline.erp.module.procurement.dto.DispatchCreateRequestDTO;
-import com.silverline.erp.module.procurement.dto.DispatchFilterDTO;
-import com.silverline.erp.module.procurement.dto.DispatchItemDTO;
-import com.silverline.erp.module.procurement.dto.DispatchResponseDTO;
-import com.silverline.erp.module.procurement.dto.DispatchStatsDTO;
-import com.silverline.erp.module.procurement.dto.DispatchUpdateRequestDTO;
-import com.silverline.erp.module.inventory.dto.*;
 import com.silverline.erp.module.procurement.dto.*;
 
 import java.util.List;

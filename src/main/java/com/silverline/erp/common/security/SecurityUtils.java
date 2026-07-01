@@ -1,7 +1,7 @@
 package com.silverline.erp.common.security;
 
-import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.domain.enums.Role;
+import com.silverline.erp.domain.user.UserProfile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 

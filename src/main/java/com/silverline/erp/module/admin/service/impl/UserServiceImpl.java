@@ -1,21 +1,20 @@
 package com.silverline.erp.module.admin.service.impl;
 
-import com.silverline.erp.domain.finance.Account;
-import com.silverline.erp.module.admin.dto.UserDTO;
-import com.silverline.erp.module.admin.service.UserService;
+import com.silverline.erp.common.audit.repository.ApprovalRepository;
+import com.silverline.erp.common.email.EmailService;
 import com.silverline.erp.domain.audit.Approval;
 import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.auth.repository.UserRepository;
+import com.silverline.erp.module.admin.dto.UserDTO;
 import com.silverline.erp.module.admin.repository.BranchRepository;
+import com.silverline.erp.module.admin.service.UserService;
+import com.silverline.erp.module.auth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.dao.DataIntegrityViolationException;
-import com.silverline.erp.common.email.EmailService;
-import com.silverline.erp.common.audit.repository.ApprovalRepository;
 
 import java.util.Comparator;
 import java.util.List;
