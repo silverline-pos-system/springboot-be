@@ -1,6 +1,5 @@
 package com.silverline.erp.module.inventory.util;
 
-import com.silverline.erp.domain.inventory.Dispatch;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 

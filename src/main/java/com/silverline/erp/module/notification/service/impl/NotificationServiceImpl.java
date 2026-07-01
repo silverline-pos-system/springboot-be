@@ -1,4 +1,4 @@
-package com.silverline.erp.common.notification;
+package com.silverline.erp.module.notification.service.impl;
 
 import com.silverline.erp.domain.notification.Notification;
 import com.silverline.erp.domain.notification.NotificationRecipient;
@@ -7,6 +7,7 @@ import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.module.notification.repository.NotificationRepository;
 import com.silverline.erp.module.notification.repository.NotificationRecipientRepository;
 import com.silverline.erp.module.auth.repository.UserRepository;
+import com.silverline.erp.module.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -24,22 +25,18 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class NotificationService {
+public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationRecipientRepository notificationRecipientRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    /**
-     * Create a notification and broadcast it to ALL managers and admins.
-     * This is the core method that implements the "ALL managers simultaneously" requirement.
-     */
+    @Override
     @Transactional
     public Notification createAndBroadcast(String type, String title, String message,
                                             String referenceType, Long referenceId,
                                             String priority, Long createdBy) {
-        // 1. Create the notification
         Notification notification = Notification.builder()
                 .type(type)
                 .title(title)
@@ -51,7 +48,6 @@ public class NotificationService {
                 .build();
         notification = notificationRepository.save(notification);
 
-        // 2. Find ALL managers, admins, and super admins
         List<UserProfile> recipients = userRepository.findAll().stream()
                 .filter(u -> u.getRole() != null &&
                         (u.getRole() == Role.MANAGER ||
@@ -60,7 +56,6 @@ public class NotificationService {
                         u.getAccountStatus().name().equals("ACTIVE"))
                 .collect(Collectors.toList());
 
-        // 3. Create recipient entries for each manager/admin
         for (UserProfile recipient : recipients) {
             NotificationRecipient nr = NotificationRecipient.builder()
                     .notification(notification)
@@ -70,7 +65,6 @@ public class NotificationService {
             notificationRecipientRepository.save(nr);
         }
 
-        // 4. Broadcast via WebSocket to /topic/manager-notifications
         Map<String, Object> wsPayload = new HashMap<>();
         wsPayload.put("notificationId", notification.getNotificationId());
         wsPayload.put("type", notification.getType());
@@ -91,40 +85,29 @@ public class NotificationService {
         return notification;
     }
 
-    /**
-     * Get paginated notifications for a specific user.
-     */
+    @Override
     public Page<NotificationRecipient> getNotificationsForUser(Long userId, Pageable pageable) {
         return notificationRecipientRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
     }
 
-    /**
-     * Get unread notification count for a user.
-     */
+    @Override
     public long getUnreadCount(Long userId) {
         return notificationRecipientRepository.countByUserIdAndIsReadFalse(userId);
     }
 
-    /**
-     * Mark a single notification as read.
-     */
+    @Override
     @Transactional
     public void markAsRead(Long notificationId, Long userId) {
         notificationRecipientRepository.markAsRead(notificationId, userId, LocalDateTime.now());
     }
 
-    /**
-     * Mark all notifications as read for a user.
-     */
+    @Override
     @Transactional
     public void markAllAsRead(Long userId) {
         notificationRecipientRepository.markAllAsReadForUser(userId, LocalDateTime.now());
     }
 
-    /**
-     * Broadcast a dashboard update event via WebSocket.
-     * Called when an approval action happens so OTHER managers see the update.
-     */
+    @Override
     public void broadcastDashboardUpdate(String eventType, Map<String, Object> data) {
         Map<String, Object> wsPayload = new HashMap<>();
         wsPayload.put("eventType", eventType);
@@ -139,4 +122,3 @@ public class NotificationService {
         }
     }
 }
-

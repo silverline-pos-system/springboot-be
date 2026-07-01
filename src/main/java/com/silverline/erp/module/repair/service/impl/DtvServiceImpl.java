@@ -1,13 +1,12 @@
 package com.silverline.erp.module.repair.service.impl;
 
-import com.silverline.erp.domain.pos.Customer;
 import com.silverline.erp.domain.enums.ServiceStatus;
 import com.silverline.erp.domain.service.SaleService;
 import com.silverline.erp.domain.service.SaleServiceStatusHistory;
 import com.silverline.erp.module.repair.dto.SaleServiceRequestDTO;
 import com.silverline.erp.module.repair.repository.SaleServiceRepository;
 import com.silverline.erp.module.repair.repository.SaleServiceStatusHistoryRepository;
-import com.silverline.erp.module.repair.service.SaleServiceJob;
+import com.silverline.erp.module.repair.service.DtvService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class SaleServiceJobImpl implements SaleServiceJob {
+public class DtvServiceImpl implements DtvService {
 
     private final SaleServiceRepository saleServiceRepository;
     private final SaleServiceStatusHistoryRepository historyRepository;
@@ -26,7 +25,7 @@ public class SaleServiceJobImpl implements SaleServiceJob {
     @Transactional
     public SaleService requestDtvService(SaleServiceRequestDTO requestDTO) {
         SaleService service = new SaleService();
-        service.setSaleId(requestDTO.getSaleId()); // Allowed to be null if sale is not yet finalized
+        service.setSaleId(requestDTO.getSaleId());
         service.setServiceType(requestDTO.getServiceType());
         service.setInstallationRequired(requestDTO.getInstallationRequired() != null ? requestDTO.getInstallationRequired() : false);
         service.setTechnicianId(requestDTO.getTechnicianId());
@@ -102,11 +101,10 @@ public class SaleServiceJobImpl implements SaleServiceJob {
         history.setServiceId(serviceId);
         history.setOldStatus(oldStatus);
         history.setNewStatus(nextStatus);
-        history.setChangedBy(technicianId != null ? technicianId : 1L); // Fallback to 1 if unknown
+        history.setChangedBy(technicianId != null ? technicianId : 1L);
         history.setNotes("Status updated to " + nextStatus);
         historyRepository.save(history);
 
         return savedService;
     }
 }
-
