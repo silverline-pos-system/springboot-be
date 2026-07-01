@@ -4,10 +4,10 @@ import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.inventory.Stock;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.inventory.repository.ProductRepository;
-import com.silverline.erp.module.inventory.repository.StockRepository;
-import com.silverline.erp.module.inventory.repository.BatchRepository;
-import com.silverline.erp.module.inventory.repository.ProductSerialRepository;
+import com.silverline.erp.module.inventory.service.ProductService;
+import com.silverline.erp.module.inventory.service.StockService;
+import com.silverline.erp.module.inventory.service.BatchService;
+import com.silverline.erp.module.inventory.service.ProductSerialService;
 import com.silverline.erp.module.pos.dto.PosProductDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,18 +26,18 @@ import java.util.stream.Collectors;
 @CrossOrigin
 public class PosProductController {
 
-    private final ProductRepository productRepository;
-    private final StockRepository stockRepository;
-    private final BatchRepository batchRepository;
-    private final ProductSerialRepository productSerialRepository;
+    private final ProductService productService;
+    private final StockService stockService;
+    private final BatchService batchService;
+    private final ProductSerialService productSerialService;
     private final QuickPickService quickPickService;
 
     @Autowired
-    public PosProductController(ProductRepository productRepository, StockRepository stockRepository, BatchRepository batchRepository, ProductSerialRepository productSerialRepository, QuickPickService quickPickService) {
-        this.productRepository = productRepository;
-        this.stockRepository = stockRepository;
-        this.batchRepository = batchRepository;
-        this.productSerialRepository = productSerialRepository;
+    public PosProductController(ProductService productService, StockService stockService, BatchService batchService, ProductSerialService productSerialService, QuickPickService quickPickService) {
+        this.productService = productService;
+        this.stockService = stockService;
+        this.batchService = batchService;
+        this.productSerialService = productSerialService;
         this.quickPickService = quickPickService;
     }
 
@@ -57,7 +57,7 @@ public class PosProductController {
         }
 
         Long targetBranchId = getBranchIdFromParam(branchId);
-        List<PosProductDTO> products = productRepository.searchProducts(q).stream()
+        List<PosProductDTO> products = productService.searchProductEntities(q).stream()
                 .limit(20)
                 .map(p -> mapToDTO(p, targetBranchId))
                 .collect(Collectors.toList());
@@ -80,9 +80,9 @@ public class PosProductController {
         if (query.matches("\\d+")) {
             try {
                 Long id = Long.parseLong(query);
-                var product = productRepository.findById(id);
-                if (product.isPresent()) {
-                    PosProductDTO dto = mapToDTO(product.get(), targetBranchId);
+                var product = productService.findById(id);
+                if (product != null) {
+                    PosProductDTO dto = mapToDTO(product, targetBranchId);
                     // Check stock availability if not skipped
                     if (!skipStockCheck && dto.getAvailableStock() != null && dto.getAvailableStock().compareTo(BigDecimal.ZERO) <= 0) {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -94,9 +94,9 @@ public class PosProductController {
         }
 
         // 2. Try by Barcode
-        var productByBarcode = productRepository.findByBarcode(query);
-        if (productByBarcode.isPresent()) {
-            PosProductDTO dto = mapToDTO(productByBarcode.get(), targetBranchId);
+        var productByBarcode = productService.findByBarcode(query);
+        if (productByBarcode != null) {
+            PosProductDTO dto = mapToDTO(productByBarcode, targetBranchId);
             if (!skipStockCheck && dto.getAvailableStock() != null && dto.getAvailableStock().compareTo(BigDecimal.ZERO) <= 0) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(ApiResponse.error("Product '" + dto.getName() + "' is out of stock (Quantity: 0)"));
@@ -105,9 +105,9 @@ public class PosProductController {
         }
 
         // 3. Try by SKU
-        var productBySku = productRepository.findBySku(query);
-        if (productBySku.isPresent()) {
-            PosProductDTO dto = mapToDTO(productBySku.get(), targetBranchId);
+        var productBySku = productService.findBySku(query);
+        if (productBySku != null) {
+            PosProductDTO dto = mapToDTO(productBySku, targetBranchId);
             if (!skipStockCheck && dto.getAvailableStock() != null && dto.getAvailableStock().compareTo(BigDecimal.ZERO) <= 0) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(ApiResponse.error("Product '" + dto.getName() + "' is out of stock (Quantity: 0)"));
@@ -116,9 +116,9 @@ public class PosProductController {
         }
 
         // 4. Try by Serial Number (IMEI)
-        var serial = productSerialRepository.findBySerialNo(query);
-        if (serial.isPresent()) {
-            var s = serial.get();
+        var serial = productSerialService.findSerialBySerialNo(query);
+        if (serial != null) {
+            var s = serial;
             if (!targetBranchId.equals(s.getBranchId())) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(ApiResponse.error("Serial '" + query + "' exists but belongs to another branch"));
@@ -131,9 +131,9 @@ public class PosProductController {
                 }
             }
             
-            var product = productRepository.findById(s.getProductId());
-            if (product.isPresent()) {
-                PosProductDTO dto = mapToDTO(product.get(), targetBranchId);
+            var product = productService.findById(s.getProductId());
+            if (product != null) {
+                PosProductDTO dto = mapToDTO(product, targetBranchId);
                 dto.setSelectedSerialId(s.getSerialId());
                 dto.setSerialNo(s.getSerialNo());
                 // For direct serial scans, quantity should be 1
@@ -155,8 +155,7 @@ public class PosProductController {
         
         // Fallback to active items if none configured for branch
         if (products.isEmpty()) {
-            products = productRepository.findByIsActiveTrue(org.springframework.data.domain.PageRequest.of(0, 10))
-                    .getContent()
+            products = productService.getActiveProductsLimit(10)
                     .stream()
                     .map(p -> mapToDTO(p, targetBranchId))
                     .collect(Collectors.toList());
@@ -189,9 +188,8 @@ public class PosProductController {
             @RequestParam(required = false) Long branchId) {
         Long targetBranchId = getBranchIdFromParam(branchId);
         
-        BigDecimal availableStock = stockRepository.findByBranchIdAndProductId(targetBranchId, productId)
-                .map(Stock::getAvailableQty)
-                .orElse(BigDecimal.ZERO);
+        Integer stockVal = stockService.getCurrentStock(targetBranchId, productId);
+        BigDecimal availableStock = stockVal != null ? BigDecimal.valueOf(stockVal) : BigDecimal.ZERO;
         
         return ResponseEntity.ok(ApiResponse.success("Stock fetched", availableStock));
     }
@@ -206,13 +204,12 @@ public class PosProductController {
         dto.setIsSerialized(product.getIsSerialized());
         
         // Fetch available stock for the branch
-        BigDecimal availableStock = stockRepository.findByBranchIdAndProductId(branchId, product.getProductId())
-                .map(Stock::getAvailableQty)
-                .orElse(BigDecimal.ZERO);
+        Integer stockVal = stockService.getCurrentStock(branchId, product.getProductId());
+        BigDecimal availableStock = stockVal != null ? BigDecimal.valueOf(stockVal) : BigDecimal.ZERO;
         dto.setAvailableStock(availableStock);
         
         // Fetch available prices based on batches
-        List<PosProductDTO.BatchPriceDTO> availablePrices = batchRepository.findAvailableBatchesByProduct(product.getProductId(), branchId)
+        List<PosProductDTO.BatchPriceDTO> availablePrices = batchService.getFEFOBatches(product.getProductId(), branchId)
                 .stream()
                 .filter(b -> b.getSellingPrice() != null)
                 .map(b -> new PosProductDTO.BatchPriceDTO(

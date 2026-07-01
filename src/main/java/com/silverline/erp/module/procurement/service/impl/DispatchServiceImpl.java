@@ -34,7 +34,8 @@ import com.silverline.erp.module.procurement.repository.PurchaseOrderItemReposit
 import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.procurement.service.DispatchService;
-import com.silverline.erp.module.procurement.service.DispatchPaymentRequestService;
+import com.silverline.erp.common.event.DispatchReceivedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -87,8 +88,7 @@ public class DispatchServiceImpl implements DispatchService {
     private UserRepository userRepository;
 
     @Autowired
-    @Lazy
-    private DispatchPaymentRequestService paymentRequestService;
+    private ApplicationEventPublisher eventPublisher;
 
     // ========================================================================
     //  DISPATCH CREATION â€” with full PO + IMEI + FEFO validation gates
@@ -306,13 +306,14 @@ public class DispatchServiceImpl implements DispatchService {
         dispatch.setApprovedAt(LocalDateTime.now());
         dispatch = dispatchRepository.save(dispatch);
 
-        // Create payment request for the approved dispatch
-        try {
-            paymentRequestService.createPaymentRequest(dispatchId, approvedBy);
-            log.info("Payment request created for dispatch: {}", dispatchId);
-        } catch (Exception e) {
-            log.warn("Failed to create payment request for dispatch {}: {}", dispatchId, e.getMessage());
-        }
+        // Publish DispatchReceivedEvent to create payment request asynchronously
+        eventPublisher.publishEvent(new DispatchReceivedEvent(
+                dispatch.getDispatchId(),
+                dispatch.getDispatchNo(),
+                dispatch.getBranchId(),
+                dispatch.getPoId(),
+                approvedBy
+        ));
 
         log.info("Dispatch approved: {} by user: {}", dispatchId, approvedBy);
         return convertToResponseDTO(dispatch);

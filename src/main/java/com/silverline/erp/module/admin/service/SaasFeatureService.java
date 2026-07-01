@@ -35,5 +35,8 @@ public interface SaasFeatureService {
     void updateSystemName(String newName, Long adminUserId);
 
     Map<String, String> getAllSettings();
+
+    // Check if feature is enabled
+    boolean isFeatureEnabled(String featureCode);
 }
 

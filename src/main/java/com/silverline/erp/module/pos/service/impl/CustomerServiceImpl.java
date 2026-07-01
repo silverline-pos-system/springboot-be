@@ -4,8 +4,8 @@ import com.silverline.erp.domain.pos.Customer;
 import com.silverline.erp.module.analytics.dto.LoyaltyStatsDTO;
 import com.silverline.erp.module.manager.dto.ManagerCustomerDTO;
 import com.silverline.erp.module.manager.dto.ManagerSaleDTO;
-import com.silverline.erp.module.manager.repository.ManagerCustomerRepository;
-import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
+import com.silverline.erp.module.pos.repository.CustomerRepository;
+import com.silverline.erp.module.pos.service.SaleQueryService;
 import com.silverline.erp.module.pos.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
 
-    private final ManagerCustomerRepository customerRepository;
-    private final ManagerSaleRepository saleRepository;
+    private final CustomerRepository customerRepository;
+    private final SaleQueryService saleQueryService;
 
     private static final Map<String, Double> TIER_THRESHOLDS = new HashMap<>();
     static {
@@ -158,7 +158,7 @@ public class CustomerServiceImpl implements CustomerService {
     
     @Override
     public List<ManagerSaleDTO> getCustomerSales(Long customerId) {
-        return saleRepository.findTop10ByCustomerIdOrderBySaleDateDesc(customerId).stream()
+        return saleQueryService.findTop10ByCustomerIdOrderBySaleDateDesc(customerId).stream()
             .map(s -> ManagerSaleDTO.builder()
                 .id(s.getSaleId())
                 .date(s.getSaleDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))

@@ -11,7 +11,9 @@ import com.silverline.erp.module.pos.dto.shift.ShiftResponse;
 import com.silverline.erp.module.pos.repository.CashFlowRepository;
 import com.silverline.erp.module.pos.repository.ShiftRepository;
 import com.silverline.erp.common.audit.AuditLogService;
+import com.silverline.erp.common.event.ShiftClosedEvent;
 import com.silverline.erp.module.pos.service.ShiftService;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +36,7 @@ public class ShiftServiceImpl implements ShiftService {
     private final UserProfileRepo userProfileRepo;
     private final CashFlowRepository cashFlowRepository;
     private final AuditLogService activityLogService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // --- 1. START SHIFT ---
     @Override
@@ -184,19 +187,18 @@ public class ShiftServiceImpl implements ShiftService {
                 .map(UserProfile::getUsername)
                 .orElse("Cashier #" + shift.getCashierId());
 
-        String closeMetadata = "{\"expected\":\"" + expected + "\",\"difference\":\"" + shift.getCashDifference() + "\",\"closingCash\":\"" + request.getClosingCash() + "\"}";
-        activityLogService.logActivity(
-            shift.getBranchId(),
-            null,
-            shift.getCashierId(),
-            cashierUsername,
-            "CASHIER",
-            "SHIFT_CLOSE",
-            "SHIFT",
-            shift.getShiftId(),
-            "Shift #" + shift.getShiftNo() + " closed. Closing Cash: " + request.getClosingCash(),
-            closeMetadata
-        );
+        // Publish ShiftClosedEvent to log activity asynchronously
+        eventPublisher.publishEvent(new ShiftClosedEvent(
+                shift.getShiftId(),
+                shift.getShiftNo(),
+                shift.getBranchId(),
+                shift.getCashierId(),
+                cashierUsername,
+                request.getClosingCash(),
+                expected,
+                shift.getCashDifference(),
+                request.getNotes()
+        ));
     }
 
     // --- 4. GET ACTIVE SHIFT ---

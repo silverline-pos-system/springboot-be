@@ -9,10 +9,10 @@ import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.system.SaasFeature;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.auth.repo.UserProfileRepo;
-import com.silverline.erp.module.inventory.repository.BatchRepository;
-import com.silverline.erp.module.inventory.repository.ProductRepository;
-import com.silverline.erp.module.inventory.repository.ProductSerialRepository;
-import com.silverline.erp.module.inventory.repository.StockRepository;
+import com.silverline.erp.module.inventory.service.BatchService;
+import com.silverline.erp.module.inventory.service.ProductService;
+import com.silverline.erp.module.inventory.service.ProductSerialService;
+import com.silverline.erp.module.inventory.service.StockService;
 import com.silverline.erp.module.pos.dto.sale.CreateSaleRequest;
 import com.silverline.erp.module.pos.dto.sale.PaymentRequest;
 import com.silverline.erp.module.pos.dto.sale.SaleItemRequest;
@@ -22,7 +22,9 @@ import com.silverline.erp.module.pos.repository.SaleItemRepository;
 import com.silverline.erp.module.pos.repository.SaleRepository;
 import com.silverline.erp.module.pos.service.SaleService;
 import com.silverline.erp.module.pos.service.SaleQueryService;
-import com.silverline.erp.module.admin.repository.SaasFeatureRepository;
+import com.silverline.erp.module.admin.service.SaasFeatureService;
+import com.silverline.erp.common.event.SaleCompletedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,13 +45,13 @@ public class SaleServiceImpl implements SaleService {
     private final SaleRepository saleRepository;
     private final SaleItemRepository saleItemRepository;
     private final PaymentRepository paymentRepository;
-    private final ProductRepository productRepository;
-    private final StockRepository stockRepository;
+    private final ProductService productService;
+    private final StockService stockService;
     private final UserProfileRepo userProfileRepo;
-    private final AuditLogService activityLogService;
-    private final BatchRepository batchRepository;
-    private final SaasFeatureRepository featureRepository;
-    private final ProductSerialRepository productSerialRepository;
+    private final ApplicationEventPublisher eventPublisher;
+    private final BatchService batchService;
+    private final SaasFeatureService featureService;
+    private final ProductSerialService productSerialService;
     private final SaleQueryService saleQueryService;
 
     @Override
@@ -60,23 +62,20 @@ public class SaleServiceImpl implements SaleService {
         boolean isPaidSale = "PAID".equals(requestedStatus);
 
         if (isPaidSale && request.getItems() != null && !request.getItems().isEmpty()) {
-            boolean allowOutOfStock = featureRepository.findByFeatureCode("ALLOW_OUT_OF_STOCK")
-                    .map(SaasFeature::getIsActive)
-                    .orElse(false);
+            boolean allowOutOfStock = featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK");
 
             if (!allowOutOfStock) {
                 for (SaleItemRequest itemReq : request.getItems()) {
                     BigDecimal requiredQty = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ONE;
                     
-                    Product product = productRepository.findById(itemReq.getProductId()).orElse(null);
+                    Product product = productService.findById(itemReq.getProductId());
                     String productName = product != null ? product.getName() : "Product #" + itemReq.getProductId();
                     
                     if (itemReq.getProductId() == 332L || productName.toLowerCase().contains("service") || productName.toLowerCase().contains("dialog tv") || productName.toLowerCase().contains("dtv")) {
                         continue;
                     }
 
-                    Optional<Stock> stockOpt = stockRepository.findByBranchIdAndProductId(branchId, itemReq.getProductId());
-                    BigDecimal availableQty = stockOpt.map(Stock::getAvailableQty).orElse(BigDecimal.ZERO);
+                    BigDecimal availableQty = BigDecimal.valueOf(stockService.getCurrentStock(branchId, itemReq.getProductId()));
                     
                     if (availableQty.compareTo(BigDecimal.ZERO) <= 0) {
                         throw new RuntimeException("Cannot sell '" + productName + "' — item is out of stock (Available: 0)");
@@ -135,7 +134,7 @@ public class SaleServiceImpl implements SaleService {
                 BigDecimal quantity = itemReq.getQuantity();
 
                 if (unitPrice == null || quantity == null) {
-                    Product product = productRepository.findById(itemReq.getProductId()).orElse(null);
+                    Product product = productService.findById(itemReq.getProductId());
                     if (product != null) {
                         if (unitPrice == null) {
                             unitPrice = product.getSellingPrice() != null ? product.getSellingPrice() : BigDecimal.ZERO;
@@ -192,7 +191,7 @@ public class SaleServiceImpl implements SaleService {
                 BigDecimal quantity = itemReq.getQuantity();
 
                 if (unitPrice == null) {
-                    Product product = productRepository.findById(itemReq.getProductId()).orElse(null);
+                    Product product = productService.findById(itemReq.getProductId());
                     unitPrice = (product != null && product.getSellingPrice() != null)
                             ? product.getSellingPrice() : BigDecimal.ZERO;
                 }
@@ -235,40 +234,26 @@ public class SaleServiceImpl implements SaleService {
         if ("PAID".equals(sale.getPaymentStatus()) && !saleItems.isEmpty()) {
             for (SaleItem soldItem : saleItems) {
                 try {
-                    Product product = productRepository.findById(soldItem.getProductId()).orElse(null);
+                    Product product = productService.findById(soldItem.getProductId());
                     String productName = product != null ? product.getName() : "";
                     
                     if (!(soldItem.getProductId() == 332L || productName.toLowerCase().contains("service") || productName.toLowerCase().contains("dialog tv") || productName.toLowerCase().contains("dtv"))) {
-                        Optional<Stock> stockOpt = stockRepository.findByBranchIdAndProductId(branchId, soldItem.getProductId());
-                        if (stockOpt.isPresent()) {
-                            Stock stock = stockOpt.get();
-                            BigDecimal soldQty = soldItem.getQty() != null ? soldItem.getQty() : BigDecimal.ONE;
-                            stock.setQuantity(stock.getQuantity().subtract(soldQty));
-                            stock.setAvailableQty(stock.getAvailableQty().subtract(soldQty));
-                            stockRepository.save(stock);
-                            log.info("Stock deducted for product {} in branch {}: -{}", soldItem.getProductId(), branchId, soldQty);
+                        BigDecimal soldQty = soldItem.getQty() != null ? soldItem.getQty() : BigDecimal.ONE;
+                        
+                        // Reduce stock via StockService
+                        stockService.reduceStock(branchId, soldItem.getProductId(), soldQty.intValue());
+                        log.info("Stock deducted for product {} in branch {}: -{}", soldItem.getProductId(), branchId, soldQty);
 
-                            if (soldItem.getBatchId() != null) {
-                                Optional<com.silverline.erp.domain.inventory.Batch> batchOpt = batchRepository.findById(soldItem.getBatchId());
-                                if (batchOpt.isPresent()) {
-                                    com.silverline.erp.domain.inventory.Batch b = batchOpt.get();
-                                    b.setQty(b.getQty().subtract(soldQty));
-                                    batchRepository.save(b);
-                                    log.info("Batch {} deducted by {}", b.getBatchId(), soldQty);
-                                }
-                            }
+                        if (soldItem.getBatchId() != null) {
+                            // Reduce batch stock via BatchService
+                            batchService.deductBatchStock(soldItem.getBatchId(), soldQty);
+                            log.info("Batch {} deducted by {}", soldItem.getBatchId(), soldQty);
+                        }
 
-                            if (soldItem.getSerialId() != null) {
-                                productSerialRepository.findById(soldItem.getSerialId()).ifPresent(serial -> {
-                                    serial.setStatus("SOLD");
-                                    serial.setSaleId(finalSale.getSaleId());
-                                    serial.setSoldAt(LocalDateTime.now());
-                                    productSerialRepository.save(serial);
-                                    log.info("Serial {} marked as SOLD for Sale {}", serial.getSerialNo(), finalSale.getInvoiceNo());
-                                });
-                            }
-                        } else {
-                            log.warn("No stock record found for product {} in branch {} during sale deduction", soldItem.getProductId(), branchId);
+                        if (soldItem.getSerialId() != null) {
+                            // Mark serial as sold via ProductSerialService
+                            productSerialService.markAsSold(soldItem.getSerialId(), finalSale.getSaleId());
+                            log.info("Serial {} marked as SOLD for Sale {}", soldItem.getSerialId(), finalSale.getInvoiceNo());
                         }
                     }
                 } catch (Exception e) {
@@ -281,18 +266,16 @@ public class SaleServiceImpl implements SaleService {
                 .map(UserProfile::getUsername)
                 .orElse("Cashier #" + cashierId);
 
-        activityLogService.logActivity(
+        // Publish SaleCompletedEvent to log activity asynchronously
+        eventPublisher.publishEvent(new SaleCompletedEvent(
+                sale.getSaleId(),
+                sale.getInvoiceNo(),
                 branchId,
-                null,
                 cashierId,
-                cashierUsername, 
-                "CASHIER",
-                "SALE",
-                "ORDER",
-                sale.getSaleId(), 
-                "Retail Sale " + sale.getInvoiceNo() + ". Total: " + sale.getNetTotal(),
-                "{\"itemCount\":" + saleItems.size() + "}"
-        );
+                cashierUsername,
+                sale.getNetTotal(),
+                saleItems.size()
+        ));
 
         return saleQueryService.mapToResponse(sale, saleItems, payments);
     }

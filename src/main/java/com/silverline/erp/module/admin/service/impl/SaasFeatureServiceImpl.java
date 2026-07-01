@@ -417,7 +417,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
                 "    %d\n\n" +
                 "This code will expire in %d minutes.\n\n" +
                 "If you did not request this action, please ignore this email.\n\n" +
-                "â€” %s System",
+                "— %s System",
                 adminName,
                 action.toLowerCase(),
                 featureName,
@@ -427,6 +427,11 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
                 systemName
         );
     }
+
+    @Override
+    public boolean isFeatureEnabled(String featureCode) {
+        return featureRepository.findByFeatureCode(featureCode)
+                .map(SaasFeature::getIsActive)
+                .orElse(false);
+    }
 }
-
-
