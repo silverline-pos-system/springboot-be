@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,13 +48,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductDTO> getAllProducts(Pageable pageable) {
         Pageable capped = capPageable(pageable);
-        return productRepository.findAll(capped).map(this::convertToDTO);
+        return mapPageToDTO(productRepository.findAll(capped));
     }
 
     @Override
     public Page<ProductDTO> getActiveProducts(Pageable pageable) {
         Pageable capped = capPageable(pageable);
-        return productRepository.findByIsActiveTrue(capped).map(this::convertToDTO);
+        return mapPageToDTO(productRepository.findByIsActiveTrue(capped));
     }
 
     @Override
@@ -80,25 +81,25 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductDTO> getProductsByCategory(Long categoryId, Pageable pageable) {
         Pageable capped = capPageable(pageable);
-        return productRepository.findByCategoryId(categoryId, capped).map(this::convertToDTO);
+        return mapPageToDTO(productRepository.findByCategoryId(categoryId, capped));
     }
 
     @Override
     public Page<ProductDTO> getProductsBySubCategory(Long subCategoryId, Pageable pageable) {
         Pageable capped = capPageable(pageable);
-        return productRepository.findBySubcategoryId(subCategoryId, capped).map(this::convertToDTO);
+        return mapPageToDTO(productRepository.findBySubcategoryId(subCategoryId, capped));
     }
 
     @Override
     public Page<ProductDTO> getProductsByBrand(Long brandId, Pageable pageable) {
         Pageable capped = capPageable(pageable);
-        return productRepository.findByBrandId(brandId, capped).map(this::convertToDTO);
+        return mapPageToDTO(productRepository.findByBrandId(brandId, capped));
     }
 
     @Override
     public Page<ProductDTO> searchProducts(String keyword, Pageable pageable) {
         Pageable capped = capPageable(pageable);
-        return productRepository.searchProducts(keyword, capped).map(this::convertToDTO);
+        return mapPageToDTO(productRepository.searchProducts(keyword, capped));
     }
 
     @Override
@@ -255,7 +256,26 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByBarcode(barcode).orElse(null);
     }
 
-    private ProductDTO convertToDTO(Product product) {
+    private Page<ProductDTO> mapPageToDTO(Page<Product> products) {
+        if (products.isEmpty()) {
+            return Page.empty(products.getPageable());
+        }
+        List<Long> productIds = products.getContent().stream()
+                .map(Product::getProductId)
+                .collect(Collectors.toList());
+
+        List<Object[]> stockData = stockRepository.getTotalStockByProductIds(productIds);
+        Map<Long, BigDecimal> stockMap = stockData.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> row[1] != null ? (BigDecimal) row[1] : BigDecimal.ZERO,
+                        (a, b) -> a
+                ));
+
+        return products.map(product -> convertToDTO(product, stockMap));
+    }
+
+    private ProductDTO convertToDTOBasic(Product product) {
         ProductDTO dto = new ProductDTO();
         dto.setProductId(product.getProductId());
         dto.setSku(product.getSku());
@@ -275,29 +295,33 @@ public class ProductServiceImpl implements ProductService {
         dto.setWarrantyMonths(product.getWarrantyMonths());
         dto.setIsActive(product.getIsActive());
 
-        if (product.getCategoryId() != null) {
-            categoryRepository.findById(product.getCategoryId())
-                    .ifPresent(category -> dto.setCategoryName(category.getName()));
+        if (product.getCategory() != null) {
+            dto.setCategoryName(product.getCategory().getName());
         }
-        if (product.getSubcategoryId() != null) {
-            subCategoryRepository.findById(product.getSubcategoryId())
-                    .ifPresent(subCategory -> dto.setSubcategoryName(subCategory.getName()));
+        if (product.getSubCategory() != null) {
+            dto.setSubcategoryName(product.getSubCategory().getName());
         }
-        if (product.getBrandId() != null) {
-            brandRepository.findById(product.getBrandId())
-                    .ifPresent(brand -> dto.setBrandName(brand.getName()));
+        if (product.getBrand() != null) {
+            dto.setBrandName(product.getBrand().getName());
         }
-        if (product.getUnitId() != null) {
-            unitRepository.findById(product.getUnitId())
-                    .ifPresent(unit -> {
-                        dto.setUnitName(unit.getName());
-                        dto.setUnitSymbol(unit.getSymbol());
-                    });
+        if (product.getUnit() != null) {
+            dto.setUnitName(product.getUnit().getName());
+            dto.setUnitSymbol(product.getUnit().getSymbol());
         }
+        return dto;
+    }
 
+    private ProductDTO convertToDTO(Product product, Map<Long, BigDecimal> stockMap) {
+        ProductDTO dto = convertToDTOBasic(product);
+        BigDecimal totalStock = stockMap != null ? stockMap.get(product.getProductId()) : null;
+        dto.setQuantity(totalStock != null ? totalStock : BigDecimal.ZERO);
+        return dto;
+    }
+
+    private ProductDTO convertToDTO(Product product) {
+        ProductDTO dto = convertToDTOBasic(product);
         BigDecimal totalStock = stockRepository.getTotalStockByProduct(product.getProductId());
         dto.setQuantity(totalStock != null ? totalStock : BigDecimal.ZERO);
-
         return dto;
     }
 

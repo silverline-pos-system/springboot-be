@@ -49,5 +49,8 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 
     @Query("SELECT s FROM InventoryStock s WHERE s.branchId = :branchId AND s.quantity <= :threshold")
     List<Stock> findLowStockProducts(@Param("branchId") Long branchId, @Param("threshold") Integer threshold);
+
+    @Query("SELECT s.productId, SUM(s.quantity) FROM InventoryStock s WHERE s.productId IN :productIds GROUP BY s.productId")
+    List<Object[]> getTotalStockByProductIds(@Param("productIds") List<Long> productIds);
 }
 

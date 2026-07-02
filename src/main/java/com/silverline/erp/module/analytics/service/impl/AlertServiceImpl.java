@@ -7,6 +7,8 @@ import com.silverline.erp.module.analytics.dto.BranchAlertDTO;
 import com.silverline.erp.module.analytics.dto.ExpiryAlertDTO;
 import com.silverline.erp.module.analytics.dto.StockAlertDTO;
 import com.silverline.erp.module.analytics.service.AlertService;
+import com.silverline.erp.module.inventory.dto.projection.ProductNameProjection;
+import com.silverline.erp.module.inventory.dto.projection.ProductStockProjection;
 import com.silverline.erp.module.inventory.repository.BatchRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.procurement.repository.DispatchRepository;
@@ -18,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,21 +36,19 @@ public class AlertServiceImpl implements AlertService {
 
     @Override
     public List<StockAlertDTO> getStockAlerts(Long branchId) {
-        List<Product> products = productRepository.findByIsActiveTrue();
+        List<ProductStockProjection> products = productRepository.findActiveProjectionsByIsActiveTrue();
         List<StockAlertDTO> alerts = new ArrayList<>();
 
-        for (Product product : products) {
-            List<Batch> batches;
-            if (branchId != null) {
-                batches = batchRepository.findByProductIdAndBranchId(product.getProductId(), branchId);
-            } else {
-                batches = batchRepository.findByProductId(product.getProductId());
-            }
+        List<Object[]> batchSums = batchRepository.sumQtyByProductIdAndBranchId(branchId);
+        Map<Long, BigDecimal> qtyMap = batchSums.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> row[1] != null ? (BigDecimal) row[1] : BigDecimal.ZERO,
+                        (a, b) -> a
+                ));
 
-            BigDecimal totalQty = batches.stream()
-                    .map(Batch::getQty)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+        for (ProductStockProjection product : products) {
+            BigDecimal totalQty = qtyMap.getOrDefault(product.getProductId(), BigDecimal.ZERO);
             BigDecimal reorderLevel = product.getReorderLevel() != null ? product.getReorderLevel() : BigDecimal.ZERO;
 
             if (totalQty.compareTo(reorderLevel) <= 0) {
@@ -72,9 +73,17 @@ public class AlertServiceImpl implements AlertService {
 
         List<Batch> expiringBatches = batchRepository.findExpiringSoonBatchesByBranch(today, thirtyDaysFromNow, branchId);
 
-        Map<Long, String> productNames = productRepository.findByIsActiveTrue().stream()
-                .collect(Collectors.toMap(Product::getProductId, Product::getName));
+        Map<Long, String> productNames = new HashMap<>();
+        if (!expiringBatches.isEmpty()) {
+            java.util.Set<Long> productIds = expiringBatches.stream()
+                    .map(Batch::getProductId)
+                    .collect(Collectors.toSet());
+            List<ProductNameProjection> nameProjections = productRepository.findByProductIdIn(productIds);
+            productNames = nameProjections.stream()
+                    .collect(Collectors.toMap(ProductNameProjection::getProductId, ProductNameProjection::getName));
+        }
 
+        final Map<Long, String> finalProductNames = productNames;
         return expiringBatches.stream()
                 .map(batch -> {
                     long daysUntilExpiry = ChronoUnit.DAYS.between(today, batch.getExpiryDate());
@@ -83,7 +92,7 @@ public class AlertServiceImpl implements AlertService {
                     return ExpiryAlertDTO.builder()
                             .batchId(batch.getBatchId())
                             .productId(batch.getProductId())
-                            .item(productNames.getOrDefault(batch.getProductId(), "Unknown"))
+                            .item(finalProductNames.getOrDefault(batch.getProductId(), "Unknown"))
                             .expiresOn(batch.getExpiryDate().toString())
                             .qty(batch.getQty())
                             .severity(severity)
