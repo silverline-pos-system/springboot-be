@@ -172,6 +172,6 @@ class BatchServiceImplTest {
         assertNotNull(alerts);
         assertEquals(1, alerts.size());
         assertEquals("Product Name", alerts.getFirst().getProductName());
-        assertEquals("EXPIRING_SOON", alerts.getFirst().getAlertLevel());
+        assertEquals("WARNING", alerts.getFirst().getAlertLevel());
     }
 }

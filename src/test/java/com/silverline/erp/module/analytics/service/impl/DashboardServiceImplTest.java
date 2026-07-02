@@ -47,14 +47,10 @@ class DashboardServiceImplTest {
     void getDashboardStats_ForBranch() {
         // Arrange
         when(saleRepository.sumNetTotalByBranchAndDateRange(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(BigDecimal.valueOf(1000));
+                .thenReturn(BigDecimal.valueOf(1000)) // today
+                .thenReturn(BigDecimal.valueOf(800));  // yesterday
         when(saleRepository.countByBranchAndDateRange(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(5L);
-        when(saleRepository.sumNetTotalByBranchAndDateRange(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(BigDecimal.valueOf(1000)); // today
-        // yesterday sales call
-        when(saleRepository.sumNetTotalByBranchAndDateRange(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(BigDecimal.valueOf(800));
 
         Dispatch mockDispatch = new Dispatch();
         mockDispatch.setDispatchId(50L);

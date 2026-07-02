@@ -92,7 +92,7 @@ class ReturnServiceImplTest {
         // Assert
         assertEquals(50L, returnId);
         verify(stockService).increaseStock(eq(1L), eq(201L), eq(1));
-        verify(salesReturnItemRepository).save(any(SalesReturnItem.class));
+        verify(salesReturnItemRepository).saveAll(anyList());
     }
 
     @Test
