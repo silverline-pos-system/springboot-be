@@ -1,10 +1,15 @@
 package com.silverline.erp.module.manager.controller;
 
+import com.silverline.erp.common.dto.ApiResponse;
+import com.silverline.erp.common.dto.PagedResponse;
 import com.silverline.erp.module.analytics.dto.LoyaltyStatsDTO;
 import com.silverline.erp.module.manager.dto.ManagerCustomerDTO;
 import com.silverline.erp.module.manager.dto.ManagerSaleDTO;
 import com.silverline.erp.module.pos.service.CustomerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,8 +24,10 @@ public class ManagerCustomerController {
     private final CustomerService customerService;
 
     @GetMapping
-    public ResponseEntity<List<ManagerCustomerDTO>> getAllCustomers() {
-        return ResponseEntity.ok(customerService.getAllCustomers());
+    public ResponseEntity<ApiResponse<PagedResponse<ManagerCustomerDTO>>> getAllCustomers(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ManagerCustomerDTO> pageInfo = customerService.getAllCustomers(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Customers retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/stats")

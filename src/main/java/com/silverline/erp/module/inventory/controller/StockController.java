@@ -1,6 +1,6 @@
 package com.silverline.erp.module.inventory.controller;
 
-import com.silverline.erp.common.dto.ApiResponse;
+import com.silverline.erp.common.dto.PagedResponse;
 import com.silverline.erp.module.inventory.dto.LowStockAlertDTO;
 import com.silverline.erp.module.inventory.dto.StockAdjustmentDTO;
 import com.silverline.erp.module.inventory.dto.StockDTO;
@@ -8,10 +8,11 @@ import com.silverline.erp.module.inventory.dto.StockReportDTO;
 import com.silverline.erp.module.inventory.service.StockService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/inventory/stock")
@@ -21,15 +22,18 @@ public class StockController {
     private final StockService stockService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<?>> getAllStock() {
-        List<StockDTO> stocks = stockService.getAllStock();
-        return ResponseEntity.ok(ApiResponse.success("Stock retrieved successfully", stocks));
+    public ResponseEntity<ApiResponse<PagedResponse<StockDTO>>> getAllStock(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<StockDTO> pageInfo = stockService.getAllStock(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Stock retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/branch/{branchId}")
-    public ResponseEntity<ApiResponse<?>> getStockByBranch(@PathVariable Long branchId) {
-        List<StockDTO> stocks = stockService.getStockByBranch(branchId);
-        return ResponseEntity.ok(ApiResponse.success("Stock retrieved successfully", stocks));
+    public ResponseEntity<ApiResponse<PagedResponse<StockDTO>>> getStockByBranch(
+            @PathVariable Long branchId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<StockDTO> pageInfo = stockService.getStockByBranch(branchId, pageable);
+        return ResponseEntity.ok(ApiResponse.success("Stock retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/product/{productId}")

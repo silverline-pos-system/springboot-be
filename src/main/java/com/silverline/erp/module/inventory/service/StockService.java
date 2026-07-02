@@ -5,11 +5,13 @@ import com.silverline.erp.module.inventory.dto.StockAdjustmentDTO;
 import com.silverline.erp.module.inventory.dto.StockDTO;
 import com.silverline.erp.module.inventory.dto.StockReportDTO;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface StockService {
-    List<StockDTO> getAllStock();
-    List<StockDTO> getStockByBranch(Long branchId);
+    Page<StockDTO> getAllStock(Pageable pageable);
+    Page<StockDTO> getStockByBranch(Long branchId, Pageable pageable);
     List<StockDTO> getStockByProduct(Long productId);
     StockDTO getStockByBranchAndProduct(Long branchId, Long productId);
     StockDTO adjustStock(StockAdjustmentDTO adjustmentDTO);

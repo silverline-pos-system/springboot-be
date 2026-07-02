@@ -1,5 +1,7 @@
 package com.silverline.erp.module.repair.controller;
 
+import com.silverline.erp.common.dto.ApiResponse;
+import com.silverline.erp.common.dto.PagedResponse;
 import com.silverline.erp.domain.service.RepairJob;
 import com.silverline.erp.domain.service.SaleService;
 import com.silverline.erp.module.repair.dto.RepairJobRequestDTO;
@@ -7,6 +9,9 @@ import com.silverline.erp.module.repair.dto.SaleServiceRequestDTO;
 import com.silverline.erp.module.repair.service.DtvService;
 import com.silverline.erp.module.repair.service.RepairService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,11 +33,11 @@ public class RepairController {
     }
 
     @GetMapping("/repairs")
-    public ResponseEntity<List<RepairJob>> getRepairs(@RequestParam(required = false) Long branchId) {
-        if (branchId != null) {
-            return ResponseEntity.ok(repairService.getRepairsByBranch(branchId));
-        }
-        return ResponseEntity.ok(repairService.getAllRepairs());
+    public ResponseEntity<ApiResponse<PagedResponse<RepairJob>>> getRepairs(
+            @RequestParam(required = false) Long branchId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<RepairJob> pageInfo = repairService.getAllRepairs(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Repairs retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/repairs/search")

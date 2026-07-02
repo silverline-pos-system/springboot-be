@@ -17,6 +17,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,11 +32,18 @@ public class BatchServiceImpl implements BatchService {
     private final BatchRepository batchRepository;
     private final ProductRepository productRepository;
 
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
+    }
+
     @Override
-    public List<BatchDTO> getAllBatches() {
-        return batchRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<BatchDTO> getAllBatches(Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return batchRepository.findAll(capped).map(this::convertToDTO);
     }
 
     @Override

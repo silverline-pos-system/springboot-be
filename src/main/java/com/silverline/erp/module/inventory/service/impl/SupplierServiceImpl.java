@@ -13,6 +13,9 @@ import com.silverline.erp.module.inventory.dto.SupplierResponseDTO;
 import com.silverline.erp.module.inventory.repository.SupplierRepository;
 import com.silverline.erp.module.inventory.service.SupplierService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,14 @@ import java.util.stream.Collectors;
 public class SupplierServiceImpl implements SupplierService {
 
     private final SupplierRepository supplierRepository;
+
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
+    }
 
     @Override
     public SupplierResponseDTO createSupplier(SupplierRequestDTO requestDTO) {
@@ -81,10 +92,9 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SupplierResponseDTO> getAllSuppliers() {
-        return supplierRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<SupplierResponseDTO> getAllSuppliers(Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return supplierRepository.findAll(capped).map(this::mapToResponse);
     }
 
     /**

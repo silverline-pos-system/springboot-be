@@ -3,19 +3,21 @@ package com.silverline.erp.module.inventory.service;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.module.inventory.dto.ProductDTO;
 import com.silverline.erp.module.inventory.dto.ProductDetailsDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface ProductService {
-    List<ProductDTO> getAllProducts();
-    List<ProductDTO> getActiveProducts();
+    Page<ProductDTO> getAllProducts(Pageable pageable);
+    Page<ProductDTO> getActiveProducts(Pageable pageable);
     ProductDTO getProductById(Long id);
     ProductDTO getProductBySku(String sku);
     ProductDTO getProductByBarcode(String barcode);
-    List<ProductDTO> getProductsByCategory(Long categoryId);
-    List<ProductDTO> getProductsBySubCategory(Long subCategoryId);
-    List<ProductDTO> getProductsByBrand(Long brandId);
-    List<ProductDTO> searchProducts(String keyword);
+    Page<ProductDTO> getProductsByCategory(Long categoryId, Pageable pageable);
+    Page<ProductDTO> getProductsBySubCategory(Long subCategoryId, Pageable pageable);
+    Page<ProductDTO> getProductsByBrand(Long brandId, Pageable pageable);
+    Page<ProductDTO> searchProducts(String keyword, Pageable pageable);
     String getNextSku();
     ProductDTO createProduct(ProductDTO productDTO);
     ProductDTO updateProduct(Long id, ProductDTO productDTO);

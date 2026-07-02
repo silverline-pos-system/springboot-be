@@ -15,6 +15,10 @@ import com.silverline.erp.module.finance.repository.ExpensePaymentRepository;
 import com.silverline.erp.module.finance.repository.ExpenseRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +45,14 @@ public class ExpenseService {
 
     @Autowired
     private UserRepository userRepository;
+
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
+    }
 
     // --- Expense Categories ---
     
@@ -96,11 +108,16 @@ public class ExpenseService {
 
     // --- Expenses ---
 
-    public List<ExpenseDTO> getAllExpenses() {
-        return expenseRepository.findAll().stream()
+    public Page<ExpenseDTO> getAllExpenses(Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        List<ExpenseDTO> all = expenseRepository.findAll().stream()
                 .sorted(Comparator.comparing(Expense::getExpenseDate).reversed())
                 .map(this::mapToExpenseDTO)
                 .collect(Collectors.toList());
+        int start = (int) capped.getOffset();
+        int end = Math.min((start + capped.getPageSize()), all.size());
+        List<ExpenseDTO> content = start < all.size() ? all.subList(start, end) : List.of();
+        return new PageImpl<>(content, capped, all.size());
     }
 
     public List<ExpenseDTO> getExpensesByBranch(Long branchId) {

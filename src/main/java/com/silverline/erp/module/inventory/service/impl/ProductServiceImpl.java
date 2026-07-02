@@ -10,6 +10,9 @@ import com.silverline.erp.module.inventory.dto.ProductDTO;
 import com.silverline.erp.module.inventory.dto.ProductDetailsDTO;
 import com.silverline.erp.module.inventory.repository.*;
 import com.silverline.erp.module.inventory.service.ProductService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,18 +36,24 @@ public class ProductServiceImpl implements ProductService {
     private final SupplierRepository supplierRepository;
     private final SupplierProductRepository supplierProductRepository;
 
-    @Override
-    public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
     }
 
     @Override
-    public List<ProductDTO> getActiveProducts() {
-        return productRepository.findByIsActiveTrue().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getAllProducts(Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return productRepository.findAll(capped).map(this::convertToDTO);
+    }
+
+    @Override
+    public Page<ProductDTO> getActiveProducts(Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return productRepository.findByIsActiveTrue(capped).map(this::convertToDTO);
     }
 
     @Override
@@ -69,31 +78,27 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDTO> getProductsByCategory(Long categoryId) {
-        return productRepository.findByCategoryId(categoryId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getProductsByCategory(Long categoryId, Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return productRepository.findByCategoryId(categoryId, capped).map(this::convertToDTO);
     }
 
     @Override
-    public List<ProductDTO> getProductsBySubCategory(Long subCategoryId) {
-        return productRepository.findBySubcategoryId(subCategoryId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getProductsBySubCategory(Long subCategoryId, Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return productRepository.findBySubcategoryId(subCategoryId, capped).map(this::convertToDTO);
     }
 
     @Override
-    public List<ProductDTO> getProductsByBrand(Long brandId) {
-        return productRepository.findByBrandId(brandId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getProductsByBrand(Long brandId, Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return productRepository.findByBrandId(brandId, capped).map(this::convertToDTO);
     }
 
     @Override
-    public List<ProductDTO> searchProducts(String keyword) {
-        return productRepository.searchProducts(keyword).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> searchProducts(String keyword, Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return productRepository.searchProducts(keyword, capped).map(this::convertToDTO);
     }
 
     @Override

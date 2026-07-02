@@ -1,6 +1,8 @@
 package com.silverline.erp.module.inventory.repository;
 
 import com.silverline.erp.domain.inventory.Stock;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +16,8 @@ import java.util.Optional;
 public interface StockRepository extends JpaRepository<Stock, Long> {
 
     List<Stock> findByBranchId(Long branchId);
+
+    Page<Stock> findByBranchId(Long branchId, Pageable pageable);
 
     Optional<Stock> findByBranchIdAndProductId(Long branchId, Long productId);
 

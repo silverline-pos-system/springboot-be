@@ -1,16 +1,18 @@
 package com.silverline.erp.module.inventory.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
+import com.silverline.erp.common.dto.PagedResponse;
 import com.silverline.erp.module.inventory.dto.ProductDTO;
 import com.silverline.erp.module.inventory.dto.ProductDetailsDTO;
 import com.silverline.erp.module.inventory.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/inventory/products")
@@ -20,15 +22,17 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<?>> getAllProducts() {
-        List<ProductDTO> products = productService.getAllProducts();
-        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", products));
+    public ResponseEntity<ApiResponse<PagedResponse<ProductDTO>>> getAllProducts(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ProductDTO> pageInfo = productService.getAllProducts(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/active")
-    public ResponseEntity<ApiResponse<?>> getActiveProducts() {
-        List<ProductDTO> products = productService.getActiveProducts();
-        return ResponseEntity.ok(ApiResponse.success("Active products retrieved successfully", products));
+    public ResponseEntity<ApiResponse<PagedResponse<ProductDTO>>> getActiveProducts(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ProductDTO> pageInfo = productService.getActiveProducts(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Active products retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/{id}")
@@ -50,27 +54,35 @@ public class ProductController {
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<ApiResponse<?>> getProductsByCategory(@PathVariable Long categoryId) {
-        List<ProductDTO> products = productService.getProductsByCategory(categoryId);
-        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", products));
+    public ResponseEntity<ApiResponse<PagedResponse<ProductDTO>>> getProductsByCategory(
+            @PathVariable Long categoryId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ProductDTO> pageInfo = productService.getProductsByCategory(categoryId, pageable);
+        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/subcategory/{subCategoryId}")
-    public ResponseEntity<ApiResponse<?>> getProductsBySubCategory(@PathVariable Long subCategoryId) {
-        List<ProductDTO> products = productService.getProductsBySubCategory(subCategoryId);
-        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", products));
+    public ResponseEntity<ApiResponse<PagedResponse<ProductDTO>>> getProductsBySubCategory(
+            @PathVariable Long subCategoryId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ProductDTO> pageInfo = productService.getProductsBySubCategory(subCategoryId, pageable);
+        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/brand/{brandId}")
-    public ResponseEntity<ApiResponse<?>> getProductsByBrand(@PathVariable Long brandId) {
-        List<ProductDTO> products = productService.getProductsByBrand(brandId);
-        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", products));
+    public ResponseEntity<ApiResponse<PagedResponse<ProductDTO>>> getProductsByBrand(
+            @PathVariable Long brandId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ProductDTO> pageInfo = productService.getProductsByBrand(brandId, pageable);
+        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<?>> searchProducts(@RequestParam String keyword) {
-        List<ProductDTO> products = productService.searchProducts(keyword);
-        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", products));
+    public ResponseEntity<ApiResponse<PagedResponse<ProductDTO>>> searchProducts(
+            @RequestParam String keyword,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ProductDTO> pageInfo = productService.searchProducts(keyword, pageable);
+        return ResponseEntity.ok(ApiResponse.success("Products retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/next-sku")

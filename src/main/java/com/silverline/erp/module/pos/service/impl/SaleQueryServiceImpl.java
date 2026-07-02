@@ -10,9 +10,14 @@ import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
 import com.silverline.erp.module.pos.dto.sale.*;
 import com.silverline.erp.module.pos.repository.*;
 import com.silverline.erp.module.pos.service.SaleQueryService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import java.util.ArrayList;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -117,8 +122,16 @@ public class SaleQueryServiceImpl implements SaleQueryService {
         }).orElse(null);
     }
 
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
+    }
+
     @Override
-    public List<SaleSummaryDTO> getSaleSummaries(Long branchId, String status, String startDateStr, String endDateStr) {
+    public Page<SaleSummaryDTO> getSaleSummaries(Long branchId, String status, String startDateStr, String endDateStr, Pageable pageable) {
         String dbStatus = status;
         if ("COMPLETED".equalsIgnoreCase(status)) {
             dbStatus = "PAID";
@@ -158,7 +171,7 @@ public class SaleQueryServiceImpl implements SaleQueryService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-        return sales.stream().map(sale -> {
+        List<SaleSummaryDTO> allSummaries = sales.stream().map(sale -> {
             List<SaleItem> items = saleItemRepository.findBySaleId(sale.getSaleId());
             String customerName = "Walk-in Customer";
             if (sale.getCustomerId() != null) {
@@ -177,6 +190,15 @@ public class SaleQueryServiceImpl implements SaleQueryService {
                 sale.getPaymentStatus()
             );
         }).collect(Collectors.toList());
+
+        Pageable capped = capPageable(pageable);
+        int start = (int) capped.getOffset();
+        int end = Math.min((start + capped.getPageSize()), allSummaries.size());
+        List<SaleSummaryDTO> content = new ArrayList<>();
+        if (start < allSummaries.size()) {
+            content = allSummaries.subList(start, end);
+        }
+        return new PageImpl<>(content, capped, allSummaries.size());
     }
 
     @Override

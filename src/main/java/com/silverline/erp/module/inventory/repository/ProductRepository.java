@@ -24,11 +24,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByCategoryId(Long categoryId);
 
+    Page<Product> findByCategoryId(Long categoryId, Pageable pageable);
+
     List<Product> findByCategoryIdAndIsActiveTrue(Long categoryId);
 
     List<Product> findBySubcategoryId(Long subcategoryId);
 
+    Page<Product> findBySubcategoryId(Long subcategoryId, Pageable pageable);
+
     List<Product> findByBrandId(Long brandId);
+
+    Page<Product> findByBrandId(Long brandId, Pageable pageable);
 
     boolean existsBySku(String sku);
 
@@ -40,6 +46,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "LOWER(p.sku) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(p.barcode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Product> searchProducts(@Param("keyword") String keyword);
+
+    @Query("SELECT p FROM Product p WHERE " +
+           "p.isActive = true AND (" +
+           "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.sku) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.barcode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Product> searchProducts(@Param("keyword") String keyword, Pageable pageable);
 
     @Query("SELECT MAX(p.productId) FROM Product p")
     Long getMaxProductId();

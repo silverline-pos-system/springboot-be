@@ -1,12 +1,16 @@
 package com.silverline.erp.module.pos.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
+import com.silverline.erp.common.dto.PagedResponse;
 import com.silverline.erp.common.security.SecurityUtils;
 import com.silverline.erp.module.pos.dto.sale.SaleResponse;
 import com.silverline.erp.module.pos.dto.sale.SaleSummaryDTO;
 import com.silverline.erp.module.pos.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -57,15 +61,16 @@ public class PosController {
     }
 
     @GetMapping({"/orders", "/sales"})
-    public ResponseEntity<ApiResponse<List<SaleSummaryDTO>>> getBills(
+    public ResponseEntity<ApiResponse<PagedResponse<SaleSummaryDTO>>> getBills(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
+            @RequestParam(required = false) String endDate,
+            @PageableDefault(size = 20) Pageable pageable
     ) {
-        log.info("Fetching bills with status: {}", status);
+        log.info("Fetching bills with status: {}, pageable: {}", status, pageable);
         Long branchId = 1L; 
-        List<SaleSummaryDTO> response = saleQueryService.getSaleSummaries(branchId, status, startDate, endDate);
-        return ResponseEntity.ok(ApiResponse.success("Orders fetched", response));
+        Page<SaleSummaryDTO> pageInfo = saleQueryService.getSaleSummaries(branchId, status, startDate, endDate, pageable);
+        return ResponseEntity.ok(ApiResponse.success("Orders fetched", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping({"/orders/{id}", "/sales/{id}"})

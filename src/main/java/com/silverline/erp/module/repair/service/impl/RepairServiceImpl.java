@@ -12,6 +12,9 @@ import com.silverline.erp.module.repair.repository.RepairPaymentRepository;
 import com.silverline.erp.module.repair.repository.RepairStatusHistoryRepository;
 import com.silverline.erp.module.repair.service.RepairService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,14 @@ public class RepairServiceImpl implements RepairService {
     private final RepairStatusHistoryRepository historyRepository;
     private final CustomerRepository customerRepository;
     private final RepairPaymentRepository paymentRepository;
+
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
+    }
 
     @Override
     @Transactional
@@ -73,8 +84,8 @@ public class RepairServiceImpl implements RepairService {
     }
 
     @Override
-    public List<RepairJob> getAllRepairs() {
-        return repairJobRepository.findAll();
+    public Page<RepairJob> getAllRepairs(Pageable pageable) {
+        return repairJobRepository.findAll(capPageable(pageable));
     }
 
     @Override
