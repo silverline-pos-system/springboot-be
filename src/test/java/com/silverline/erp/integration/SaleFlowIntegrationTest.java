@@ -11,7 +11,7 @@ import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.repository.BranchRepository;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.repository.StockRepository;
 import com.silverline.erp.module.pos.dto.sale.CreateSaleRequest;
@@ -50,7 +50,7 @@ public class SaleFlowIntegrationTest {
     private BranchRepository branchRepository;
 
     @Autowired
-    private UserProfileRepo userProfileRepo;
+    private UserProfileRepository userProfileRepository;
 
     @Autowired
     private CustomerRepository customerRepository;
@@ -85,7 +85,7 @@ public class SaleFlowIntegrationTest {
         cashier.setEmployeeId("EMP_SALE_FLOW_001");
         cashier.setRole(Role.CASHIER);
         cashier.setAccountStatus(AccountStatus.ACTIVE);
-        cashier = userProfileRepo.save(cashier);
+        cashier = userProfileRepository.save(cashier);
 
         // 3. Create and persist Customer
         Customer customer = new Customer();

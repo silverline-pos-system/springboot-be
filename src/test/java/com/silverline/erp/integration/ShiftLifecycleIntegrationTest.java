@@ -6,7 +6,7 @@ import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.pos.CashShift;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.repository.BranchRepository;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.pos.dto.ShiftStartRequest;
 import com.silverline.erp.module.pos.dto.shift.CloseShiftRequest;
 import com.silverline.erp.module.pos.repository.ShiftRepository;
@@ -35,7 +35,7 @@ public class ShiftLifecycleIntegrationTest {
     private BranchRepository branchRepository;
 
     @Autowired
-    private UserProfileRepo userProfileRepo;
+    private UserProfileRepository userProfileRepository;
 
     @Test
     public void testShiftLifecycle_OpenClose_Success() {
@@ -55,7 +55,7 @@ public class ShiftLifecycleIntegrationTest {
         cashier.setEmployeeId("EMP_CS_001");
         cashier.setRole(Role.CASHIER);
         cashier.setAccountStatus(AccountStatus.ACTIVE);
-        cashier = userProfileRepo.save(cashier);
+        cashier = userProfileRepository.save(cashier);
 
         // 3. Prepare ShiftStartRequest (openingCash = 150.00)
         ShiftStartRequest startRequest = new ShiftStartRequest();

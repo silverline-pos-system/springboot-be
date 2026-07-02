@@ -1,7 +1,7 @@
 package com.silverline.erp.module.analytics.service.impl;
 
-import com.silverline.erp.domain.inventory.Dispatch;
-import com.silverline.erp.domain.inventory.Supplier;
+import com.silverline.erp.domain.procurement.Dispatch;
+import com.silverline.erp.domain.procurement.Supplier;
 import com.silverline.erp.module.analytics.dto.DashboardStatsDTO;
 import com.silverline.erp.module.analytics.dto.StockAlertDTO;
 import com.silverline.erp.module.analytics.service.AlertService;

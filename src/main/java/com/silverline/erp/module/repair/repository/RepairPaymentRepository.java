@@ -1,6 +1,6 @@
 package com.silverline.erp.module.repair.repository;
 
-import com.silverline.erp.domain.service.RepairPayment;
+import com.silverline.erp.domain.repair.RepairPayment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

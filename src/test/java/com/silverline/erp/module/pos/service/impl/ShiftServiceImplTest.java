@@ -6,7 +6,7 @@ import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.pos.CashShift;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.pos.dto.ShiftStartRequest;
 import com.silverline.erp.module.pos.dto.shift.CloseShiftRequest;
 import com.silverline.erp.module.pos.repository.CashFlowRepository;
@@ -37,7 +37,7 @@ class ShiftServiceImplTest {
     @Mock
     private AuthenticationManager authenticationManager;
     @Mock
-    private UserProfileRepo userProfileRepo;
+    private UserProfileRepository userProfileRepository;
     @Mock
     private CashFlowRepository cashFlowRepository;
     @Mock
@@ -68,7 +68,7 @@ class ShiftServiceImplTest {
         // Arrange
         when(shiftRepository.hasOpenShift(10L)).thenReturn(false);
         when(shiftRepository.save(any(CashShift.class))).thenReturn(100L);
-        when(userProfileRepo.findById(10L)).thenReturn(Optional.empty());
+        when(userProfileRepository.findById(10L)).thenReturn(Optional.empty());
 
         // Act
         Long shiftId = shiftService.startShift(startRequest);
@@ -91,14 +91,14 @@ class ShiftServiceImplTest {
         supervisor.setAccountStatus(AccountStatus.ACTIVE);
         supervisor.setRole(Role.SUPER_ADMIN);
 
-        when(userProfileRepo.findByUsername("admin")).thenReturn(Optional.of(supervisor));
+        when(userProfileRepository.findByUsername("admin")).thenReturn(Optional.of(supervisor));
         Authentication mockAuth = mock(Authentication.class);
         when(mockAuth.isAuthenticated()).thenReturn(true);
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mockAuth);
 
         when(shiftRepository.hasOpenShift(10L)).thenReturn(false);
         when(shiftRepository.save(any(CashShift.class))).thenReturn(100L);
-        when(userProfileRepo.findById(10L)).thenReturn(Optional.empty());
+        when(userProfileRepository.findById(10L)).thenReturn(Optional.empty());
 
         // Act
         Long shiftId = shiftService.startShift(startRequest);
@@ -161,7 +161,7 @@ class ShiftServiceImplTest {
         when(shiftRepository.findOpenShiftByCashierId(10L)).thenReturn(Optional.of(shift));
         when(cashFlowRepository.countByShiftIdAndStatus(100L, "PENDING")).thenReturn(0L);
         when(shiftRepository.findByIdWithStats(100L)).thenReturn(Optional.of(shift));
-        when(userProfileRepo.findById(10L)).thenReturn(Optional.empty());
+        when(userProfileRepository.findById(10L)).thenReturn(Optional.empty());
 
         // Act
         shiftService.closeShift(10L, closeRequest);

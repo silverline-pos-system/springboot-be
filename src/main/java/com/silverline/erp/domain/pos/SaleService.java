@@ -1,4 +1,4 @@
-package com.silverline.erp.domain.service;
+package com.silverline.erp.domain.pos;
 
 import com.silverline.erp.domain.enums.ServiceStatus;
 import com.silverline.erp.domain.enums.ServiceType;

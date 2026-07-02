@@ -1,5 +1,6 @@
 package com.silverline.erp.module.admin.repository;
 
+import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.user.UserProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,6 +22,15 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
      * Find by username
      */
     Optional<UserProfile> findByUsername(String username);
+
+    Optional<UserProfile> findByEmail(String email);
+    Optional<UserProfile> findByPhone(String phone);
+    Optional<UserProfile> findByEmployeeId(String employeeId);
+
+    @Query("SELECT MAX(CAST(SUBSTRING(u.employeeId, 4) as java.lang.Long)) FROM UserProfile u WHERE u.employeeId LIKE 'EMP%'")
+    Long findMaxEmployeeIdSequence();
+
+    List<UserProfile> findByRole(Role role);
 
     /**
      * Find active users (global)

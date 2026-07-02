@@ -6,7 +6,7 @@ import com.silverline.erp.common.exception.ResourceNotFoundException;
 import com.silverline.erp.domain.inventory.ProductSerial;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.module.admin.repository.BranchRepository;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.dto.DamagedProductDTO;
 import com.silverline.erp.module.inventory.dto.ProductSerialDTO;
 import com.silverline.erp.module.inventory.repository.BatchRepository;
@@ -40,7 +40,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
     private final StockRepository stockRepository;
     private final SaleRepository saleRepository;
     private final CustomerRepository customerRepository;
-    private final UserProfileRepo userProfileRepo;
+    private final UserProfileRepository userProfileRepository;
     private final BranchRepository branchRepository;
 
     @Override
@@ -366,7 +366,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
                     });
                 }
                 if (sale.getCashierId() != null) {
-                    userProfileRepo.findById(sale.getCashierId()).ifPresent(u -> {
+                    userProfileRepository.findById(sale.getCashierId()).ifPresent(u -> {
                         dto.setCashierName(u.getUsername());
                     });
                 }

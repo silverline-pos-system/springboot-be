@@ -1,4 +1,4 @@
-# Silverline ERP - Backend Service (ROCS)
+# Silverline ERP - Backend Service
 
 This is the Spring Boot backend service for Silverline ERP (Retail Operation Control System). It provides high-performance REST APIs, real-time sync via WebSockets, and background scheduling.
 

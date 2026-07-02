@@ -1,7 +1,7 @@
 package com.silverline.erp.infrastructure.reporting;
 
-import com.silverline.erp.domain.inventory.Dispatch;
-import com.silverline.erp.domain.inventory.Supplier;
+import com.silverline.erp.domain.procurement.Dispatch;
+import com.silverline.erp.domain.procurement.Supplier;
 import com.silverline.erp.module.analytics.dto.SalesReportDTO;
 import com.silverline.erp.module.analytics.service.SalesAnalyticsService;
 import com.silverline.erp.module.inventory.repository.SupplierRepository;

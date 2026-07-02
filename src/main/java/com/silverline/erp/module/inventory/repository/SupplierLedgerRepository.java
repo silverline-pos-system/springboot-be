@@ -1,6 +1,6 @@
 package com.silverline.erp.module.inventory.repository;
 
-import com.silverline.erp.domain.inventory.SupplierLedger;
+import com.silverline.erp.domain.procurement.SupplierLedger;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

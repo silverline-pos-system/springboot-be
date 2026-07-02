@@ -1,8 +1,8 @@
 package com.silverline.erp.module.procurement.service;
 
-import com.silverline.erp.domain.inventory.PurchaseOrder;
-import com.silverline.erp.domain.inventory.PurchaseOrderItem;
-import com.silverline.erp.domain.inventory.PurchaseOrderPayment;
+import com.silverline.erp.domain.procurement.PurchaseOrder;
+import com.silverline.erp.domain.procurement.PurchaseOrderItem;
+import com.silverline.erp.domain.procurement.PurchaseOrderPayment;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.inventory.dto.ProcessPORequest;
 import com.silverline.erp.module.inventory.repository.ProductRepository;

@@ -1,4 +1,4 @@
-package com.silverline.erp.domain.service;
+package com.silverline.erp.domain.repair;
 
 import jakarta.persistence.*;
 import lombok.Getter;

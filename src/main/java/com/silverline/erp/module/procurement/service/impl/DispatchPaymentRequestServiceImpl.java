@@ -1,11 +1,11 @@
 package com.silverline.erp.module.procurement.service.impl;
 
-import com.silverline.erp.domain.inventory.Dispatch;
-import com.silverline.erp.domain.inventory.DispatchPaymentRequest;
-import com.silverline.erp.domain.inventory.Supplier;
+import com.silverline.erp.domain.procurement.Dispatch;
+import com.silverline.erp.domain.procurement.DispatchPaymentRequest;
+import com.silverline.erp.domain.procurement.Supplier;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.repository.BranchRepository;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.dto.ProcessPaymentRequest;
 import com.silverline.erp.module.inventory.dto.TransferToManagerRequest;
 import com.silverline.erp.module.inventory.repository.SupplierRepository;
@@ -34,7 +34,7 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
     private final DispatchRepository dispatchRepository;
     private final SupplierRepository supplierRepository;
     private final BranchRepository branchRepository;
-    private final UserProfileRepo userProfileRepo;
+    private final UserProfileRepository userProfileRepository;
     private final AuthenticationManager authenticationManager;
 
     @Override
@@ -232,7 +232,7 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
                 throw new RuntimeException("Invalid supervisor credentials");
             }
 
-            UserProfile supervisor = userProfileRepo.findByUsername(username)
+            UserProfile supervisor = userProfileRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Supervisor not found"));
 
             String role = supervisor.getRole().name();
@@ -277,15 +277,15 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
 
         // Fetch user names
         if (request.getRequestedBy() != null) {
-            userProfileRepo.findById(request.getRequestedBy()).ifPresent(user ->
+            userProfileRepository.findById(request.getRequestedBy()).ifPresent(user ->
                     dto.setRequestedByName(user.getFullName()));
         }
         if (request.getSupervisorApprovedBy() != null) {
-            userProfileRepo.findById(request.getSupervisorApprovedBy()).ifPresent(user ->
+            userProfileRepository.findById(request.getSupervisorApprovedBy()).ifPresent(user ->
                     dto.setSupervisorApprovedByName(user.getFullName()));
         }
         if (request.getProcessedBy() != null) {
-            userProfileRepo.findById(request.getProcessedBy()).ifPresent(user ->
+            userProfileRepository.findById(request.getProcessedBy()).ifPresent(user ->
                     dto.setProcessedByName(user.getFullName()));
         }
 

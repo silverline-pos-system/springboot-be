@@ -11,7 +11,7 @@ import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.auth.dto.LogInResponseDTO;
 import com.silverline.erp.module.auth.dto.RegisterRequestDTO;
 import com.silverline.erp.module.auth.dto.RegisterResponseDTO;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.auth.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,9 +35,7 @@ import static org.mockito.Mockito.*;
 class AuthServiceImplTest {
 
     @Mock
-    private UserProfileRepo userProfileRepo;
-    @Mock
-    private com.silverline.erp.module.auth.repo.BranchRepo branchRepo;
+    private UserProfileRepository userProfileRepository;
     @Mock
     private ApprovalRepository approvalRepository;
     @Mock
@@ -80,11 +78,11 @@ class AuthServiceImplTest {
     @Test
     void registerUser_Success() {
         // Arrange
-        when(userProfileRepo.findByEmail("test@silverline.com")).thenReturn(Optional.empty());
-        when(userProfileRepo.findByUsername("testuser")).thenReturn(Optional.empty());
-        when(userProfileRepo.findByPhone("1234567890")).thenReturn(Optional.empty());
+        when(userProfileRepository.findByEmail("test@silverline.com")).thenReturn(Optional.empty());
+        when(userProfileRepository.findByUsername("testuser")).thenReturn(Optional.empty());
+        when(userProfileRepository.findByPhone("1234567890")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("securePassword")).thenReturn("hashedPassword");
-        when(userProfileRepo.save(any(UserProfile.class))).thenAnswer(i -> {
+        when(userProfileRepository.save(any(UserProfile.class))).thenAnswer(i -> {
             UserProfile u = i.getArgument(0);
             u.setUserId(10L);
             return u;
@@ -102,14 +100,14 @@ class AuthServiceImplTest {
         assertNotNull(response);
         assertTrue(response.getMessage().contains("registered successfully"));
         assertEquals("test@silverline.com", response.getEmail());
-        verify(userProfileRepo).save(any(UserProfile.class));
+        verify(userProfileRepository).save(any(UserProfile.class));
         verify(approvalRepository).save(any(Approval.class));
     }
 
     @Test
     void registerUser_DuplicateEmail_ReturnsError() {
         // Arrange
-        when(userProfileRepo.findByEmail("test@silverline.com")).thenReturn(Optional.of(userProfile));
+        when(userProfileRepository.findByEmail("test@silverline.com")).thenReturn(Optional.of(userProfile));
 
         // Act
         RegisterResponseDTO response = authService.registerUser(registerRequest);
@@ -118,13 +116,13 @@ class AuthServiceImplTest {
         assertNotNull(response);
         assertNotNull(response.getMessage());
         assertTrue(response.getMessage().contains("EMAIL: User with this email already exists"));
-        verify(userProfileRepo, never()).save(any(UserProfile.class));
+        verify(userProfileRepository, never()).save(any(UserProfile.class));
     }
 
     @Test
     void logInUser_Success() {
         // Arrange
-        when(userProfileRepo.findByUsername("testuser")).thenReturn(Optional.of(userProfile));
+        when(userProfileRepository.findByUsername("testuser")).thenReturn(Optional.of(userProfile));
         Authentication mockAuth = mock(Authentication.class);
         when(mockAuth.isAuthenticated()).thenReturn(true);
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mockAuth);
@@ -147,7 +145,7 @@ class AuthServiceImplTest {
     @Test
     void logInUser_UserNotFound_ReturnsError() {
         // Arrange
-        when(userProfileRepo.findByUsername("unknown")).thenReturn(Optional.empty());
+        when(userProfileRepository.findByUsername("unknown")).thenReturn(Optional.empty());
 
         // Act
         LogInResponseDTO response = authService.logInUser("unknown", "password");
@@ -162,7 +160,7 @@ class AuthServiceImplTest {
     void logInUser_PendingStatus_ReturnsError() {
         // Arrange
         userProfile.setAccountStatus(AccountStatus.PENDING);
-        when(userProfileRepo.findByUsername("testuser")).thenReturn(Optional.of(userProfile));
+        when(userProfileRepository.findByUsername("testuser")).thenReturn(Optional.of(userProfile));
 
         // Act
         LogInResponseDTO response = authService.logInUser("testuser", "password");

@@ -1,6 +1,6 @@
 package com.silverline.erp.module.repair.service;
 
-import com.silverline.erp.domain.service.RepairJob;
+import com.silverline.erp.domain.repair.RepairJob;
 import com.silverline.erp.module.repair.dto.RepairJobRequestDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -13,8 +13,7 @@ import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.auth.dto.LogInResponseDTO;
 import com.silverline.erp.module.auth.dto.RegisterRequestDTO;
 import com.silverline.erp.module.auth.dto.RegisterResponseDTO;
-import com.silverline.erp.module.auth.repo.BranchRepo;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.auth.service.AuthService;
 import com.silverline.erp.module.auth.service.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +36,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
-    private final UserProfileRepo userProfileRepo;
-    private final BranchRepo branchRepo;
+    private final UserProfileRepository userProfileRepository;
     private final ApprovalRepository approvalRepository;
     private final BranchRepository branchRepository;
     private final PasswordResetRequestRepository passwordResetRequestRepository;
@@ -49,19 +47,19 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserProfile findByEmail(String email) {
-        Optional<UserProfile> userProfile = userProfileRepo.findByEmail(email);
+        Optional<UserProfile> userProfile = userProfileRepository.findByEmail(email);
         return userProfile.orElse(null);
     }
 
     @Override
     public UserProfile findByUsername(String username) {
-        Optional<UserProfile> userProfile = userProfileRepo.findByUsername(username);
+        Optional<UserProfile> userProfile = userProfileRepository.findByUsername(username);
         return userProfile.orElse(null);
     }
 
     @Override
     public List<Branch> getAllBranches() {
-        return branchRepo.findAll();
+        return branchRepository.findAll();
     }
 
     @Override
@@ -79,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
             return new RegisterResponseDTO("USERNAME: User with this username already exists");
         }
 
-        Optional<UserProfile> existUserByPhone = userProfileRepo.findByPhone(registerRequestDTO.getPhone());
+        Optional<UserProfile> existUserByPhone = userProfileRepository.findByPhone(registerRequestDTO.getPhone());
         if (existUserByPhone.isPresent()) {
             log.warn("Business rule violation: registration failed because phone '{}' already exists", registerRequestDTO.getPhone());
             return new RegisterResponseDTO("PHONE: User with this phone number already exists");
@@ -94,7 +92,7 @@ public class AuthServiceImpl implements AuthService {
         
         String employeeId = registerRequestDTO.getEmployeeId();
         if (employeeId != null && !employeeId.trim().isEmpty()) {
-            Optional<UserProfile> existUserByEmployeeId = userProfileRepo.findByEmployeeId(employeeId);
+            Optional<UserProfile> existUserByEmployeeId = userProfileRepository.findByEmployeeId(employeeId);
             if (existUserByEmployeeId.isPresent()) {
                 return new RegisterResponseDTO("EMPLOYEE_ID: User with this Employee ID already exists");
             }
@@ -105,7 +103,7 @@ public class AuthServiceImpl implements AuthService {
         userProfile.setRole(null);
         userProfile.setAccountStatus(AccountStatus.PENDING);
 
-        UserProfile registerUser = userProfileRepo.save(userProfile);
+        UserProfile registerUser = userProfileRepository.save(userProfile);
 
         Approval approval = new Approval();
         List<Branch> activeBranches = branchRepository.findAll().stream()
@@ -165,7 +163,7 @@ public class AuthServiceImpl implements AuthService {
             return new LogInResponseDTO("Invalid credentials");
         }
 
-        UserProfile user = userProfileRepo.findByUsername(username)
+        UserProfile user = userProfileRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Branch> allBranches = branchRepository.findAll().stream()
@@ -257,7 +255,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private String generateSequentialEmployeeId() {
-        Long maxNumber = userProfileRepo.findMaxEmployeeIdSequence();
+        Long maxNumber = userProfileRepository.findMaxEmployeeIdSequence();
         long nextNumber = (maxNumber != null ? maxNumber : 0) + 1;
         return String.format("EMP%03d", nextNumber);
     }

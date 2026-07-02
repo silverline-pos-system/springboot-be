@@ -7,7 +7,7 @@ import com.silverline.erp.domain.pos.SaleItem;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.service.SaasFeatureService;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.service.BatchService;
 import com.silverline.erp.module.inventory.service.ProductSerialService;
 import com.silverline.erp.module.inventory.service.ProductService;
@@ -43,7 +43,7 @@ public class PosSaleServiceImpl implements PosSaleService {
     private final PaymentRepository paymentRepository;
     private final ProductService productService;
     private final StockService stockService;
-    private final UserProfileRepo userProfileRepo;
+    private final UserProfileRepository userProfileRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final BatchService batchService;
     private final SaasFeatureService featureService;
@@ -263,9 +263,9 @@ public class PosSaleServiceImpl implements PosSaleService {
             }
         }
 
-        String cashierUsername = userProfileRepo.findById(cashierId)
-                .map(UserProfile::getUsername)
-                .orElse("Cashier #" + cashierId);
+        UserProfile cashier = userProfileRepository.findById(cashierId)
+                .orElseThrow(() -> new RuntimeException("Cashier profile not found"));
+        String cashierUsername = cashier.getUsername();
 
         // Publish SaleCompletedEvent to log activity asynchronously
         eventPublisher.publishEvent(new SaleCompletedEvent(
