@@ -2,8 +2,8 @@ package com.silverline.erp.module.repair.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.common.dto.PagedResponse;
-import com.silverline.erp.domain.service.RepairJob;
-import com.silverline.erp.domain.service.SaleService;
+import com.silverline.erp.domain.repair.RepairJob;
+import com.silverline.erp.domain.pos.SaleService;
 import com.silverline.erp.module.repair.dto.RepairJobRequestDTO;
 import com.silverline.erp.module.repair.dto.SaleServiceRequestDTO;
 import com.silverline.erp.module.repair.service.DtvService;

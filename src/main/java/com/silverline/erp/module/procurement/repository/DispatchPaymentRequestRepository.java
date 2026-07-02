@@ -1,6 +1,6 @@
 package com.silverline.erp.module.procurement.repository;
 
-import com.silverline.erp.domain.inventory.DispatchPaymentRequest;
+import com.silverline.erp.domain.procurement.DispatchPaymentRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

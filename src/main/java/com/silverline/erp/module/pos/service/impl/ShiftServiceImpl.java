@@ -6,7 +6,7 @@ import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.pos.CashShift;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.pos.dto.ShiftStartRequest;
 import com.silverline.erp.module.pos.dto.shift.CloseShiftRequest;
 import com.silverline.erp.module.pos.dto.shift.ShiftResponse;
@@ -33,7 +33,7 @@ public class ShiftServiceImpl implements ShiftService {
 
     private final ShiftRepository shiftRepository;
     private final AuthenticationManager authenticationManager;
-    private final UserProfileRepo userProfileRepo;
+    private final UserProfileRepository userProfileRepository;
     private final CashFlowRepository cashFlowRepository;
     private final AuditLogService activityLogService;
     private final ApplicationEventPublisher eventPublisher;
@@ -57,7 +57,7 @@ public class ShiftServiceImpl implements ShiftService {
             }
 
             try {
-                UserProfile supervisor = userProfileRepo.findByUsername(username)
+                UserProfile supervisor = userProfileRepository.findByUsername(username)
                         .orElseThrow(() -> new RuntimeException("Supervisor user not found: " + username));
 
                 if (supervisor.getAccountStatus() != AccountStatus.ACTIVE) {
@@ -113,7 +113,7 @@ public class ShiftServiceImpl implements ShiftService {
         Long savedShiftId = shiftRepository.save(shift);
         shift.setShiftId(savedShiftId);
      
-        String cashierUsername = userProfileRepo.findById(request.getCashierId())
+        String cashierUsername = userProfileRepository.findById(request.getCashierId())
                 .map(UserProfile::getUsername)
                 .orElse("Cashier #" + request.getCashierId());
 
@@ -189,7 +189,7 @@ public class ShiftServiceImpl implements ShiftService {
 
         shiftRepository.update(shift);
 
-        String cashierUsername = userProfileRepo.findById(shift.getCashierId())
+        String cashierUsername = userProfileRepository.findById(shift.getCashierId())
                 .map(UserProfile::getUsername)
                 .orElse("Cashier #" + shift.getCashierId());
 
@@ -226,9 +226,9 @@ public class ShiftServiceImpl implements ShiftService {
 
         if (shift == null) return null;
 
-        String cashierName = userProfileRepo.findById(shift.getCashierId())
+        String cashierName = userProfileRepository.findById(shift.getCashierId())
                 .map(UserProfile::getFullName)
-                .orElse(userProfileRepo.findById(shift.getCashierId())
+                .orElse(userProfileRepository.findById(shift.getCashierId())
                         .map(UserProfile::getUsername)
                         .orElse("Unknown Cashier"));
 
@@ -248,7 +248,7 @@ public class ShiftServiceImpl implements ShiftService {
     // --- 5. GET CASHIERS ---
     @Override
     public List<UserProfile> getCashiersByBranch(Long branchId) {
-        return userProfileRepo.findByRole(Role.CASHIER);
+        return userProfileRepository.findByRole(Role.CASHIER);
     }
 
     private String generateShiftNo(Long branchId) {

@@ -10,7 +10,7 @@ import com.silverline.erp.domain.pos.SalesReturnItem;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.repository.BranchRepository;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.repository.StockRepository;
 import com.silverline.erp.module.pos.dto.returns.ReturnRequest;
@@ -52,7 +52,7 @@ public class ReturnFlowIntegrationTest {
     private BranchRepository branchRepository;
 
     @Autowired
-    private UserProfileRepo userProfileRepo;
+    private UserProfileRepository userProfileRepository;
 
     @Autowired
     private CustomerRepository customerRepository;
@@ -84,7 +84,7 @@ public class ReturnFlowIntegrationTest {
         supervisor.setEmployeeId("EMP_SUP_001");
         supervisor.setRole(Role.SUPER_ADMIN);
         supervisor.setAccountStatus(AccountStatus.ACTIVE);
-        supervisor = userProfileRepo.save(supervisor);
+        supervisor = userProfileRepository.save(supervisor);
 
         // 3. Create and persist Product
         Product product = new Product();

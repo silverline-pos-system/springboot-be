@@ -4,7 +4,7 @@ import com.silverline.erp.common.audit.AuditLogService;
 import com.silverline.erp.domain.pos.SalesReturn;
 import com.silverline.erp.domain.pos.SalesReturnItem;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.service.StockService;
 import com.silverline.erp.module.pos.dto.returns.ReturnRequest;
 import com.silverline.erp.module.pos.repository.SalesReturnItemRepository;
@@ -30,7 +30,7 @@ public class ReturnServiceImpl implements ReturnService {
 
     private final SalesReturnRepository salesReturnRepository;
     private final SalesReturnItemRepository salesReturnItemRepository;
-    private final UserProfileRepo userProfileRepo;
+    private final UserProfileRepository userProfileRepository;
     private final AuthenticationManager authenticationManager;
     private final StockService stockService;
     private final AuditLogService activityLogService;
@@ -52,7 +52,7 @@ public class ReturnServiceImpl implements ReturnService {
                 new UsernamePasswordAuthenticationToken(supUser, supPass)
             );
             if (auth.isAuthenticated()) {
-                UserProfile supervisor = userProfileRepo.findByUsername(supUser)
+                UserProfile supervisor = userProfileRepository.findByUsername(supUser)
                         .orElseThrow(() -> new RuntimeException("Supervisor not found"));
                 supervisorId = supervisor.getUserId();
                 String role = supervisor.getRole().name();
@@ -106,7 +106,7 @@ public class ReturnServiceImpl implements ReturnService {
         ret.setTotalAmount(totalRefund);
         salesReturnRepository.save(ret);
 
-        String supervisorUsername = userProfileRepo.findById(supervisorId)
+        String supervisorUsername = userProfileRepository.findById(supervisorId)
                 .map(UserProfile::getUsername)
                 .orElse("Supervisor #" + supervisorId);
 

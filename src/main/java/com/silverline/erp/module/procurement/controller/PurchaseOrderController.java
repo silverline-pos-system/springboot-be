@@ -2,7 +2,7 @@ package com.silverline.erp.module.procurement.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.common.dto.PagedResponse;
-import com.silverline.erp.domain.inventory.PurchaseOrder;
+import com.silverline.erp.domain.procurement.PurchaseOrder;
 import com.silverline.erp.module.inventory.dto.ProcessPORequest;
 import com.silverline.erp.module.procurement.dto.PurchaseOrderDTO;
 import com.silverline.erp.module.procurement.dto.PurchaseOrderResponse;

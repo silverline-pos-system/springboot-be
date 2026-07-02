@@ -6,7 +6,7 @@ import com.silverline.erp.domain.audit.Approval;
 import com.silverline.erp.domain.pos.CashFlow;
 import com.silverline.erp.domain.pos.CashShift;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.pos.dto.CashFlowRequest;
 import com.silverline.erp.module.pos.repository.*;
 import com.silverline.erp.module.pos.service.CashReconciliationService;
@@ -33,7 +33,7 @@ public class CashReconciliationServiceImpl implements CashReconciliationService 
     private final PaymentRepository paymentRepository;
     private final ApprovalRepository approvalRepository;
     private final AuditLogService activityLogService;
-    private final UserProfileRepo userProfileRepo;
+    private final UserProfileRepository userProfileRepository;
 
     @Override
     public Map<String, Object> getShiftTotals(Long shiftId) {
@@ -141,7 +141,7 @@ public class CashReconciliationServiceImpl implements CashReconciliationService 
              approvalRepository.save(approval);
         }
 
-        String cashierUsername = userProfileRepo.findById(cashierId)
+        String cashierUsername = userProfileRepository.findById(cashierId)
                 .map(UserProfile::getUsername)
                 .orElse("Cashier #" + cashierId);
 

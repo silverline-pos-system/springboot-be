@@ -4,7 +4,7 @@ import com.silverline.erp.common.audit.AuditLogService;
 import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.pos.SalesReturn;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.service.StockService;
 import com.silverline.erp.module.pos.dto.returns.ReturnRequest;
 import com.silverline.erp.module.pos.repository.SalesReturnItemRepository;
@@ -35,7 +35,7 @@ class ReturnServiceImplTest {
     @Mock
     private SalesReturnItemRepository salesReturnItemRepository;
     @Mock
-    private UserProfileRepo userProfileRepo;
+    private UserProfileRepository userProfileRepository;
     @Mock
     private AuthenticationManager authenticationManager;
     @Mock
@@ -79,7 +79,7 @@ class ReturnServiceImplTest {
         supervisor.setUserId(2L);
         supervisor.setUsername("adminUser");
         supervisor.setRole(Role.SUPER_ADMIN);
-        when(userProfileRepo.findByUsername("adminUser")).thenReturn(Optional.of(supervisor));
+        when(userProfileRepository.findByUsername("adminUser")).thenReturn(Optional.of(supervisor));
 
         SalesReturn mockReturn = new SalesReturn();
         mockReturn.setReturnId(50L);
@@ -119,7 +119,7 @@ class ReturnServiceImplTest {
         nonSupervisor.setUserId(3L);
         nonSupervisor.setUsername("cashierUser");
         nonSupervisor.setRole(Role.CASHIER); // not ADMIN/MANAGER/SUPERVISOR/SUPER_ADMIN
-        when(userProfileRepo.findByUsername("adminUser")).thenReturn(Optional.of(nonSupervisor));
+        when(userProfileRepository.findByUsername("adminUser")).thenReturn(Optional.of(nonSupervisor));
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->

@@ -1,6 +1,6 @@
-package com.silverline.erp.domain.service;
+package com.silverline.erp.domain.repair;
 
-import com.silverline.erp.domain.enums.ServiceStatus;
+import com.silverline.erp.domain.enums.RepairStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,27 +10,27 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "sale_service_status_history")
+@Table(name = "repair_status_history")
 @Getter
 @Setter
 @NoArgsConstructor
-public class SaleServiceStatusHistory {
+public class RepairStatusHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "history_id")
     private Long historyId;
 
-    @Column(name = "service_id", nullable = false)
-    private Long serviceId;
+    @Column(name = "repair_id", nullable = false)
+    private Long repairId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "old_status", length = 30)
-    private ServiceStatus oldStatus;
+    private RepairStatus oldStatus;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "new_status", length = 30)
-    private ServiceStatus newStatus;
+    private RepairStatus newStatus;
 
     @Column(name = "changed_by")
     private Long changedBy;

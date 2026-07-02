@@ -8,7 +8,7 @@ import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.auth.dto.LogInResponseDTO;
 import com.silverline.erp.module.auth.dto.RegisterRequestDTO;
 import com.silverline.erp.module.auth.dto.RegisterResponseDTO;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.auth.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public class AuthFlowIntegrationTest {
     private AuthService authService;
 
     @Autowired
-    private UserProfileRepo userProfileRepo;
+    private UserProfileRepository userProfileRepository;
 
     @Autowired
     private BranchRepository branchRepository;
@@ -64,10 +64,10 @@ public class AuthFlowIntegrationTest {
         assertNull(pendingLoginResponse.getToken());
 
         // 5. Approve the user manually
-        UserProfile registeredUser = userProfileRepo.findById(registerResponse.getUserId()).orElseThrow();
+        UserProfile registeredUser = userProfileRepository.findById(registerResponse.getUserId()).orElseThrow();
         registeredUser.setAccountStatus(AccountStatus.ACTIVE);
         registeredUser.setRole(Role.CASHIER);
-        userProfileRepo.save(registeredUser);
+        userProfileRepository.save(registeredUser);
 
         // 6. Log in with correct credentials
         LogInResponseDTO loginResponse = authService.logInUser("authUserTest", "securePassword123");

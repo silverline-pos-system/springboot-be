@@ -1,4 +1,4 @@
-package com.silverline.erp.domain.inventory;
+package com.silverline.erp.domain.procurement;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

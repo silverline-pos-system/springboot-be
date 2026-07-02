@@ -3,14 +3,14 @@ package com.silverline.erp.integration;
 import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.enums.Role;
-import com.silverline.erp.domain.inventory.Dispatch;
-import com.silverline.erp.domain.inventory.DispatchItem;
+import com.silverline.erp.domain.procurement.Dispatch;
+import com.silverline.erp.domain.procurement.DispatchItem;
 import com.silverline.erp.domain.inventory.Stock;
-import com.silverline.erp.domain.inventory.Supplier;
+import com.silverline.erp.domain.procurement.Supplier;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.repository.BranchRepository;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.repository.StockRepository;
 import com.silverline.erp.module.inventory.repository.SupplierRepository;
@@ -55,7 +55,7 @@ public class DispatchFlowIntegrationTest {
     private BranchRepository branchRepository;
 
     @Autowired
-    private UserProfileRepo userProfileRepo;
+    private UserProfileRepository userProfileRepository;
 
     @Test
     public void testApproveDispatch_Success() {
@@ -75,7 +75,7 @@ public class DispatchFlowIntegrationTest {
         user.setEmployeeId("EMP_PM_001");
         user.setRole(Role.MANAGER);
         user.setAccountStatus(AccountStatus.ACTIVE);
-        user = userProfileRepo.save(user);
+        user = userProfileRepository.save(user);
 
         // 3. Create and persist Supplier
         Supplier supplier = new Supplier();

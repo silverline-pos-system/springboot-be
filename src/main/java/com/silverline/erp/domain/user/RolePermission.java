@@ -1,4 +1,4 @@
-package com.silverline.erp.domain.main;
+package com.silverline.erp.domain.user;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -44,4 +44,3 @@ public class RolePermission {
         }
     }
 }
-

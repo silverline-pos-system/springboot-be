@@ -1,6 +1,6 @@
 package com.silverline.erp.module.repair.service;
 
-import com.silverline.erp.domain.service.SaleService;
+import com.silverline.erp.domain.pos.SaleService;
 import com.silverline.erp.module.repair.dto.SaleServiceRequestDTO;
 
 import java.math.BigDecimal;

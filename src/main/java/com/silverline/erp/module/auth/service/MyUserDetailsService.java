@@ -2,7 +2,7 @@ package com.silverline.erp.module.auth.service;
 
 import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import lombok.Data;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.authentication.DisabledException;
@@ -18,11 +18,11 @@ import java.util.Optional;
 @NullMarked
 public class MyUserDetailsService implements UserDetailsService {
 
-    private final UserProfileRepo userProfileRepo;
+    private final UserProfileRepository userProfileRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<UserProfile> userProfile = userProfileRepo.findByUsername(username);
+        Optional<UserProfile> userProfile = userProfileRepository.findByUsername(username);
         UserProfile existUser = userProfile.orElseThrow(() ->
                 new UsernameNotFoundException("User not found with username: " + username));
 

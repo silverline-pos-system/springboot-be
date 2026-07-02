@@ -1,8 +1,8 @@
 package com.silverline.erp.module.repair.service.impl;
 
 import com.silverline.erp.domain.enums.ServiceStatus;
-import com.silverline.erp.domain.service.SaleService;
-import com.silverline.erp.domain.service.SaleServiceStatusHistory;
+import com.silverline.erp.domain.pos.SaleService;
+import com.silverline.erp.domain.pos.SaleServiceStatusHistory;
 import com.silverline.erp.module.repair.dto.SaleServiceRequestDTO;
 import com.silverline.erp.module.repair.repository.SaleServiceRepository;
 import com.silverline.erp.module.repair.repository.SaleServiceStatusHistoryRepository;

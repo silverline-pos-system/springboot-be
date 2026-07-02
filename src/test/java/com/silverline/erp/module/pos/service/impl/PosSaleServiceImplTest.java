@@ -5,7 +5,7 @@ import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.service.SaasFeatureService;
-import com.silverline.erp.module.auth.repo.UserProfileRepo;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.service.BatchService;
 import com.silverline.erp.module.inventory.service.ProductSerialService;
 import com.silverline.erp.module.inventory.service.ProductService;
@@ -48,7 +48,7 @@ class PosSaleServiceImplTest {
     @Mock
     private StockService stockService;
     @Mock
-    private UserProfileRepo userProfileRepo;
+    private UserProfileRepository userProfileRepository;
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Mock
@@ -105,7 +105,7 @@ class PosSaleServiceImplTest {
         when(productService.findById(100L)).thenReturn(mockProduct);
         when(stockService.getCurrentStock(branchId, 100L)).thenReturn(5);
         when(saleRepository.save(any(Sale.class))).thenReturn(1L);
-        when(userProfileRepo.findById(cashierId)).thenReturn(Optional.of(mockUser));
+        when(userProfileRepository.findById(cashierId)).thenReturn(Optional.of(mockUser));
 
         SaleResponse expectedResponse = new SaleResponse.Builder()
                 .saleId(1L)
@@ -179,7 +179,7 @@ class PosSaleServiceImplTest {
 
         when(featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK")).thenReturn(true);
         when(saleRepository.save(any(Sale.class))).thenReturn(1L);
-        when(userProfileRepo.findById(cashierId)).thenReturn(Optional.of(mockUser));
+        when(userProfileRepository.findById(cashierId)).thenReturn(Optional.of(mockUser));
 
         SaleResponse expectedResponse = new SaleResponse.Builder()
                 .saleId(1L)
