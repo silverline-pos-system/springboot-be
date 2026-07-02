@@ -11,6 +11,8 @@ import com.silverline.erp.module.admin.service.BranchService;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.pos.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -42,6 +44,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     // Create
+    @CacheEvict(value = "branches", allEntries = true)
     @Override
     public BranchDTO createBranch(BranchDTO dto) {
         Branch entity = toEntity(dto);
@@ -50,6 +53,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     // Read all
+    @Cacheable(value = "branches")
     @Override
     public List<BranchDTO> getAllBranches() {
         return branchRepository.findAll()
@@ -59,6 +63,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     // Read by id
+    @Cacheable(value = "branches", key = "#id")
     @Override
     public BranchDTO getBranchById(Long id) {
         Branch branch = branchRepository.findById(id)
@@ -67,6 +72,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     // Update
+    @CacheEvict(value = "branches", allEntries = true)
     @Override
     public BranchDTO updateBranch(Long id, BranchDTO dto) {
         Branch existing = branchRepository.findById(id)
@@ -86,6 +92,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     // Delete
+    @CacheEvict(value = "branches", allEntries = true)
     @Override
     public void deleteBranch(Long id) {
         Branch existing = branchRepository.findById(id)
@@ -93,6 +100,7 @@ public class BranchServiceImpl implements BranchService {
         branchRepository.delete(existing);
     }
 
+    @CacheEvict(value = "branches", allEntries = true)
     @Override
     public void toggleBranchStatus(Long id) {
         Branch existing = branchRepository.findById(id)

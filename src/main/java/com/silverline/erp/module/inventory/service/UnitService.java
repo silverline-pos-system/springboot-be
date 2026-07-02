@@ -5,6 +5,8 @@ import com.silverline.erp.domain.product.Unit;
 import com.silverline.erp.module.inventory.dto.UnitDTO;
 import com.silverline.erp.module.inventory.repository.UnitRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,24 +20,28 @@ public class UnitService {
 
     private final UnitRepository unitRepository;
 
+    @Cacheable(value = "units")
     public List<UnitDTO> getAllUnits() {
         return unitRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "units", key = "#id")
     public UnitDTO getUnitById(Long id) {
         Unit unit = unitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Unit not found with id: " + id));
         return convertToDTO(unit);
     }
 
+    @CacheEvict(value = "units", allEntries = true)
     public UnitDTO createUnit(UnitDTO unitDTO) {
         Unit unit = convertToEntity(unitDTO);
         Unit savedUnit = unitRepository.save(unit);
         return convertToDTO(savedUnit);
     }
 
+    @CacheEvict(value = "units", allEntries = true)
     public UnitDTO updateUnit(Long id, UnitDTO unitDTO) {
         Unit unit = unitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Unit not found with id: " + id));
@@ -47,6 +53,7 @@ public class UnitService {
         return convertToDTO(updatedUnit);
     }
 
+    @CacheEvict(value = "units", allEntries = true)
     public void deleteUnit(Long id) {
         if (!unitRepository.existsById(id)) {
             throw new ResourceNotFoundException("Unit not found with id: " + id);

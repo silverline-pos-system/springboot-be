@@ -14,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +59,7 @@ public class ProductServiceImpl implements ProductService {
         return mapPageToDTO(productRepository.findByIsActiveTrue(capped));
     }
 
+    @Cacheable(value = "products", key = "#id")
     @Override
     public ProductDTO getProductById(Long id) {
         Product product = productRepository.findById(id)
@@ -64,6 +67,7 @@ public class ProductServiceImpl implements ProductService {
         return convertToDTO(product);
     }
 
+    @Cacheable(value = "products", key = "#sku")
     @Override
     public ProductDTO getProductBySku(String sku) {
         Product product = productRepository.findBySku(sku)
@@ -71,6 +75,7 @@ public class ProductServiceImpl implements ProductService {
         return convertToDTO(product);
     }
 
+    @Cacheable(value = "products", key = "#barcode")
     @Override
     public ProductDTO getProductByBarcode(String barcode) {
         Product product = productRepository.findByBarcode(barcode)
@@ -109,6 +114,7 @@ public class ProductServiceImpl implements ProductService {
         return String.format("SKU%03d", nextId);
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     @Override
     public ProductDTO createProduct(ProductDTO productDTO) {
         if (productRepository.findBySku(productDTO.getSku()).isPresent()) {
@@ -124,6 +130,7 @@ public class ProductServiceImpl implements ProductService {
         return convertToDTO(savedProduct);
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     @Override
     public ProductDTO updateProduct(Long id, ProductDTO productDTO) {
         Product product = productRepository.findById(id)
@@ -164,6 +171,7 @@ public class ProductServiceImpl implements ProductService {
         return convertToDTO(updatedProduct);
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     @Override
     public void deleteProduct(Long id) {
         if (!productRepository.existsById(id)) {
@@ -172,6 +180,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.deleteById(id);
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     @Override
     public void deactivateProduct(Long id) {
         Product product = productRepository.findById(id)
