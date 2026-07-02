@@ -39,8 +39,7 @@ public class PosControllerContractTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockitoBean
     private PosSaleService saleService;
@@ -56,6 +55,9 @@ public class PosControllerContractTest {
 
     @MockitoBean
     private ShiftService shiftService;
+
+    @MockitoBean
+    private CashReconciliationService cashReconciliationService;
 
     @MockitoBean
     private JwtFilter jwtFilter;
@@ -123,7 +125,7 @@ public class PosControllerContractTest {
         request.setOpeningCash(BigDecimal.TEN);
         // branchId is not set to trigger validation error
 
-        mockMvc.perform(post("/api/v1/pos/shift/start")
+        mockMvc.perform(post("/api/v1/pos/shift/open")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
