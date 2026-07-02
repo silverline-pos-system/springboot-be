@@ -2,7 +2,7 @@ package com.silverline.erp.module.admin.controller;
 
 import com.silverline.erp.module.admin.dto.SaasFeatureDTO;
 import com.silverline.erp.module.admin.service.SaasFeatureService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,14 +20,10 @@ import java.util.Map;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1/system")
+@RequiredArgsConstructor
 public class SystemConfigController {
 
     private final SaasFeatureService saasFeatureService;
-
-    @Autowired
-    public SystemConfigController(SaasFeatureService saasFeatureService) {
-        this.saasFeatureService = saasFeatureService;
-    }
 
     /**
      * Get the system name (used by all layouts, headers, receipts, reports)

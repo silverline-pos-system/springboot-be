@@ -57,7 +57,7 @@ public class ManagerController {
     @PatchMapping("/approvals/{approvalId}")
     public ResponseEntity<ApiResponse<ApprovalDTO>> updateApprovalStatus(
             @PathVariable Long approvalId,
-            @RequestBody ApprovalUpdateRequest request) {
+            @jakarta.validation.Valid @RequestBody ApprovalUpdateRequest request) {
         log.info("Updating approval {} to status: {}", approvalId, request.getStatus());
         ApprovalDTO approval = managerService.updateApprovalStatus(
                 approvalId,

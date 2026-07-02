@@ -13,8 +13,8 @@ import com.silverline.erp.module.procurement.repository.DispatchRepository;
 import com.silverline.erp.module.procurement.repository.PurchaseOrderItemRepository;
 import com.silverline.erp.module.procurement.repository.PurchaseOrderRepository;
 import com.silverline.erp.module.procurement.service.DispatchService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,43 +29,32 @@ import java.util.stream.Collectors;
 @Service("inventoryDispatchService")
 @Transactional
 @Slf4j
+@RequiredArgsConstructor
 public class DispatchServiceImpl implements DispatchService {
 
-    @Autowired
-    private DispatchRepository dispatchRepository;
+    private final DispatchRepository dispatchRepository;
 
-    @Autowired
-    private DispatchItemRepository dispatchItemRepository;
+    private final DispatchItemRepository dispatchItemRepository;
 
-    @Autowired
-    private SupplierRepository supplierRepository;
+    private final SupplierRepository supplierRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private StockRepository stockRepository;
+    private final StockRepository stockRepository;
 
-    @Autowired
-    private BatchRepository batchRepository;
+    private final BatchRepository batchRepository;
 
-    @Autowired
-    private ProductSerialRepository productSerialRepository;
+    private final ProductSerialRepository productSerialRepository;
 
-    @Autowired
-    private PurchaseOrderRepository purchaseOrderRepository;
+    private final PurchaseOrderRepository purchaseOrderRepository;
 
-    @Autowired
-    private PurchaseOrderItemRepository poItemRepository;
+    private final PurchaseOrderItemRepository poItemRepository;
 
-    @Autowired
-    private BranchRepository branchRepository;
+    private final BranchRepository branchRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ========================================================================
     //  DISPATCH CREATION â€” with full PO + IMEI + FEFO validation gates

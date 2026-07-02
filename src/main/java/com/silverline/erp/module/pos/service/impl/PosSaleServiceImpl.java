@@ -57,6 +57,8 @@ public class PosSaleServiceImpl implements PosSaleService {
                 ? request.getStatus().toUpperCase() : "PAID";
         boolean isPaidSale = "PAID".equals(requestedStatus);
 
+        log.info("Creating sale: branchId={}, cashierId={}, shiftId={}, status={}", branchId, cashierId, shiftId, requestedStatus);
+
         if (isPaidSale && request.getItems() != null && !request.getItems().isEmpty()) {
             boolean allowOutOfStock = featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK");
 
@@ -74,10 +76,13 @@ public class PosSaleServiceImpl implements PosSaleService {
                     BigDecimal availableQty = BigDecimal.valueOf(stockService.getCurrentStock(branchId, itemReq.getProductId()));
                     
                     if (availableQty.compareTo(BigDecimal.ZERO) <= 0) {
+                        log.warn("Out of stock business rule violation: product='{}', branchId={}", productName, branchId);
                         throw new RuntimeException("Cannot sell '" + productName + "' — item is out of stock (Available: 0)");
                     }
                     
                     if (availableQty.compareTo(requiredQty) < 0) {
+                        log.warn("Insufficient stock business rule violation: product='{}', branchId={}, requested={}, available={}",
+                                productName, branchId, requiredQty, availableQty);
                         throw new RuntimeException("Insufficient stock for '" + productName 
                                 + "'. Requested: " + requiredQty + ", Available: " + availableQty);
                     }

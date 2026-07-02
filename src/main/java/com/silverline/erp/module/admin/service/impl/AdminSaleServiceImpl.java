@@ -3,7 +3,7 @@ package com.silverline.erp.module.admin.service.impl;
 import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.module.admin.repository.SaleRepository;
 import com.silverline.erp.module.admin.service.AdminSaleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -12,14 +12,11 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class AdminSaleServiceImpl implements AdminSaleService {
 
     private final SaleRepository saleRepository;
-
-    @Autowired
-    public AdminSaleServiceImpl(SaleRepository saleRepository) {
-        this.saleRepository = saleRepository;
-    }
 
     /**
      * Sum netTotal for sales in the given date range and optional branch.

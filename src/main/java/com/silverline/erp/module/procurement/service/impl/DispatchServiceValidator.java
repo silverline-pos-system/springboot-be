@@ -4,7 +4,7 @@ import com.silverline.erp.module.procurement.dto.DispatchCreateRequestDTO;
 import com.silverline.erp.module.procurement.dto.DispatchResponseDTO;
 import com.silverline.erp.module.procurement.service.DispatchService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -18,10 +18,10 @@ import java.util.List;
  */
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class DispatchServiceValidator {
 
-    @Autowired
-    private DispatchService dispatchService;
+    private final DispatchService dispatchService;
 
     /**
      * Method to validate basic Dispatch service functionality

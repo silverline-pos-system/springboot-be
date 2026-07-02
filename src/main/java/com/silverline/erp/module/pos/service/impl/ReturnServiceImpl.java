@@ -38,6 +38,7 @@ public class ReturnServiceImpl implements ReturnService {
     @Override
     @Transactional
     public Long processReturn(ReturnRequest request) {
+        log.info("Processing return for saleId={}, branchId={}, reason={}", request.getSaleId(), request.getBranchId(), request.getReason());
         String supUser = request.getSupervisorUsername();
         String supPass = request.getSupervisorPassword();
 
@@ -62,6 +63,7 @@ public class ReturnServiceImpl implements ReturnService {
                  throw new RuntimeException("Invalid supervisor credentials");
             }
         } catch (Exception e) {
+             log.warn("Business rule violation: supervisor authorization failed for user '{}': {}", supUser, e.getMessage());
              throw new RuntimeException("Supervisor authorization failed: " + e.getMessage());
         }
 
@@ -95,7 +97,7 @@ public class ReturnServiceImpl implements ReturnService {
                  try {
                      stockService.increaseStock(request.getBranchId(), itemReq.getProductId(), itemReq.getQty().intValue());
                  } catch (Exception e) {
-                     System.err.println("Failed to restock product " + itemReq.getProductId() + ": " + e.getMessage());
+                     log.error("Failed to restock product {}: {}", itemReq.getProductId(), e.getMessage());
                  }
             }
             salesReturnItemRepository.saveAll(items);

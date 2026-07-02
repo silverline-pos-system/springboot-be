@@ -3,7 +3,7 @@ package com.silverline.erp.module.admin.service.impl;
 import com.silverline.erp.module.admin.dto.DispatchDTO;
 import com.silverline.erp.module.admin.service.DispatchService;
 import com.silverline.erp.module.procurement.repository.DispatchRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,14 +16,10 @@ import java.util.List;
  * Admin service for Dispatch related operations.
  */
 @Service("adminDispatchService")
+@RequiredArgsConstructor
 public class DispatchServiceImpl implements DispatchService {
 
     private final DispatchRepository dispatchRepository;
-
-    @Autowired
-    public DispatchServiceImpl(DispatchRepository dispatchRepository) {
-        this.dispatchRepository = dispatchRepository;
-    }
 
     /**
      * Return the count of pending Dispatches for the given branch.

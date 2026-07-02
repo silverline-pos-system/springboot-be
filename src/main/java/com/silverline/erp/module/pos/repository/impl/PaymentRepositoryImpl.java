@@ -3,7 +3,7 @@ package com.silverline.erp.module.pos.repository.impl;
 import com.silverline.erp.domain.pos.Payment;
 import com.silverline.erp.module.pos.repository.PaymentRepositoryCustom;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -13,10 +13,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class PaymentRepositoryImpl implements PaymentRepositoryCustom {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void saveBatch(List<Payment> payments) {

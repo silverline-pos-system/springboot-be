@@ -1,7 +1,7 @@
 package com.silverline.erp.module.admin.controller;
 
 import com.silverline.erp.module.admin.service.AdminSaleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,14 +13,10 @@ import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/api/v1/admin/sales")
+@RequiredArgsConstructor
 public class SaleController {
 
     private final AdminSaleService saleService;
-
-    @Autowired
-    public SaleController(AdminSaleService saleService) {
-        this.saleService = saleService;
-    }
 
     /**
      * GET /api/v1/admin/sales/sum

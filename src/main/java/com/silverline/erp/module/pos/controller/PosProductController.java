@@ -8,7 +8,7 @@ import com.silverline.erp.module.inventory.service.ProductService;
 import com.silverline.erp.module.inventory.service.StockService;
 import com.silverline.erp.module.pos.dto.PosProductDTO;
 import com.silverline.erp.module.pos.service.QuickPickService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/pos/products")
 @CrossOrigin
+@RequiredArgsConstructor
 public class PosProductController {
 
     private final ProductService productService;
@@ -27,15 +28,6 @@ public class PosProductController {
     private final BatchService batchService;
     private final ProductSerialService productSerialService;
     private final QuickPickService quickPickService;
-
-    @Autowired
-    public PosProductController(ProductService productService, StockService stockService, BatchService batchService, ProductSerialService productSerialService, QuickPickService quickPickService) {
-        this.productService = productService;
-        this.stockService = stockService;
-        this.batchService = batchService;
-        this.productSerialService = productSerialService;
-        this.quickPickService = quickPickService;
-    }
 
     // NOTE: branchId now comes from request parameters (user selects branch in POS)
     // Fallback to 1L for backward compatibility

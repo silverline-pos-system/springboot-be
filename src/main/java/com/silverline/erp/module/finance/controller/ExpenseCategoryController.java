@@ -2,7 +2,7 @@ package com.silverline.erp.module.finance.controller;
 
 import com.silverline.erp.module.finance.dto.ExpenseCategoryDTO;
 import com.silverline.erp.module.finance.service.ExpenseService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,10 +11,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/manager/expense-categories")
 @CrossOrigin
+@RequiredArgsConstructor
 public class ExpenseCategoryController {
 
-    @Autowired
-    private ExpenseService expenseService;
+    private final ExpenseService expenseService;
 
     @GetMapping
     public ResponseEntity<List<ExpenseCategoryDTO>> getAllCategories() {

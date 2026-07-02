@@ -7,7 +7,7 @@ import com.silverline.erp.module.pos.dto.shift.CloseShiftRequest;
 import com.silverline.erp.module.pos.service.CashReconciliationService;
 import com.silverline.erp.module.pos.service.ShiftService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,13 +18,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/pos")
 @CrossOrigin // Added to fix CORS issues
+@RequiredArgsConstructor
 public class ShiftController {
 
-    @Autowired
-    private ShiftService shiftService;
+    private final ShiftService shiftService;
 
-    @Autowired
-    private CashReconciliationService cashReconciliationService;
+    private final CashReconciliationService cashReconciliationService;
 
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -74,7 +73,7 @@ public class ShiftController {
     }
 
     @PostMapping("/shift/close")
-    public ResponseEntity<ApiResponse<String>> closeShift(@RequestBody CloseShiftRequest request) {
+    public ResponseEntity<ApiResponse<String>> closeShift(@Valid @RequestBody CloseShiftRequest request) {
         Long cashierId;
         try {
              cashierId = getCurrentUserId();
@@ -91,7 +90,7 @@ public class ShiftController {
     }
 
     @PutMapping("/shift/{shiftId}/close")
-    public ResponseEntity<ApiResponse<String>> closeShiftById(@PathVariable Long shiftId, @RequestBody CloseShiftRequest request) {
+    public ResponseEntity<ApiResponse<String>> closeShiftById(@PathVariable Long shiftId, @Valid @RequestBody CloseShiftRequest request) {
         try {
             shiftService.closeShiftById(shiftId, request);
             return ResponseEntity.ok(ApiResponse.success("Shift closed successfully", "Shift closed"));
@@ -111,7 +110,7 @@ public class ShiftController {
     }
 
     @PostMapping("/cash-flows")
-    public ResponseEntity<ApiResponse<com.silverline.erp.domain.pos.CashFlow>> recordCashFlow(@RequestBody com.silverline.erp.module.pos.dto.CashFlowRequest request) {
+    public ResponseEntity<ApiResponse<com.silverline.erp.domain.pos.CashFlow>> recordCashFlow(@Valid @RequestBody com.silverline.erp.module.pos.dto.CashFlowRequest request) {
         Long cashierId;
         try {
              cashierId = getCurrentUserId();

@@ -3,17 +3,20 @@ package com.silverline.erp.module.pos.service.impl;
 import com.silverline.erp.common.audit.AuditLogService;
 import com.silverline.erp.common.email.EmailService;
 import com.silverline.erp.domain.pos.Customer;
+import com.silverline.erp.domain.pos.LoyaltyOtp;
 import com.silverline.erp.module.pos.dto.customer.CreateCustomerRequest;
 import com.silverline.erp.module.pos.repository.CustomerRepository;
+import com.silverline.erp.module.pos.repository.LoyaltyOtpRepository;
 import com.silverline.erp.module.pos.service.LoyaltyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
@@ -23,8 +26,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     private final CustomerRepository customerRepository;
     private final EmailService emailService;
     private final AuditLogService activityLogService;
-
-    private final Map<Long, String> loyaltyOtpStore = new ConcurrentHashMap<>();
+    private final LoyaltyOtpRepository loyaltyOtpRepository;
 
     @Override
     @Transactional
@@ -86,6 +88,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     }
 
     @Override
+    @Transactional
     public void requestLoyaltyRedemption(Long customerId, Integer pointsReq) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
@@ -101,15 +104,18 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         }
 
         String otp = String.format("%04d", new Random().nextInt(10000));
-        loyaltyOtpStore.put(customerId, otp);
+        
+        // Save to DB and set expiry for 10 minutes
+        loyaltyOtpRepository.deleteByCustomerId(customerId);
+        loyaltyOtpRepository.save(new LoyaltyOtp(customerId, otp, LocalDateTime.now().plusMinutes(10)));
 
         String subject = "ROCS POS - Loyalty Points Redemption";
         String body = String.format(
                 "Hello %s,\n\n" +
                 "You have requested to redeem %d loyalty points at ROCS POS.\n" +
                 "Your authorization code is: %s\n\n" +
-                 "If this was not you, please contact support.\n\n" +
-                 "Thank you,\nROCS System",
+                "If this was not you, please contact support.\n\n" +
+                "Thank you,\nROCS System",
                 customer.getName(), pointsReq, otp
         );
         emailService.sendSimpleMessage(customer.getEmail(), subject, body);
@@ -118,12 +124,16 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Override
     @Transactional
     public BigDecimal verifyLoyaltyRedemption(Long customerId, Integer pointsReq, String otpCode) {
-        String storedOtp = loyaltyOtpStore.get(customerId);
-        if (storedOtp == null || !storedOtp.equals(otpCode)) {
+        // Retrieve valid OTP from database
+        LoyaltyOtp storedOtp = loyaltyOtpRepository.findTopByCustomerIdAndExpiresAtAfterOrderByCreatedAtDesc(customerId, LocalDateTime.now())
+                .orElseThrow(() -> new RuntimeException("Invalid or expired OTP code"));
+
+        if (!storedOtp.getOtpCode().equals(otpCode)) {
             throw new RuntimeException("Invalid or expired OTP code");
         }
         
-        loyaltyOtpStore.remove(customerId);
+        // Clean up the OTP once verified
+        loyaltyOtpRepository.deleteByCustomerId(customerId);
 
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
@@ -136,6 +146,16 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         customerRepository.save(customer);
         
         return BigDecimal.valueOf(pointsReq);
+    }
+
+    /**
+     * Periodically purge expired OTPs (every 10 minutes)
+     */
+    @Scheduled(cron = "0 */10 * * * *")
+    @Transactional
+    public void purgeExpiredOtps() {
+        log.info("Running scheduled cleanup to purge expired loyalty OTPs");
+        loyaltyOtpRepository.deleteByExpiresAtBefore(LocalDateTime.now());
     }
 
     @Override

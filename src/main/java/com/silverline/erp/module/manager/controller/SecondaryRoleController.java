@@ -4,6 +4,7 @@ import com.silverline.erp.module.admin.service.SecondaryRoleService;
 import com.silverline.erp.module.manager.dto.AssignSecondaryRoleRequest;
 import com.silverline.erp.module.manager.dto.MySecondaryRoleResponse;
 import com.silverline.erp.module.manager.dto.SecondaryRoleAssignmentDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,7 +38,7 @@ public class SecondaryRoleController {
     // POST /api/v1/manager/secondary-roles
     @PostMapping
     public ResponseEntity<SecondaryRoleAssignmentDTO> assignRole(
-            @RequestBody AssignSecondaryRoleRequest request) {
+            @Valid @RequestBody AssignSecondaryRoleRequest request) {
         log.info("Assigning secondary role {} to userId: {}", request.getSecondaryRole(), request.getUserId());
         SecondaryRoleAssignmentDTO created = secondaryRoleService.assignRole(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);

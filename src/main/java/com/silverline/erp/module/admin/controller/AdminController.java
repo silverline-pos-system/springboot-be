@@ -1,7 +1,7 @@
 package com.silverline.erp.module.admin.controller;
 
 import com.silverline.erp.module.admin.service.AdminService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,14 +13,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/admin/dashboard")
+@RequiredArgsConstructor
 public class AdminController {
 
     private final AdminService adminService;
-
-    @Autowired
-    public AdminController(AdminService adminService) {
-        this.adminService = adminService;
-    }
 
     @GetMapping("/today-sales")
     public ResponseEntity<BigDecimal> getTodaysSales() {

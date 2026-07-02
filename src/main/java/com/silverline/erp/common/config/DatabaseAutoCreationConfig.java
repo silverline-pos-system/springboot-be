@@ -78,11 +78,17 @@ public class DatabaseAutoCreationConfig {
                 // Load driver class
                 Class.forName(driverClassName);
                 
+                // Sanitize database name identifier to prevent SQL injection since identifier names cannot be parameterized in CREATE DATABASE
+                if (!dbName.matches("^[a-zA-Z0-9_]+$")) {
+                    throw new IllegalArgumentException("Database name contains invalid characters: " + dbName);
+                }
+
                 try (Connection conn = DriverManager.getConnection(maintenanceDbUrl, username, password)) {
-                    // Check if database exists
+                    // Check if database exists using parameterized PreparedStatement query
                     boolean dbExists = false;
-                    try (Statement stmt = conn.createStatement()) {
-                        try (ResultSet rs = stmt.executeQuery("SELECT 1 FROM pg_database WHERE datname = '" + dbName + "'")) {
+                    try (java.sql.PreparedStatement pstmt = conn.prepareStatement("SELECT 1 FROM pg_database WHERE datname = ?")) {
+                        pstmt.setString(1, dbName);
+                        try (ResultSet rs = pstmt.executeQuery()) {
                             if (rs.next()) {
                                 dbExists = true;
                             }
@@ -92,6 +98,7 @@ public class DatabaseAutoCreationConfig {
                     if (!dbExists) {
                         log.info("Database '{}' does not exist. Creating it...", dbName);
                         try (Statement stmt = conn.createStatement()) {
+                            // Safe to concatenate now because dbName has been verified against the alphanumeric regex
                             stmt.executeUpdate("CREATE DATABASE " + dbName);
                             log.info("Database '{}' created successfully!", dbName);
                         }

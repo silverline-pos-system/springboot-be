@@ -6,6 +6,7 @@ import com.silverline.erp.module.analytics.dto.LoyaltyStatsDTO;
 import com.silverline.erp.module.manager.dto.ManagerCustomerDTO;
 import com.silverline.erp.module.manager.dto.ManagerSaleDTO;
 import com.silverline.erp.module.pos.service.CustomerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,7 +46,7 @@ public class ManagerCustomerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCustomer(@PathVariable Long id, @RequestBody ManagerCustomerDTO dto) {
+    public ResponseEntity<?> updateCustomer(@PathVariable Long id, @Valid @RequestBody ManagerCustomerDTO dto) {
         customerService.updateCustomer(id, dto);
         return ResponseEntity.ok(Map.of("message", "Customer updated successfully"));
     }

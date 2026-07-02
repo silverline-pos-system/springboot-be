@@ -2,7 +2,7 @@ package com.silverline.erp.module.pos.repository.impl;
 
 import com.silverline.erp.domain.pos.CashShift;
 import com.silverline.erp.module.pos.repository.ShiftRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@RequiredArgsConstructor
 public class ShiftRepositoryImpl implements ShiftRepository {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     private final RowMapper<CashShift> shiftRowMapper = (rs, rowNum) -> {
         CashShift shift = new CashShift();

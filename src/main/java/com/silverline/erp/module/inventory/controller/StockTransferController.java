@@ -3,7 +3,8 @@ package com.silverline.erp.module.inventory.controller;
 import com.silverline.erp.module.inventory.dto.StockTransferRequestDTO;
 import com.silverline.erp.module.inventory.dto.StockTransferResponseDTO;
 import com.silverline.erp.module.inventory.service.StockTransferService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +14,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/inventory/transfers")
 @Validated
+@RequiredArgsConstructor
 public class StockTransferController {
 
-    @Autowired
-    private StockTransferService stockTransferService;
+    private final StockTransferService stockTransferService;
 
     @PostMapping
-    public ResponseEntity<StockTransferResponseDTO> createTransfer(@RequestBody StockTransferRequestDTO request) {
+    public ResponseEntity<StockTransferResponseDTO> createTransfer(@Valid @RequestBody StockTransferRequestDTO request) {
         StockTransferResponseDTO response = stockTransferService.createTransfer(request);
         return ResponseEntity.ok(response);
     }
@@ -40,7 +41,7 @@ public class StockTransferController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<StockTransferResponseDTO> updateTransfer(@PathVariable Long id, @RequestBody StockTransferRequestDTO request) {
+    public ResponseEntity<StockTransferResponseDTO> updateTransfer(@PathVariable Long id, @Valid @RequestBody StockTransferRequestDTO request) {
         StockTransferResponseDTO response = stockTransferService.updateTransfer(id, request);
         return ResponseEntity.ok(response);
     }

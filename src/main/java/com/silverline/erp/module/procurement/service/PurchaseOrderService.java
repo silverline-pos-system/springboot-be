@@ -11,7 +11,7 @@ import com.silverline.erp.module.procurement.dto.*;
 import com.silverline.erp.module.procurement.repository.PurchaseOrderItemRepository;
 import com.silverline.erp.module.procurement.repository.PurchaseOrderPaymentRepository;
 import com.silverline.erp.module.procurement.repository.PurchaseOrderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PurchaseOrderService {
 
-    @Autowired
-    private PurchaseOrderRepository poRepository;
+    private final PurchaseOrderRepository poRepository;
 
     private Pageable capPageable(Pageable pageable) {
         if (pageable == null) {
@@ -41,20 +41,15 @@ public class PurchaseOrderService {
         return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
     }
 
-    @Autowired
-    private PurchaseOrderItemRepository poItemRepository;
+    private final PurchaseOrderItemRepository poItemRepository;
 
-    @Autowired
-    private PurchaseOrderPaymentRepository poPaymentRepository;
+    private final PurchaseOrderPaymentRepository poPaymentRepository;
 
-    @Autowired
-    private SupplierRepository supplierRepository;
+    private final SupplierRepository supplierRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public PurchaseOrder createPurchaseOrder(PurchaseOrderDTO dto) {

@@ -7,10 +7,11 @@ import com.silverline.erp.module.inventory.dto.ProcessPORequest;
 import com.silverline.erp.module.procurement.dto.PurchaseOrderDTO;
 import com.silverline.erp.module.procurement.dto.PurchaseOrderResponse;
 import com.silverline.erp.module.procurement.service.PurchaseOrderService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,13 +20,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/inventory/po")
 @CrossOrigin
+@RequiredArgsConstructor
 public class PurchaseOrderController {
 
-    @Autowired
-    private PurchaseOrderService poService;
+    private final PurchaseOrderService poService;
 
     @PostMapping
-    public ResponseEntity<?> createPurchaseOrder(@RequestBody PurchaseOrderDTO dto) {
+    public ResponseEntity<?> createPurchaseOrder(@Valid @RequestBody PurchaseOrderDTO dto) {
         try {
             PurchaseOrder po = poService.createPurchaseOrder(dto);
             return ResponseEntity.ok(po);
@@ -52,7 +53,7 @@ public class PurchaseOrderController {
     }
 
     @PostMapping("/{poId}/process")
-    public ResponseEntity<?> processPOPayment(@PathVariable Long poId, @RequestBody ProcessPORequest request) {
+    public ResponseEntity<?> processPOPayment(@PathVariable Long poId, @Valid @RequestBody ProcessPORequest request) {
         try {
             PurchaseOrder po = poService.processPO(poId, request);
             return ResponseEntity.ok(po);

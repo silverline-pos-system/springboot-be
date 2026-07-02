@@ -2,7 +2,7 @@ package com.silverline.erp.module.manager.controller;
 
 import com.silverline.erp.common.audit.AuditLogService;
 import com.silverline.erp.domain.audit.BranchActivity;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +14,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/manager/activity")
 @CrossOrigin
+@RequiredArgsConstructor
 public class BranchActivityController {
 
-    @Autowired
-    private AuditLogService activityLogService;
+    private final AuditLogService activityLogService;
 
     @GetMapping("/recent")
     public ResponseEntity<Object> getRecentActivity(@RequestParam(defaultValue = "1") Long branchId) {

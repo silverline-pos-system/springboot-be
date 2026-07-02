@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +29,7 @@ public class RepairController {
     private final DtvService dtvService;
 
     @PostMapping("/repairs")
-    public ResponseEntity<RepairJob> logRepairJob(@RequestBody RepairJobRequestDTO requestDTO) {
+    public ResponseEntity<RepairJob> logRepairJob(@Valid @RequestBody RepairJobRequestDTO requestDTO) {
         return ResponseEntity.ok(repairService.logRepairJob(requestDTO));
     }
 
@@ -46,7 +47,7 @@ public class RepairController {
     }
 
     @PostMapping("/dtv")
-    public ResponseEntity<SaleService> createDtvService(@RequestBody SaleServiceRequestDTO requestDTO) {
+    public ResponseEntity<SaleService> createDtvService(@Valid @RequestBody SaleServiceRequestDTO requestDTO) {
         return ResponseEntity.ok(dtvService.requestDtvService(requestDTO));
     }
 
