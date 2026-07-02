@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class BranchServiceImpl implements BranchService {
 
     private final BranchRepository branchRepository;
@@ -34,6 +35,7 @@ public class BranchServiceImpl implements BranchService {
     // Create
     @CacheEvict(value = "branches", allEntries = true)
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public BranchDTO createBranch(BranchDTO dto) {
         Branch entity = toEntity(dto);
         Branch saved = branchRepository.save(entity);
@@ -62,6 +64,7 @@ public class BranchServiceImpl implements BranchService {
     // Update
     @CacheEvict(value = "branches", allEntries = true)
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public BranchDTO updateBranch(Long id, BranchDTO dto) {
         Branch existing = branchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
@@ -82,6 +85,7 @@ public class BranchServiceImpl implements BranchService {
     // Delete
     @CacheEvict(value = "branches", allEntries = true)
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void deleteBranch(Long id) {
         Branch existing = branchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
@@ -90,6 +94,7 @@ public class BranchServiceImpl implements BranchService {
 
     @CacheEvict(value = "branches", allEntries = true)
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void toggleBranchStatus(Long id) {
         Branch existing = branchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));

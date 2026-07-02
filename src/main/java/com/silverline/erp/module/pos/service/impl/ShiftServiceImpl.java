@@ -42,6 +42,7 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     @Transactional
     public Long startShift(ShiftStartRequest request) {
+        log.info("Starting shift: cashierId={}, branchId={}, openingCash={}", request.getCashierId(), request.getBranchId(), request.getOpeningCash());
         Long supervisorId = null;
         LocalDateTime approvedAt = null;
 
@@ -89,6 +90,7 @@ public class ShiftServiceImpl implements ShiftService {
         }
 
         if (shiftRepository.hasOpenShift(request.getCashierId())) {
+            log.warn("Business rule violation: Cashier {} already has an active shift.", request.getCashierId());
             throw new IllegalStateException("Cashier already has an active shift.");
         }
 
@@ -143,11 +145,13 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     @Transactional
     public void closeShift(Long cashierId, CloseShiftRequest request) {
+        log.info("Closing shift: cashierId={}, closingCash={}", cashierId, request.getClosingCash());
         CashShift shift = shiftRepository.findOpenShiftByCashierId(cashierId)
                 .orElseThrow(() -> new IllegalStateException("No open shift found for this cashier"));
         
         long pending = cashFlowRepository.countByShiftIdAndStatus(shift.getShiftId(), "PENDING");
         if (pending > 0) {
+            log.warn("Business rule violation: Cashier {} attempted to close shift with {} pending cash flow requests.", cashierId, pending);
             throw new IllegalStateException("Cannot close shift with " + pending + " pending cash flow requests. waiting for approval.");
         }
 
@@ -157,10 +161,12 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     @Transactional
     public void closeShiftById(Long shiftId, CloseShiftRequest request) {
+        log.info("Closing shift by ID: shiftId={}, closingCash={}", shiftId, request.getClosingCash());
         CashShift shift = shiftRepository.findById(shiftId)
                 .orElseThrow(() -> new RuntimeException("Shift not found: " + shiftId));
 
         if (shift.getStatus() != CashShift.ShiftStatus.OPEN) {
+            log.warn("Business rule violation: Shift {} is not open (status={})", shiftId, shift.getStatus());
             throw new IllegalStateException("Shift is not open/active. Status: " + shift.getStatus());
         }
 

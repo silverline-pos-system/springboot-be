@@ -13,6 +13,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class AdminSaleServiceImpl implements AdminSaleService {
 
     private final SaleRepository saleRepository;

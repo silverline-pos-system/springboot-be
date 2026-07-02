@@ -22,6 +22,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
     private final UserProfileRepo userProfileRepo;
@@ -65,17 +67,21 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public RegisterResponseDTO registerUser(RegisterRequestDTO registerRequestDTO) {
+        log.info("Registering user: username={}, email={}", registerRequestDTO.getUsername(), registerRequestDTO.getEmail());
         UserProfile existUserByEmail = findByEmail(registerRequestDTO.getEmail());
         if (existUserByEmail != null) {
+            log.warn("Business rule violation: registration failed because email '{}' already exists", registerRequestDTO.getEmail());
             return new RegisterResponseDTO("EMAIL: User with this email already exists");
         }
         UserProfile existUserByUsername = findByUsername(registerRequestDTO.getUsername());
         if (existUserByUsername != null) {
+            log.warn("Business rule violation: registration failed because username '{}' already exists", registerRequestDTO.getUsername());
             return new RegisterResponseDTO("USERNAME: User with this username already exists");
         }
 
         Optional<UserProfile> existUserByPhone = userProfileRepo.findByPhone(registerRequestDTO.getPhone());
         if (existUserByPhone.isPresent()) {
+            log.warn("Business rule violation: registration failed because phone '{}' already exists", registerRequestDTO.getPhone());
             return new RegisterResponseDTO("PHONE: User with this phone number already exists");
         }
 
@@ -130,20 +136,25 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LogInResponseDTO logInUser(String username, String password) {
+        log.info("Logging in user: username={}", username);
         UserProfile existUserByUsername = findByUsername(username);
         if (existUserByUsername == null) {
+            log.warn("Business rule violation: login failed because user '{}' does not exist", username);
             return new LogInResponseDTO("Invalid username");
         }
 
         if (existUserByUsername.getAccountStatus() == AccountStatus.PENDING) {
+            log.warn("Business rule violation: login failed because user '{}' is PENDING approval", username);
             return new LogInResponseDTO("Account pending approval. Please wait for manager to activate your account.");
         }
 
         if (existUserByUsername.getAccountStatus() == AccountStatus.REJECTED) {
+            log.warn("Business rule violation: login failed because user '{}' is REJECTED", username);
             return new LogInResponseDTO("Account has been rejected. Please contact administrator.");
         }
 
         if (existUserByUsername.getAccountStatus() == AccountStatus.SUSPENDED) {
+            log.warn("Business rule violation: login failed because user '{}' is SUSPENDED", username);
             return new LogInResponseDTO("Account is suspended. Please contact administrator.");
         }
 

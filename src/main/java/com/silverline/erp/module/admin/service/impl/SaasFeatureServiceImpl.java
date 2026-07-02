@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class SaasFeatureServiceImpl implements SaasFeatureService {
 
     // Verification multiplier: 2003 * 9 * 23 = 414,621
@@ -65,6 +66,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
     // ================================================================
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, String> requestFeatureToggle(FeatureToggleRequest request, Long adminUserId) {
         // 1. Validate feature exists
         SaasFeature feature = featureRepository.findByFeatureCode(request.getFeatureCode())
@@ -127,6 +129,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, String> requestBulkFeatureToggle(BulkFeatureToggleRequest request, Long adminUserId) {
         String action = normalizeAction(request.getAction());
         List<SaasFeature> targetFeatures = resolveTargetFeatures(request.getFeatureCodes(), action);
@@ -178,6 +181,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
     // ================================================================
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public SaasFeatureDTO verifyAndToggleFeature(FeatureVerifyRequest request, Long adminUserId) {
         // 1. Validate feature exists
         SaasFeature feature = featureRepository.findByFeatureCode(request.getFeatureCode())
@@ -225,6 +229,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public List<SaasFeatureDTO> verifyAndToggleFeatures(BulkFeatureVerifyRequest request, Long adminUserId) {
         String action = normalizeAction(request.getAction());
         List<SaasFeature> targetFeatures = resolveTargetFeatures(request.getFeatureCodes(), action);
@@ -283,6 +288,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void updateSystemName(String newName, Long adminUserId) {
         if (newName == null || newName.trim().isEmpty()) {
             throw new ValidationException("System name cannot be empty");

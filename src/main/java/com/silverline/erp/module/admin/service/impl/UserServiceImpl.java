@@ -11,6 +11,7 @@ import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.admin.service.UserService;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -174,7 +177,7 @@ public class UserServiceImpl implements UserService {
 
                     emailService.sendSimpleMessage(user.getEmail(), subject, body);
                 } catch (Exception e) {
-                    System.err.println("Failed to send activation email to user ID " + userId + ": " + e.getMessage());
+                    log.error("Failed to send activation email to user ID {}: {}", userId, e.getMessage(), e);
                 }
             }
         }
