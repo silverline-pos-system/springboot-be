@@ -10,7 +10,7 @@ import com.silverline.erp.module.admin.repository.SaleRepository;
 import com.silverline.erp.module.admin.service.BranchService;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.pos.repository.CustomerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -23,25 +23,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class BranchServiceImpl implements BranchService {
 
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
     private final SaleRepository saleRepository;
     private final CustomerRepository customerRepository;
-
-    // NOTE: TerminalRepository and UserBranchRepository REMOVED
-
-    @Autowired
-    public BranchServiceImpl(BranchRepository branchRepository,
-                             UserRepository userRepository,
-                             SaleRepository saleRepository,
-                             CustomerRepository customerRepository) {
-        this.branchRepository = branchRepository;
-        this.userRepository = userRepository;
-        this.saleRepository = saleRepository;
-        this.customerRepository = customerRepository;
-    }
 
     // Create
     @CacheEvict(value = "branches", allEntries = true)

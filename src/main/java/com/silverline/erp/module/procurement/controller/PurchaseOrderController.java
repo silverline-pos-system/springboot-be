@@ -7,7 +7,7 @@ import com.silverline.erp.module.inventory.dto.ProcessPORequest;
 import com.silverline.erp.module.procurement.dto.PurchaseOrderDTO;
 import com.silverline.erp.module.procurement.dto.PurchaseOrderResponse;
 import com.silverline.erp.module.procurement.service.PurchaseOrderService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -20,10 +20,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/inventory/po")
 @CrossOrigin
+@RequiredArgsConstructor
 public class PurchaseOrderController {
 
-    @Autowired
-    private PurchaseOrderService poService;
+    private final PurchaseOrderService poService;
 
     @PostMapping
     public ResponseEntity<?> createPurchaseOrder(@Valid @RequestBody PurchaseOrderDTO dto) {

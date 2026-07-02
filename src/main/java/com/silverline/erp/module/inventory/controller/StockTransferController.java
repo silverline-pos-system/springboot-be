@@ -4,7 +4,7 @@ import com.silverline.erp.module.inventory.dto.StockTransferRequestDTO;
 import com.silverline.erp.module.inventory.dto.StockTransferResponseDTO;
 import com.silverline.erp.module.inventory.service.StockTransferService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +14,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/inventory/transfers")
 @Validated
+@RequiredArgsConstructor
 public class StockTransferController {
 
-    @Autowired
-    private StockTransferService stockTransferService;
+    private final StockTransferService stockTransferService;
 
     @PostMapping
     public ResponseEntity<StockTransferResponseDTO> createTransfer(@Valid @RequestBody StockTransferRequestDTO request) {

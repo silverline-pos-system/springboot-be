@@ -7,7 +7,7 @@ import com.silverline.erp.module.pos.dto.shift.CloseShiftRequest;
 import com.silverline.erp.module.pos.service.CashReconciliationService;
 import com.silverline.erp.module.pos.service.ShiftService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,13 +18,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/pos")
 @CrossOrigin // Added to fix CORS issues
+@RequiredArgsConstructor
 public class ShiftController {
 
-    @Autowired
-    private ShiftService shiftService;
+    private final ShiftService shiftService;
 
-    @Autowired
-    private CashReconciliationService cashReconciliationService;
+    private final CashReconciliationService cashReconciliationService;
 
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

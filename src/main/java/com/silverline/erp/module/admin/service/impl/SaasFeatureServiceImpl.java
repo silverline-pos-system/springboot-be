@@ -13,7 +13,7 @@ import com.silverline.erp.module.admin.repository.SaasFeatureRepository;
 import com.silverline.erp.module.admin.repository.SystemSettingRepository;
 import com.silverline.erp.module.admin.service.SaasFeatureService;
 import com.silverline.erp.module.auth.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class SaasFeatureServiceImpl implements SaasFeatureService {
 
     // Verification multiplier: 2003 * 9 * 23 = 414,621
@@ -38,19 +39,6 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
     private final SystemSettingRepository settingRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
-
-    @Autowired
-    public SaasFeatureServiceImpl(SaasFeatureRepository featureRepository,
-                                   FeatureVerificationCodeRepository verificationCodeRepository,
-                                   SystemSettingRepository settingRepository,
-                                   UserRepository userRepository,
-                                   EmailService emailService) {
-        this.featureRepository = featureRepository;
-        this.verificationCodeRepository = verificationCodeRepository;
-        this.settingRepository = settingRepository;
-        this.userRepository = userRepository;
-        this.emailService = emailService;
-    }
 
     // ================================================================
     // FEATURE MANAGEMENT

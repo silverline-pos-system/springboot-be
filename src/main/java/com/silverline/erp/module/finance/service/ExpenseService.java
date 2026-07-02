@@ -14,7 +14,7 @@ import com.silverline.erp.module.finance.repository.ExpenseCategoryRepository;
 import com.silverline.erp.module.finance.repository.ExpensePaymentRepository;
 import com.silverline.erp.module.finance.repository.ExpenseRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -29,22 +29,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ExpenseService {
 
-    @Autowired
-    private ExpenseCategoryRepository categoryRepository;
+    private final ExpenseCategoryRepository categoryRepository;
 
-    @Autowired
-    private ExpenseRepository expenseRepository;
+    private final ExpenseRepository expenseRepository;
 
-    @Autowired
-    private ExpensePaymentRepository paymentRepository;
+    private final ExpensePaymentRepository paymentRepository;
 
-    @Autowired
-    private BranchRepository branchRepository;
+    private final BranchRepository branchRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     private Pageable capPageable(Pageable pageable) {
         if (pageable == null) {

@@ -2,7 +2,7 @@ package com.silverline.erp.module.admin.controller;
 
 import com.silverline.erp.module.admin.dto.UserDTO;
 import com.silverline.erp.module.admin.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,14 +10,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/admin/users")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     /**
      * GET /api/v1/admin/users/count

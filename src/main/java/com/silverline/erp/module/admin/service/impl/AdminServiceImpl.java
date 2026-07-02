@@ -6,7 +6,7 @@ import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.admin.service.AdminService;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.pos.repository.SaleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,20 +17,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
     private final SaleRepository saleRepository;
     private final UserRepository userRepository;
     private final BranchRepository branchRepository;
-
-    @Autowired
-    public AdminServiceImpl(SaleRepository saleRepository,
-                           UserRepository userRepository,
-                           BranchRepository branchRepository) {
-        this.saleRepository = saleRepository;
-        this.userRepository = userRepository;
-        this.branchRepository = branchRepository;
-    }
 
     @Override
     public BigDecimal getTodaysSales() {

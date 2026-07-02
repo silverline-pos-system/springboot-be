@@ -3,7 +3,7 @@ package com.silverline.erp.module.admin.service.impl;
 import com.silverline.erp.common.audit.repository.UserActivityLogRepository;
 import com.silverline.erp.domain.audit.UserActivityLog;
 import com.silverline.erp.module.admin.service.ActivityLogService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -11,14 +11,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ActivityLogServiceImpl implements ActivityLogService {
 
     private final UserActivityLogRepository logRepository;
-
-    @Autowired
-    public ActivityLogServiceImpl(UserActivityLogRepository logRepository) {
-        this.logRepository = logRepository;
-    }
 
     @Override
     public List<UserActivityLog> getAllLogs() {

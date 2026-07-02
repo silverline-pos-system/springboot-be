@@ -8,7 +8,7 @@ import com.silverline.erp.module.finance.dto.ExpenseDTO;
 import com.silverline.erp.module.finance.dto.ExpenseDashboardDTO;
 import com.silverline.erp.module.finance.dto.ExpensePaymentDTO;
 import com.silverline.erp.module.finance.service.ExpenseService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -23,13 +23,12 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/manager/expenses")
 @CrossOrigin
+@RequiredArgsConstructor
 public class ExpenseController {
 
-    @Autowired
-    private ExpenseService expenseService;
+    private final ExpenseService expenseService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     // --- Expenses ---
 

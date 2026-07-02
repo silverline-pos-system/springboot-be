@@ -3,7 +3,7 @@ package com.silverline.erp.module.admin.controller;
 import com.silverline.erp.module.admin.dto.BranchDTO;
 import com.silverline.erp.module.admin.dto.UserDTO;
 import com.silverline.erp.module.admin.service.impl.BranchServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,14 +11,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/admin/branches")
+@RequiredArgsConstructor
 public class AdminBranchController {
 
     private final BranchServiceImpl branchService;
-
-    @Autowired
-    public AdminBranchController(BranchServiceImpl branchService) {
-        this.branchService = branchService;
-    }
 
     @PostMapping("")
     public ResponseEntity<BranchDTO> createBranch(@RequestBody BranchDTO dto) {

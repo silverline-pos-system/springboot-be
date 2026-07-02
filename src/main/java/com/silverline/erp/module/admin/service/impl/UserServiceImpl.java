@@ -10,7 +10,7 @@ import com.silverline.erp.module.admin.dto.UserDTO;
 import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.admin.service.UserService;
 import com.silverline.erp.module.auth.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -29,19 +30,6 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final ApprovalRepository approvalRepository;
-
-    @Autowired
-    public UserServiceImpl(UserRepository userRepository,
-                         BranchRepository branchRepository,
-                         PasswordEncoder passwordEncoder,
-                         EmailService emailService,
-                         ApprovalRepository approvalRepository) {
-        this.userRepository = userRepository;
-        this.branchRepository = branchRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.emailService = emailService;
-        this.approvalRepository = approvalRepository;
-    }
 
     @Override
     public Long getAllUserCount() {

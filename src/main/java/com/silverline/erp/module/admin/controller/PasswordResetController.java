@@ -6,7 +6,7 @@ import com.silverline.erp.domain.audit.PasswordResetRequest;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.dto.PasswordResetResponseDTO;
 import com.silverline.erp.module.auth.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,20 +17,12 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/admin/password-requests")
+@RequiredArgsConstructor
 public class PasswordResetController {
 
     private final PasswordResetRequestRepository passwordResetRequestRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
-
-    @Autowired
-    public PasswordResetController(PasswordResetRequestRepository passwordResetRequestRepository,
-                                   UserRepository userRepository,
-                                   EmailService emailService) {
-        this.passwordResetRequestRepository = passwordResetRequestRepository;
-        this.userRepository = userRepository;
-        this.emailService = emailService;
-    }
 
     /**
      * GET /api/v1/admin/password-requests
