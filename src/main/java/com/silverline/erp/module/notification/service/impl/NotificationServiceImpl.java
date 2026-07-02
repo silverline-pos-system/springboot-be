@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +33,12 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
+    @Async
     @Override
     @Transactional
-    public Notification createAndBroadcast(String type, String title, String message,
-                                            String referenceType, Long referenceId,
-                                            String priority, Long createdBy) {
+    public void createAndBroadcast(String type, String title, String message,
+                                   String referenceType, Long referenceId,
+                                   String priority, Long createdBy) {
         Notification notification = Notification.builder()
                 .type(type)
                 .title(title)
@@ -81,8 +83,6 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Exception e) {
             log.error("Failed to broadcast WebSocket notification: {}", e.getMessage());
         }
-
-        return notification;
     }
 
     @Override
@@ -107,6 +107,7 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRecipientRepository.markAllAsReadForUser(userId, LocalDateTime.now());
     }
 
+    @Async
     @Override
     public void broadcastDashboardUpdate(String eventType, Map<String, Object> data) {
         Map<String, Object> wsPayload = new HashMap<>();

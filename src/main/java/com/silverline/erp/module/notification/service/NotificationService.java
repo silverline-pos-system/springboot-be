@@ -8,9 +8,9 @@ import org.springframework.data.domain.Pageable;
 import java.util.Map;
 
 public interface NotificationService {
-    Notification createAndBroadcast(String type, String title, String message,
-                                     String referenceType, Long referenceId,
-                                     String priority, Long createdBy);
+    void createAndBroadcast(String type, String title, String message,
+                            String referenceType, Long referenceId,
+                            String priority, Long createdBy);
     Page<NotificationRecipient> getNotificationsForUser(Long userId, Pageable pageable);
     long getUnreadCount(Long userId);
     void markAsRead(Long notificationId, Long userId);
