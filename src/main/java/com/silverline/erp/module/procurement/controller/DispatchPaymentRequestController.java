@@ -7,6 +7,7 @@ import com.silverline.erp.module.inventory.dto.TransferToManagerRequest;
 import com.silverline.erp.module.procurement.dto.DispatchPaymentRequestDTO;
 import com.silverline.erp.module.procurement.service.DispatchPaymentRequestService;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -102,7 +103,7 @@ public class DispatchPaymentRequestController {
     @PostMapping("/{requestId}/transfer-to-manager")
     public ResponseEntity<ApiResponse<DispatchPaymentRequestDTO>> transferToManager(
             @PathVariable Long requestId,
-            @RequestBody TransferToManagerRequest request) {
+            @Valid @RequestBody TransferToManagerRequest request) {
         try {
             Long userId = getCurrentUserId();
             DispatchPaymentRequestDTO result = paymentRequestService.transferToManager(requestId, request, userId);
@@ -118,7 +119,7 @@ public class DispatchPaymentRequestController {
     @PostMapping("/{requestId}/process-payment")
     public ResponseEntity<ApiResponse<DispatchPaymentRequestDTO>> processPayment(
             @PathVariable Long requestId,
-            @RequestBody ProcessPaymentRequest request) {
+            @Valid @RequestBody ProcessPaymentRequest request) {
         try {
             Long userId = getCurrentUserId();
             DispatchPaymentRequestDTO result = paymentRequestService.processPayment(requestId, request, userId);

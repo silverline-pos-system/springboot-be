@@ -47,7 +47,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LogInResponseDTO>> login(@RequestBody LogInRequestDTO logInRequestDTO) {
+    public ResponseEntity<ApiResponse<LogInResponseDTO>> login(@Valid @RequestBody LogInRequestDTO logInRequestDTO) {
         log.info("Processing login for user: {}", logInRequestDTO.getUsername());
         LogInResponseDTO response = authService.logInUser(logInRequestDTO.getUsername(), logInRequestDTO.getPassword());
         
@@ -61,7 +61,7 @@ public class AuthController {
     }
 
     @PostMapping("/verify-supervisor")
-    public ResponseEntity<ApiResponse<Map<String, String>>> verifySupervisor(@RequestBody LogInRequestDTO credentials) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> verifySupervisor(@Valid @RequestBody LogInRequestDTO credentials) {
         log.info("Processing supervisor verification for: {}", credentials.getUsername());
         boolean verified = authService.verifySupervisor(credentials.getUsername(), credentials.getPassword());
         
@@ -76,7 +76,7 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody PasswordResetRequestDTO request) {
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody PasswordResetRequestDTO request) {
         log.info("Processing password reset request for: {}", request.getUsername());
         try {
             authService.forgotPassword(request.getUsername(), request.getNewPassword(), request.getReason());

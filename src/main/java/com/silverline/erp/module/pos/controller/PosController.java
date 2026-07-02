@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +40,7 @@ public class PosController {
     }
 
     @PostMapping({"/orders", "/sales"})
-    public ResponseEntity<ApiResponse<SaleResponse>> submitOrder(@RequestBody com.silverline.erp.module.pos.dto.sale.CreateSaleRequest request) {
+    public ResponseEntity<ApiResponse<SaleResponse>> submitOrder(@Valid @RequestBody com.silverline.erp.module.pos.dto.sale.CreateSaleRequest request) {
         Long cashierId = SecurityUtils.getCurrentUserId();
         if (cashierId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Not authenticated"));
@@ -84,7 +85,7 @@ public class PosController {
     }
 
     @PostMapping("/sales/hold")
-    public ResponseEntity<ApiResponse<SaleResponse>> holdBill(@RequestBody com.silverline.erp.module.pos.dto.sale.CreateSaleRequest request) {
+    public ResponseEntity<ApiResponse<SaleResponse>> holdBill(@Valid @RequestBody com.silverline.erp.module.pos.dto.sale.CreateSaleRequest request) {
         log.info("Holding bill for branch: {}", request.getBranchId());
         request.setStatus("HELD");
         return submitOrder(request);
@@ -124,21 +125,21 @@ public class PosController {
     }
 
     @PostMapping("/returns")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> processReturn(@RequestBody com.silverline.erp.module.pos.dto.returns.ReturnRequest request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> processReturn(@Valid @RequestBody com.silverline.erp.module.pos.dto.returns.ReturnRequest request) {
         log.info("Processing return for sale ID: {}", request.getSaleId());
         Long returnId = returnService.processReturn(request);
         return ResponseEntity.ok(ApiResponse.success("Return processed successfully", Map.of("returnId", returnId)));
     }
 
     @PostMapping("/customers/loyalty/request-redeem")
-    public ResponseEntity<ApiResponse<String>> requestLoyaltyRedemption(@RequestBody com.silverline.erp.module.pos.dto.customer.LoyaltyRedeemRequest request) {
+    public ResponseEntity<ApiResponse<String>> requestLoyaltyRedemption(@Valid @RequestBody com.silverline.erp.module.pos.dto.customer.LoyaltyRedeemRequest request) {
         log.info("Requesting loyalty redemption for customer: {}", request.getCustomerId());
         loyaltyService.requestLoyaltyRedemption(request.getCustomerId(), request.getPointsToRedeem());
         return ResponseEntity.ok(ApiResponse.success("Verification code sent", null));
     }
 
     @PostMapping("/customers/loyalty/verify-redeem")
-    public ResponseEntity<ApiResponse<Map<String, java.math.BigDecimal>>> verifyLoyaltyRedemption(@RequestBody com.silverline.erp.module.pos.dto.customer.LoyaltyRedeemVerifyRequest request) {
+    public ResponseEntity<ApiResponse<Map<String, java.math.BigDecimal>>> verifyLoyaltyRedemption(@Valid @RequestBody com.silverline.erp.module.pos.dto.customer.LoyaltyRedeemVerifyRequest request) {
         log.info("Verifying loyalty redemption for customer: {}", request.getCustomerId());
         java.math.BigDecimal discountValue = loyaltyService.verifyLoyaltyRedemption(request.getCustomerId(), request.getPointsToRedeem(), request.getOtpCode());
         return ResponseEntity.ok(ApiResponse.success("Redemption verified", Map.of("discountValue", discountValue)));

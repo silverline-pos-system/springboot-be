@@ -1,6 +1,8 @@
 package com.silverline.erp.module.pos.dto.sale;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,11 +15,13 @@ import java.util.List;
 @NoArgsConstructor
 public class CreateSaleRequest {
 
-
     private Long saleId;    // NEW: For updating Held/Pending sales
     private Long customerId;
+
+    @NotNull(message = "Branch ID is required")
     private Long branchId;  // NEW: Branch selected in POS (user not tied to branch)
 
+    @NotEmpty(message = "Sale must contain at least one item")
     @Valid
     private List<SaleItemRequest> items;
 

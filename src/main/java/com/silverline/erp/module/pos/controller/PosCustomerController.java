@@ -4,6 +4,7 @@ import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.domain.pos.Customer;
 import com.silverline.erp.module.pos.dto.customer.CreateCustomerRequest;
 import com.silverline.erp.module.pos.service.LoyaltyService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class PosCustomerController {
     private final LoyaltyService loyaltyService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Customer>> createCustomer(@RequestBody CreateCustomerRequest request) {
+    public ResponseEntity<ApiResponse<Customer>> createCustomer(@Valid @RequestBody CreateCustomerRequest request) {
         try {
             Customer customer = loyaltyService.createCustomer(request);
             return new ResponseEntity<>(
