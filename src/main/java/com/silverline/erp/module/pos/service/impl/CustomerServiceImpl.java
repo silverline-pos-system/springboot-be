@@ -9,6 +9,10 @@ import com.silverline.erp.module.pos.service.CustomerService;
 import com.silverline.erp.module.pos.service.SaleQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,6 +31,14 @@ public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
     private final SaleQueryService saleQueryService;
+
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
+    }
 
     private static final Map<String, Double> TIER_THRESHOLDS = new HashMap<>();
     static {
@@ -77,9 +89,17 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<ManagerCustomerDTO> getAllCustomers() {
+    public Page<ManagerCustomerDTO> getAllCustomers(Pageable pageable) {
         List<Customer> customers = customerRepository.findAll();
-        return customers.stream().map(this::mapToDTO).collect(Collectors.toList());
+        List<ManagerCustomerDTO> allDtos = customers.stream().map(this::mapToDTO).collect(Collectors.toList());
+        if (pageable.isUnpaged()) {
+            return new PageImpl<>(allDtos);
+        }
+        Pageable capped = capPageable(pageable);
+        int start = (int) capped.getOffset();
+        int end = Math.min((start + capped.getPageSize()), allDtos.size());
+        List<ManagerCustomerDTO> content = start < allDtos.size() ? allDtos.subList(start, end) : List.of();
+        return new PageImpl<>(content, capped, allDtos.size());
     }
 
     private ManagerCustomerDTO mapToDTO(Customer customer) {

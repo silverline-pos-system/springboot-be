@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -29,18 +32,24 @@ public class StockServiceImpl implements StockService {
     private final ProductRepository productRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Override
-    public List<StockDTO> getAllStock() {
-        return stockRepository.findAll().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
     }
 
     @Override
-    public List<StockDTO> getStockByBranch(Long branchId) {
-        return stockRepository.findByBranchId(branchId).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+    public Page<StockDTO> getAllStock(Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return stockRepository.findAll(capped).map(this::mapToDTO);
+    }
+
+    @Override
+    public Page<StockDTO> getStockByBranch(Long branchId, Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return stockRepository.findByBranchId(branchId, capped).map(this::mapToDTO);
     }
 
     @Override

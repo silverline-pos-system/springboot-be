@@ -12,6 +12,10 @@ import com.silverline.erp.module.procurement.repository.PurchaseOrderItemReposit
 import com.silverline.erp.module.procurement.repository.PurchaseOrderPaymentRepository;
 import com.silverline.erp.module.procurement.repository.PurchaseOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -28,6 +32,14 @@ public class PurchaseOrderService {
 
     @Autowired
     private PurchaseOrderRepository poRepository;
+
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
+    }
 
     @Autowired
     private PurchaseOrderItemRepository poItemRepository;
@@ -94,10 +106,15 @@ public class PurchaseOrderService {
         return poRepository.save(po);
     }
 
-    public List<PurchaseOrderResponse> getAllPurchaseOrders() {
-        return poRepository.findAll().stream()
+    public Page<PurchaseOrderResponse> getAllPurchaseOrders(Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        List<PurchaseOrderResponse> all = poRepository.findAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+        int start = (int) capped.getOffset();
+        int end = Math.min((start + capped.getPageSize()), all.size());
+        List<PurchaseOrderResponse> content = start < all.size() ? all.subList(start, end) : List.of();
+        return new PageImpl<>(content, capped, all.size());
     }
     
     public List<PurchaseOrderResponse> getManagerApprovals() {

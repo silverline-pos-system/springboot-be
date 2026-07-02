@@ -11,7 +11,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity(name = "InventoryBatch")
-@Table(name = "batches")
+@Table(name = "batches", indexes = {
+    @Index(name = "idx_batch_product_expiry", columnList = "product_id, expiry_date")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

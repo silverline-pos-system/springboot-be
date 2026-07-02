@@ -1,6 +1,7 @@
 package com.silverline.erp.module.manager.repository;
 
 import com.silverline.erp.domain.pos.Sale;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -97,5 +98,16 @@ public interface ManagerSaleRepository extends JpaRepository<Sale, Long> {
         """, nativeQuery = true)
     List<Object[]> findRevenueByBranch(@Param("startDate") LocalDateTime startDate,
                                        @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT s FROM Sale s WHERE s.branchId = :branchId " +
+           "AND (:status IS NULL OR LOWER(s.paymentStatus) = LOWER(:status)) " +
+           "AND (:startDate IS NULL OR s.saleDate >= :startDate) " +
+           "AND (:endDate IS NULL OR s.saleDate <= :endDate) " +
+           "ORDER BY s.saleDate DESC")
+    Page<Sale> findSalesWithFilters(@Param("branchId") Long branchId,
+                                    @Param("status") String status,
+                                    @Param("startDate") LocalDateTime startDate,
+                                    @Param("endDate") LocalDateTime endDate,
+                                    Pageable pageable);
 }
 

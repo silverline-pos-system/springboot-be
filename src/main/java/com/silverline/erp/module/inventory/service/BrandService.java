@@ -5,6 +5,8 @@ import com.silverline.erp.domain.product.Brand;
 import com.silverline.erp.module.inventory.dto.BrandDTO;
 import com.silverline.erp.module.inventory.repository.BrandRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ public class BrandService {
 
     private final BrandRepository brandRepository;
 
+    @Cacheable(value = "brands")
     public List<BrandDTO> getAllBrands() {
         return brandRepository.findAll().stream()
                 .map(this::convertToDTO)
@@ -30,18 +33,21 @@ public class BrandService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "brands", key = "#id")
     public BrandDTO getBrandById(Long id) {
         Brand brand = brandRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with id: " + id));
         return convertToDTO(brand);
     }
 
+    @CacheEvict(value = "brands", allEntries = true)
     public BrandDTO createBrand(BrandDTO brandDTO) {
         Brand brand = convertToEntity(brandDTO);
         Brand savedBrand = brandRepository.save(brand);
         return convertToDTO(savedBrand);
     }
 
+    @CacheEvict(value = "brands", allEntries = true)
     public BrandDTO updateBrand(Long id, BrandDTO brandDTO) {
         Brand brand = brandRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with id: " + id));
@@ -54,6 +60,7 @@ public class BrandService {
         return convertToDTO(updatedBrand);
     }
 
+    @CacheEvict(value = "brands", allEntries = true)
     public void deleteBrand(Long id) {
         if (!brandRepository.existsById(id)) {
             throw new ResourceNotFoundException("Brand not found with id: " + id);

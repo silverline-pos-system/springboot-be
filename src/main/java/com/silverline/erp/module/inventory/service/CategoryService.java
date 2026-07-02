@@ -5,6 +5,8 @@ import com.silverline.erp.domain.product.Category;
 import com.silverline.erp.module.inventory.dto.CategoryDTO;
 import com.silverline.erp.module.inventory.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    @Cacheable(value = "categories")
     public List<CategoryDTO> getAllCategories() {
         return categoryRepository.findAll().stream()
                 .map(this::convertToDTO)
@@ -30,18 +33,21 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "categories", key = "#id")
     public CategoryDTO getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
         return convertToDTO(category);
     }
 
+    @CacheEvict(value = "categories", allEntries = true)
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
         Category category = convertToEntity(categoryDTO);
         Category savedCategory = categoryRepository.save(category);
         return convertToDTO(savedCategory);
     }
 
+    @CacheEvict(value = "categories", allEntries = true)
     public CategoryDTO updateCategory(Long id, CategoryDTO categoryDTO) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
@@ -54,6 +60,7 @@ public class CategoryService {
         return convertToDTO(updatedCategory);
     }
 
+    @CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
             throw new ResourceNotFoundException("Category not found with id: " + id);

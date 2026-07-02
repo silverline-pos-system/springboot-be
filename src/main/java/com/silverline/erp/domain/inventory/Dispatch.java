@@ -10,7 +10,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "item_dispatches")
+@Table(name = "item_dispatches", indexes = {
+    @Index(name = "idx_dispatch_branch_status", columnList = "branch_id, status")
+})
 @Getter
 @Setter
 @NoArgsConstructor

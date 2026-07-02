@@ -41,4 +41,7 @@ public interface SaleItemRepository extends JpaRepository<@NonNull SaleItem, @No
     List<ProductSalesHistoryDTO> findDailySalesByProduct(@Param("productId") Long productId,
                                                          @Param("startDate") LocalDateTime startDate,
                                                          @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT si.saleId, COUNT(si) FROM SaleItem si WHERE si.saleId IN :saleIds GROUP BY si.saleId")
+    List<Object[]> countItemsBySaleIds(@Param("saleIds") java.util.Collection<Long> saleIds);
 }

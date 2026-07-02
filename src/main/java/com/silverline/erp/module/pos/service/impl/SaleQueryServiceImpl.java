@@ -10,9 +10,14 @@ import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
 import com.silverline.erp.module.pos.dto.sale.*;
 import com.silverline.erp.module.pos.repository.*;
 import com.silverline.erp.module.pos.service.SaleQueryService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import java.util.ArrayList;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -117,8 +122,16 @@ public class SaleQueryServiceImpl implements SaleQueryService {
         }).orElse(null);
     }
 
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
+    }
+
     @Override
-    public List<SaleSummaryDTO> getSaleSummaries(Long branchId, String status, String startDateStr, String endDateStr) {
+    public Page<SaleSummaryDTO> getSaleSummaries(Long branchId, String status, String startDateStr, String endDateStr, Pageable pageable) {
         String dbStatus = status;
         if ("COMPLETED".equalsIgnoreCase(status)) {
             dbStatus = "PAID";
@@ -136,47 +149,70 @@ public class SaleQueryServiceImpl implements SaleQueryService {
             log.warn("Date parsing error in getSaleSummaries: {}", e.getMessage());
         }
 
-        List<Sale> sales;
-        if (startDate != null && endDate != null) {
-            sales = saleRepository.findByDateRange(branchId, startDate, endDate);
-            if (dbStatus != null && !dbStatus.isEmpty()) {
-                final String targetStatus = dbStatus;
-                sales = sales.stream()
-                        .filter(s -> targetStatus.equalsIgnoreCase(s.getPaymentStatus()))
-                        .collect(Collectors.toList());
-            }
-        } else {
-            if (dbStatus != null && !dbStatus.isEmpty()) {
-                sales = saleRepository.findByPaymentStatus(dbStatus);
-            } else {
-                sales = saleRepository.findAll();
-            }
-            sales = sales.stream()
-                    .filter(s -> s.getBranchId().equals(branchId))
-                    .collect(Collectors.toList());
+        Pageable capped = capPageable(pageable);
+        
+        Page<Sale> salesPage = managerSaleRepository.findSalesWithFilters(
+                branchId, 
+                dbStatus, 
+                startDate, 
+                endDate, 
+                capped
+        );
+
+        if (salesPage.isEmpty()) {
+            return Page.empty(capped);
+        }
+
+        List<Long> saleIds = salesPage.getContent().stream()
+                .map(Sale::getSaleId)
+                .collect(Collectors.toList());
+
+        // Bulk count sale items
+        List<Object[]> itemCountsRaw = saleItemRepository.countItemsBySaleIds(saleIds);
+        Map<Long, Long> itemCountsMap = itemCountsRaw.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1],
+                        (a, b) -> a
+                ));
+
+        // Bulk load customers
+        Set<Long> customerIds = salesPage.getContent().stream()
+                .map(Sale::getCustomerId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        
+        Map<Long, String> customerNamesMap = new HashMap<>();
+        if (!customerIds.isEmpty()) {
+            customerNamesMap = customerRepository.findAllById(customerIds).stream()
+                    .collect(Collectors.toMap(
+                            com.silverline.erp.domain.pos.Customer::getCustomerId,
+                            com.silverline.erp.domain.pos.Customer::getName,
+                            (a, b) -> a
+                    ));
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-
-        return sales.stream().map(sale -> {
-            List<SaleItem> items = saleItemRepository.findBySaleId(sale.getSaleId());
+        final Map<Long, String> finalCustomerNamesMap = customerNamesMap;
+        
+        return salesPage.map(sale -> {
+            long itemCount = itemCountsMap.getOrDefault(sale.getSaleId(), 0L);
             String customerName = "Walk-in Customer";
             if (sale.getCustomerId() != null) {
-                customerName = customerRepository.findById(sale.getCustomerId())
-                        .map(c -> c.getName()).orElse("Walk-in Customer");
+                customerName = finalCustomerNamesMap.getOrDefault(sale.getCustomerId(), "Walk-in Customer");
             }
 
             return new SaleSummaryDTO(
                 sale.getSaleId(),
                 sale.getInvoiceNo(),
                 sale.getSaleDate() != null ? sale.getSaleDate().format(formatter) : "",
-                items.size(),
+                (int) itemCount,
                 sale.getNetTotal(),
                 sale.getGrossTotal(),
                 customerName,
                 sale.getPaymentStatus()
             );
-        }).collect(Collectors.toList());
+        });
     }
 
     @Override

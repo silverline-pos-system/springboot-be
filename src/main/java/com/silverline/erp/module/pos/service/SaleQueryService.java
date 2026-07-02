@@ -4,6 +4,8 @@ import com.silverline.erp.module.pos.dto.sale.ProductSalesHistoryDTO;
 import com.silverline.erp.module.pos.dto.sale.SaleResponse;
 import com.silverline.erp.module.pos.dto.sale.SaleSummaryDTO;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,7 +17,7 @@ public interface SaleQueryService {
     List<SaleResponse> getSales(String status);
     List<SaleResponse> getReturnableSales(Long branchId, Integer days);
     SaleResponse getSaleByInvoiceNo(String invoiceNo);
-    List<SaleSummaryDTO> getSaleSummaries(Long branchId, String status, String startDateStr, String endDateStr);
+    Page<SaleSummaryDTO> getSaleSummaries(Long branchId, String status, String startDateStr, String endDateStr, Pageable pageable);
     List<SaleSummaryDTO> getHeldBills(Long branchId);
     List<ProductSalesHistoryDTO> getProductSalesHistory(Long productId, LocalDate from, LocalDate to);
     SaleResponse mapToResponse(com.silverline.erp.domain.pos.Sale sale, List<com.silverline.erp.domain.pos.SaleItem> items, List<com.silverline.erp.domain.pos.Payment> payments);

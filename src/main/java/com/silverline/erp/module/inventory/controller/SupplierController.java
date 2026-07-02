@@ -1,12 +1,16 @@
 package com.silverline.erp.module.inventory.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
+import com.silverline.erp.common.dto.PagedResponse;
 import com.silverline.erp.module.inventory.dto.SupplierRequestDTO;
 import com.silverline.erp.module.inventory.dto.SupplierResponseDTO;
 import com.silverline.erp.module.inventory.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,10 +27,11 @@ public class SupplierController {
     private final SupplierService supplierService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<SupplierResponseDTO>>> getAllSuppliers() {
-        log.info("Fetching all suppliers");
-        List<SupplierResponseDTO> suppliers = supplierService.getAllSuppliers();
-        return ResponseEntity.ok(ApiResponse.success("Suppliers retrieved successfully", suppliers));
+    public ResponseEntity<ApiResponse<PagedResponse<SupplierResponseDTO>>> getAllSuppliers(
+            @PageableDefault(size = 20) Pageable pageable) {
+        log.info("Fetching all suppliers with pageable: {}", pageable);
+        Page<SupplierResponseDTO> pageInfo = supplierService.getAllSuppliers(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Suppliers retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/{id}")

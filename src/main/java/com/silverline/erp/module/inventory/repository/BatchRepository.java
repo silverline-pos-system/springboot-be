@@ -58,6 +58,11 @@ public interface BatchRepository extends JpaRepository<Batch, Long> {
     // Method for finding batches expiring soon by branch and product
     @Query("SELECT b FROM InventoryBatch b WHERE b.branchId = :branchId AND b.productId = :productId AND b.expiryDate BETWEEN :startDate AND :endDate AND b.qty > 0 ORDER BY b.expiryDate ASC")
     List<Batch> findExpiringSoonByBranchAndProduct(@Param("branchId") Long branchId, @Param("productId") Long productId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT b.productId, SUM(b.qty) FROM InventoryBatch b " +
+           "WHERE (:branchId IS NULL OR b.branchId = :branchId) " +
+           "GROUP BY b.productId")
+    List<Object[]> sumQtyByProductIdAndBranchId(@Param("branchId") Long branchId);
 }
 
 

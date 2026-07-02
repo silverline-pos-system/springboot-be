@@ -1,16 +1,19 @@
 package com.silverline.erp.module.inventory.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
+import com.silverline.erp.common.dto.PagedResponse;
+import java.util.List;
 import com.silverline.erp.module.inventory.dto.BatchDTO;
 import com.silverline.erp.module.inventory.dto.ExpiryAlertDTO;
 import com.silverline.erp.module.inventory.service.BatchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/inventory/batches")
@@ -20,9 +23,10 @@ public class BatchController {
     private final BatchService batchService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<?>> getAllBatches() {
-        List<BatchDTO> batches = batchService.getAllBatches();
-        return ResponseEntity.ok(ApiResponse.success("Batches retrieved successfully", batches));
+    public ResponseEntity<ApiResponse<PagedResponse<BatchDTO>>> getAllBatches(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<BatchDTO> pageInfo = batchService.getAllBatches(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Batches retrieved successfully", PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/product/{productId}")

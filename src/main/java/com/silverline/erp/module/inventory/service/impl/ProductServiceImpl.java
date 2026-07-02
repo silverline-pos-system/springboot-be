@@ -10,12 +10,18 @@ import com.silverline.erp.module.inventory.dto.ProductDTO;
 import com.silverline.erp.module.inventory.dto.ProductDetailsDTO;
 import com.silverline.erp.module.inventory.repository.*;
 import com.silverline.erp.module.inventory.service.ProductService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,20 +39,27 @@ public class ProductServiceImpl implements ProductService {
     private final SupplierRepository supplierRepository;
     private final SupplierProductRepository supplierProductRepository;
 
-    @Override
-    public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    private Pageable capPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 20);
+        }
+        int cappedSize = Math.min(pageable.getPageSize(), 100);
+        return PageRequest.of(pageable.getPageNumber(), cappedSize, pageable.getSort());
     }
 
     @Override
-    public List<ProductDTO> getActiveProducts() {
-        return productRepository.findByIsActiveTrue().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getAllProducts(Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return mapPageToDTO(productRepository.findAll(capped));
     }
 
+    @Override
+    public Page<ProductDTO> getActiveProducts(Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return mapPageToDTO(productRepository.findByIsActiveTrue(capped));
+    }
+
+    @Cacheable(value = "products", key = "#id")
     @Override
     public ProductDTO getProductById(Long id) {
         Product product = productRepository.findById(id)
@@ -54,6 +67,7 @@ public class ProductServiceImpl implements ProductService {
         return convertToDTO(product);
     }
 
+    @Cacheable(value = "products", key = "#sku")
     @Override
     public ProductDTO getProductBySku(String sku) {
         Product product = productRepository.findBySku(sku)
@@ -61,6 +75,7 @@ public class ProductServiceImpl implements ProductService {
         return convertToDTO(product);
     }
 
+    @Cacheable(value = "products", key = "#barcode")
     @Override
     public ProductDTO getProductByBarcode(String barcode) {
         Product product = productRepository.findByBarcode(barcode)
@@ -69,31 +84,27 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDTO> getProductsByCategory(Long categoryId) {
-        return productRepository.findByCategoryId(categoryId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getProductsByCategory(Long categoryId, Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return mapPageToDTO(productRepository.findByCategoryId(categoryId, capped));
     }
 
     @Override
-    public List<ProductDTO> getProductsBySubCategory(Long subCategoryId) {
-        return productRepository.findBySubcategoryId(subCategoryId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getProductsBySubCategory(Long subCategoryId, Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return mapPageToDTO(productRepository.findBySubcategoryId(subCategoryId, capped));
     }
 
     @Override
-    public List<ProductDTO> getProductsByBrand(Long brandId) {
-        return productRepository.findByBrandId(brandId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getProductsByBrand(Long brandId, Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return mapPageToDTO(productRepository.findByBrandId(brandId, capped));
     }
 
     @Override
-    public List<ProductDTO> searchProducts(String keyword) {
-        return productRepository.searchProducts(keyword).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> searchProducts(String keyword, Pageable pageable) {
+        Pageable capped = capPageable(pageable);
+        return mapPageToDTO(productRepository.searchProducts(keyword, capped));
     }
 
     @Override
@@ -103,6 +114,7 @@ public class ProductServiceImpl implements ProductService {
         return String.format("SKU%03d", nextId);
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     @Override
     public ProductDTO createProduct(ProductDTO productDTO) {
         if (productRepository.findBySku(productDTO.getSku()).isPresent()) {
@@ -118,6 +130,7 @@ public class ProductServiceImpl implements ProductService {
         return convertToDTO(savedProduct);
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     @Override
     public ProductDTO updateProduct(Long id, ProductDTO productDTO) {
         Product product = productRepository.findById(id)
@@ -158,6 +171,7 @@ public class ProductServiceImpl implements ProductService {
         return convertToDTO(updatedProduct);
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     @Override
     public void deleteProduct(Long id) {
         if (!productRepository.existsById(id)) {
@@ -166,6 +180,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.deleteById(id);
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     @Override
     public void deactivateProduct(Long id) {
         Product product = productRepository.findById(id)
@@ -250,7 +265,26 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByBarcode(barcode).orElse(null);
     }
 
-    private ProductDTO convertToDTO(Product product) {
+    private Page<ProductDTO> mapPageToDTO(Page<Product> products) {
+        if (products.isEmpty()) {
+            return Page.empty(products.getPageable());
+        }
+        List<Long> productIds = products.getContent().stream()
+                .map(Product::getProductId)
+                .collect(Collectors.toList());
+
+        List<Object[]> stockData = stockRepository.getTotalStockByProductIds(productIds);
+        Map<Long, BigDecimal> stockMap = stockData.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> row[1] != null ? (BigDecimal) row[1] : BigDecimal.ZERO,
+                        (a, b) -> a
+                ));
+
+        return products.map(product -> convertToDTO(product, stockMap));
+    }
+
+    private ProductDTO convertToDTOBasic(Product product) {
         ProductDTO dto = new ProductDTO();
         dto.setProductId(product.getProductId());
         dto.setSku(product.getSku());
@@ -270,29 +304,33 @@ public class ProductServiceImpl implements ProductService {
         dto.setWarrantyMonths(product.getWarrantyMonths());
         dto.setIsActive(product.getIsActive());
 
-        if (product.getCategoryId() != null) {
-            categoryRepository.findById(product.getCategoryId())
-                    .ifPresent(category -> dto.setCategoryName(category.getName()));
+        if (product.getCategory() != null) {
+            dto.setCategoryName(product.getCategory().getName());
         }
-        if (product.getSubcategoryId() != null) {
-            subCategoryRepository.findById(product.getSubcategoryId())
-                    .ifPresent(subCategory -> dto.setSubcategoryName(subCategory.getName()));
+        if (product.getSubCategory() != null) {
+            dto.setSubcategoryName(product.getSubCategory().getName());
         }
-        if (product.getBrandId() != null) {
-            brandRepository.findById(product.getBrandId())
-                    .ifPresent(brand -> dto.setBrandName(brand.getName()));
+        if (product.getBrand() != null) {
+            dto.setBrandName(product.getBrand().getName());
         }
-        if (product.getUnitId() != null) {
-            unitRepository.findById(product.getUnitId())
-                    .ifPresent(unit -> {
-                        dto.setUnitName(unit.getName());
-                        dto.setUnitSymbol(unit.getSymbol());
-                    });
+        if (product.getUnit() != null) {
+            dto.setUnitName(product.getUnit().getName());
+            dto.setUnitSymbol(product.getUnit().getSymbol());
         }
+        return dto;
+    }
 
+    private ProductDTO convertToDTO(Product product, Map<Long, BigDecimal> stockMap) {
+        ProductDTO dto = convertToDTOBasic(product);
+        BigDecimal totalStock = stockMap != null ? stockMap.get(product.getProductId()) : null;
+        dto.setQuantity(totalStock != null ? totalStock : BigDecimal.ZERO);
+        return dto;
+    }
+
+    private ProductDTO convertToDTO(Product product) {
+        ProductDTO dto = convertToDTOBasic(product);
         BigDecimal totalStock = stockRepository.getTotalStockByProduct(product.getProductId());
         dto.setQuantity(totalStock != null ? totalStock : BigDecimal.ZERO);
-
         return dto;
     }
 

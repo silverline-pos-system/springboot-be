@@ -64,7 +64,7 @@ public class JasperReportService {
     }
     
     public byte[] generateLoyaltyCustomersPdf() throws Exception {
-        List<ManagerCustomerDTO> customers = customerService.getAllCustomers();
+        List<ManagerCustomerDTO> customers = customerService.getAllCustomers(org.springframework.data.domain.Pageable.unpaged()).getContent();
         return generatePdf("/reports/loyalty_customers.jrxml", customers, null);
     }
     
