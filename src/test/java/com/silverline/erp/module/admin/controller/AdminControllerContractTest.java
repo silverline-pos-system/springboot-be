@@ -1,11 +1,9 @@
 package com.silverline.erp.module.admin.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.silverline.erp.module.admin.dto.SaasFeatureDTO;
+import com.silverline.erp.common.filter.JwtFilter;
 import com.silverline.erp.module.admin.dto.UserDTO;
 import com.silverline.erp.module.admin.service.SaasFeatureService;
 import com.silverline.erp.module.admin.service.UserService;
-import com.silverline.erp.common.filter.JwtFilter;
 import com.silverline.erp.module.auth.service.MyUserDetailsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +15,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;

@@ -1,12 +1,12 @@
 package com.silverline.erp.module.inventory.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.silverline.erp.common.filter.JwtFilter;
+import com.silverline.erp.module.auth.service.MyUserDetailsService;
 import com.silverline.erp.module.inventory.dto.ProductDTO;
 import com.silverline.erp.module.inventory.dto.StockDTO;
 import com.silverline.erp.module.inventory.service.ProductService;
 import com.silverline.erp.module.inventory.service.StockService;
-import com.silverline.erp.common.filter.JwtFilter;
-import com.silverline.erp.module.auth.service.MyUserDetailsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;

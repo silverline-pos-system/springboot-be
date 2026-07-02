@@ -2,13 +2,13 @@ package com.silverline.erp.module.analytics.service.impl;
 
 import com.silverline.erp.domain.inventory.Dispatch;
 import com.silverline.erp.module.analytics.dto.DashboardStatsDTO;
-import com.silverline.erp.module.manager.dto.PendingDispatchDTO;
 import com.silverline.erp.module.analytics.dto.StockAlertDTO;
+import com.silverline.erp.module.analytics.service.AlertService;
+import com.silverline.erp.module.inventory.repository.SupplierRepository;
+import com.silverline.erp.module.manager.dto.PendingDispatchDTO;
 import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
 import com.silverline.erp.module.manager.repository.ManagerUserRepository;
-import com.silverline.erp.module.analytics.service.AlertService;
 import com.silverline.erp.module.procurement.repository.DispatchRepository;
-import com.silverline.erp.module.inventory.repository.SupplierRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,7 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;

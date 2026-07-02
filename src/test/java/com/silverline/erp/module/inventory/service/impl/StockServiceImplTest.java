@@ -1,10 +1,8 @@
 package com.silverline.erp.module.inventory.service.impl;
 
 import com.silverline.erp.common.event.StockAdjustedEvent;
-import com.silverline.erp.common.exception.ResourceNotFoundException;
 import com.silverline.erp.domain.inventory.Stock;
 import com.silverline.erp.domain.product.Product;
-import com.silverline.erp.module.inventory.dto.LowStockAlertDTO;
 import com.silverline.erp.module.inventory.dto.StockAdjustmentDTO;
 import com.silverline.erp.module.inventory.dto.StockDTO;
 import com.silverline.erp.module.inventory.dto.StockReportDTO;
@@ -25,7 +23,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class StockServiceImplTest {

@@ -10,14 +10,12 @@ import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
 import com.silverline.erp.module.pos.dto.sale.*;
 import com.silverline.erp.module.pos.repository.*;
 import com.silverline.erp.module.pos.service.SaleQueryService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

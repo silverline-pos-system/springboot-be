@@ -6,10 +6,11 @@ import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.inventory.Stock;
 import com.silverline.erp.domain.pos.CashShift;
 import com.silverline.erp.domain.pos.Customer;
-import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.domain.pos.Payment;
+import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.auth.repo.UserProfileRepo;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.repository.StockRepository;
@@ -22,7 +23,6 @@ import com.silverline.erp.module.pos.repository.PaymentRepository;
 import com.silverline.erp.module.pos.repository.SaleRepository;
 import com.silverline.erp.module.pos.repository.ShiftRepository;
 import com.silverline.erp.module.pos.service.PosSaleService;
-import com.silverline.erp.module.admin.repository.BranchRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,7 +33,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @Transactional

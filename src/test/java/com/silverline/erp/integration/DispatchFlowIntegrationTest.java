@@ -9,6 +9,7 @@ import com.silverline.erp.domain.inventory.Stock;
 import com.silverline.erp.domain.inventory.Supplier;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.auth.repo.UserProfileRepo;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.repository.StockRepository;
@@ -17,7 +18,6 @@ import com.silverline.erp.module.procurement.dto.DispatchResponseDTO;
 import com.silverline.erp.module.procurement.repository.DispatchItemRepository;
 import com.silverline.erp.module.procurement.repository.DispatchRepository;
 import com.silverline.erp.module.procurement.service.DispatchService;
-import com.silverline.erp.module.admin.repository.BranchRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,9 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @Transactional

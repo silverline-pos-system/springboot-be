@@ -4,9 +4,9 @@ import com.silverline.erp.module.inventory.dto.LowStockAlertDTO;
 import com.silverline.erp.module.inventory.dto.StockAdjustmentDTO;
 import com.silverline.erp.module.inventory.dto.StockDTO;
 import com.silverline.erp.module.inventory.dto.StockReportDTO;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 public interface StockService {

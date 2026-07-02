@@ -1,6 +1,5 @@
 package com.silverline.erp.module.notification.service;
 
-import com.silverline.erp.domain.notification.Notification;
 import com.silverline.erp.domain.notification.NotificationRecipient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

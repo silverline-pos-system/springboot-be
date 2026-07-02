@@ -5,21 +5,21 @@ import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.pos.CashShift;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.auth.repo.UserProfileRepo;
 import com.silverline.erp.module.pos.dto.ShiftStartRequest;
 import com.silverline.erp.module.pos.dto.shift.CloseShiftRequest;
 import com.silverline.erp.module.pos.repository.ShiftRepository;
 import com.silverline.erp.module.pos.service.ShiftService;
-import com.silverline.erp.module.admin.repository.BranchRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @Transactional

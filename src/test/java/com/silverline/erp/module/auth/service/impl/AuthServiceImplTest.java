@@ -1,18 +1,18 @@
 package com.silverline.erp.module.auth.service.impl;
 
 import com.silverline.erp.common.audit.AuditLogService;
+import com.silverline.erp.common.audit.repository.ApprovalRepository;
+import com.silverline.erp.domain.audit.Approval;
 import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.enums.Role;
-import com.silverline.erp.domain.audit.Approval;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.auth.dto.LogInResponseDTO;
 import com.silverline.erp.module.auth.dto.RegisterRequestDTO;
 import com.silverline.erp.module.auth.dto.RegisterResponseDTO;
 import com.silverline.erp.module.auth.repo.UserProfileRepo;
 import com.silverline.erp.module.auth.service.JwtService;
-import com.silverline.erp.common.audit.repository.ApprovalRepository;
-import com.silverline.erp.module.admin.repository.BranchRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
