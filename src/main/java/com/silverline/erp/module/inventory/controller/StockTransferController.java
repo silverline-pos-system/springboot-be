@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/inventory/transfers")
+@RequestMapping({"/api/v1/inventory/transfers", "/api/inventory/transfers"})
 @Validated
 @RequiredArgsConstructor
 public class StockTransferController {

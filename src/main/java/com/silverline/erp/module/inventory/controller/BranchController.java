@@ -12,7 +12,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/inventory/branches")
+@RequestMapping({"/api/v1/inventory/branches", "/api/inventory/branches"})
 @RequiredArgsConstructor
 public class BranchController {
 
