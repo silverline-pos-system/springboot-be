@@ -96,7 +96,8 @@ public class SecurityConfig {
                                 "/public/**",
                                 "/api/docs/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/actuator/**"
                         ).permitAll()
 
                         // Health check endpoint

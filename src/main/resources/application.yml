@@ -80,3 +80,12 @@ springdoc:
     path: /api/docs
   api-docs:
     path: /api/v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
