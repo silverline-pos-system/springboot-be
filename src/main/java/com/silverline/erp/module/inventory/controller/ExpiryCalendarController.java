@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/inventory/expiry-calendar")
+@RequestMapping({"/api/v1/inventory/expiry-calendar", "/api/inventory/expiry-calendar"})
 @RequiredArgsConstructor
 public class ExpiryCalendarController {
 

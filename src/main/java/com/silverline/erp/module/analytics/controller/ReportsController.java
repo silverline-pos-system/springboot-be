@@ -18,7 +18,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/inventory/reports")
+@RequestMapping({"/api/v1/analytics/reports", "/api/inventory/reports"})
 @RequiredArgsConstructor
 public class ReportsController {
 

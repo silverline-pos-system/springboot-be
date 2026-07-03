@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/inventory/po")
+@RequestMapping({"/api/v1/procurement/po", "/api/inventory/po"})
 @CrossOrigin
 @RequiredArgsConstructor
 public class PurchaseOrderController {

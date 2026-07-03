@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/inventory/subcategories")
+@RequestMapping({"/api/v1/inventory/subcategories", "/api/inventory/subcategories"})
 @RequiredArgsConstructor
 public class SubCategoryController {
 

@@ -15,9 +15,13 @@ spring:
       idle-timeout: 300000
       connection-timeout: 20000
       max-lifetime: 1200000
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: ${JPA_SHOW_SQL:false}
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -70,3 +74,18 @@ rocs:
   rate-limit:
     requests-per-minute: ${RATE_LIMIT_RPM:60}
     login-attempts-per-minute: ${RATE_LIMIT_LOGIN_RPM:5}
+
+springdoc:
+  swagger-ui:
+    path: /api/docs
+  api-docs:
+    path: /api/v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

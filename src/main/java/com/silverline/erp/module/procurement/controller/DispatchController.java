@@ -18,7 +18,7 @@ import java.util.List;
 
 @Slf4j
 @RestController("inventoryDispatchController")
-@RequestMapping("/api/inventory/dispatch")
+@RequestMapping({"/api/v1/procurement/dispatch", "/api/inventory/dispatch"})
 @RequiredArgsConstructor
 @Validated
 public class DispatchController {

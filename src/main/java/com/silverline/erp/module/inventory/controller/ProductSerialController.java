@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/inventory/serials")
+@RequestMapping({"/api/v1/inventory/serials", "/api/inventory/serials"})
 @RequiredArgsConstructor
 public class ProductSerialController {
 

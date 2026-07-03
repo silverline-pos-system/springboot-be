@@ -19,11 +19,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/pos")
 @RequiredArgsConstructor
 @CrossOrigin
+@Tag(name = "POS Checkout", description = "Point of Sale transaction, billing, returns, and loyalty discount processing APIs")
 public class PosController {
 
     private final PosSaleService saleService;
@@ -32,6 +36,8 @@ public class PosController {
     private final SaleQueryService saleQueryService;
     private final ShiftService shiftService;
 
+    @Operation(summary = "Get last invoice info", description = "Retrieves metadata about the last recorded sale/invoice in the system")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Invoice info fetched successfully")
     @GetMapping({"/sales/last-invoice", "/orders/last-invoice"})
     public ResponseEntity<ApiResponse<Map<String, Object>>> getLastInvoice() {
         log.info("Fetching last invoice info");
@@ -39,6 +45,10 @@ public class PosController {
         return ResponseEntity.ok(ApiResponse.success("Invoice info fetched", invoiceInfo));
     }
 
+    @Operation(summary = "Submit checkout order / sale", description = "Deducts stock, logs payments, and records a new completed sale in the current cashier shift")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Order created successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "No active shift, invalid request format, or business validation failure")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Cashier not authenticated")
     @PostMapping({"/orders", "/sales"})
     public ResponseEntity<ApiResponse<SaleResponse>> submitOrder(@Valid @RequestBody com.silverline.erp.module.pos.dto.sale.CreateSaleRequest request) {
         Long cashierId = SecurityUtils.getCurrentUserId();
@@ -61,6 +71,8 @@ public class PosController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Order created successfully", response));
     }
 
+    @Operation(summary = "Get sales list / bills", description = "Returns a paginated list of sales records for the branch, with optional filters")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Orders fetched successfully")
     @GetMapping({"/orders", "/sales"})
     public ResponseEntity<ApiResponse<PagedResponse<SaleSummaryDTO>>> getBills(
             @RequestParam(required = false) String status,
@@ -74,6 +86,9 @@ public class PosController {
         return ResponseEntity.ok(ApiResponse.success("Orders fetched", PagedResponse.from(pageInfo)));
     }
 
+    @Operation(summary = "Get sale bill by ID", description = "Retrieves full sale, items, and payments details by sale ID")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Order fetched successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Bill not found")
     @GetMapping({"/orders/{id}", "/sales/{id}"})
     public ResponseEntity<ApiResponse<SaleResponse>> getBillById(@PathVariable Long id) {
         log.info("Fetching bill ID: {}", id);
@@ -84,6 +99,8 @@ public class PosController {
         return ResponseEntity.ok(ApiResponse.success("Order fetched", response));
     }
 
+    @Operation(summary = "Put bill on hold", description = "Saves a draft checkout request as a HELD bill for later retrieval")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Bill held successfully")
     @PostMapping("/sales/hold")
     public ResponseEntity<ApiResponse<SaleResponse>> holdBill(@Valid @RequestBody com.silverline.erp.module.pos.dto.sale.CreateSaleRequest request) {
         log.info("Holding bill for branch: {}", request.getBranchId());
@@ -91,12 +108,16 @@ public class PosController {
         return submitOrder(request);
     }
 
+    @Operation(summary = "Get held bills list", description = "Fetches a list of all currently held (draft) bills for the branch")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Fetched held bills successfully")
     @GetMapping("/sales/held")
     public ResponseEntity<ApiResponse<List<SaleSummaryDTO>>> getHeldBills(@RequestParam(required = false) Long branchId) {
         log.info("Fetching held bills for branch: {}", branchId);
         return ResponseEntity.ok(ApiResponse.success("Fetched held bills", saleQueryService.getHeldBills(branchId)));
     }
 
+    @Operation(summary = "Recall held bill", description = "Sets status of a held bill to PENDING so it can be resumed at the POS terminal")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Held bill recalled successfully")
     @PostMapping("/sales/{id}/recall")
     public ResponseEntity<ApiResponse<SaleResponse>> recallBill(@PathVariable Long id) {
         log.info("Recalling bill ID: {}", id);
@@ -104,6 +125,8 @@ public class PosController {
         return getBillById(id);
     }
 
+    @Operation(summary = "Get returnable sales list", description = "Retrieves sales that are eligible for processing returns based on threshold policy")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Returnable sales fetched successfully")
     @GetMapping("/sales/returnable")
     public ResponseEntity<ApiResponse<List<SaleResponse>>> getReturnableSales(
             @RequestParam(required = false, defaultValue = "7") Integer days
@@ -114,6 +137,9 @@ public class PosController {
         return ResponseEntity.ok(ApiResponse.success("Returnable sales fetched", sales));
     }
 
+    @Operation(summary = "Get sale details by Invoice Number", description = "Looks up a specific sale by its unique invoice number identifier")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Sale fetched successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Invoice not found")
     @GetMapping("/sales/invoice/{invoiceNo}")
     public ResponseEntity<ApiResponse<SaleResponse>> getSaleByInvoice(@PathVariable String invoiceNo) {
         log.info("Searching sale by invoice: {}", invoiceNo);
@@ -124,6 +150,9 @@ public class PosController {
         return ResponseEntity.ok(ApiResponse.success("Sale fetched", response));
     }
 
+    @Operation(summary = "Process sales return", description = "Validates items and refund policy, adds items back to stock, and logs supervisor verification")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Return processed successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Supervisor validation failure or restocking error")
     @PostMapping("/returns")
     public ResponseEntity<ApiResponse<Map<String, Object>>> processReturn(@Valid @RequestBody com.silverline.erp.module.pos.dto.returns.ReturnRequest request) {
         log.info("Processing return for sale ID: {}", request.getSaleId());
@@ -131,6 +160,8 @@ public class PosController {
         return ResponseEntity.ok(ApiResponse.success("Return processed successfully", Map.of("returnId", returnId)));
     }
 
+    @Operation(summary = "Request loyalty redemption code", description = "Triggers sending a one-time OTP verification code to the customer for point redemption")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Verification code sent successfully")
     @PostMapping("/customers/loyalty/request-redeem")
     public ResponseEntity<ApiResponse<String>> requestLoyaltyRedemption(@Valid @RequestBody com.silverline.erp.module.pos.dto.customer.LoyaltyRedeemRequest request) {
         log.info("Requesting loyalty redemption for customer: {}", request.getCustomerId());
@@ -138,6 +169,9 @@ public class PosController {
         return ResponseEntity.ok(ApiResponse.success("Verification code sent", null));
     }
 
+    @Operation(summary = "Verify loyalty redemption OTP", description = "Validates the customer's verification code and returns the applied discount value")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Redemption verified successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid code or insufficient points")
     @PostMapping("/customers/loyalty/verify-redeem")
     public ResponseEntity<ApiResponse<Map<String, java.math.BigDecimal>>> verifyLoyaltyRedemption(@Valid @RequestBody com.silverline.erp.module.pos.dto.customer.LoyaltyRedeemVerifyRequest request) {
         log.info("Verifying loyalty redemption for customer: {}", request.getCustomerId());
