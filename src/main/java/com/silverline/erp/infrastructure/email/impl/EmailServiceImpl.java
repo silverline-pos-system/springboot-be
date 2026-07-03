@@ -1,6 +1,6 @@
-package com.silverline.erp.common.email.impl;
+package com.silverline.erp.infrastructure.email.impl;
 
-import com.silverline.erp.common.email.EmailService;
+import com.silverline.erp.infrastructure.email.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;

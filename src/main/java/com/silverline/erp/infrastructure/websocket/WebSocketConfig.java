@@ -1,4 +1,4 @@
-package com.silverline.erp.common.config;
+package com.silverline.erp.infrastructure.websocket;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
