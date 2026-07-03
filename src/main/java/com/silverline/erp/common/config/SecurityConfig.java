@@ -90,7 +90,14 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         // Public endpoints - no authentication required
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/system/**", "/public/**").permitAll()
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/api/v1/system/**",
+                                "/public/**",
+                                "/api/docs/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
 
                         // Health check endpoint
                         .requestMatchers("/api/v1/health/**").permitAll()

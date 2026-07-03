@@ -15,15 +15,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @NullMarked
+@Tag(name = "Authentication", description = "User registration, login, and supervisor validation APIs")
 public class AuthController {
 
     private final AuthService authService;
 
+    @Operation(summary = "Register a new user", description = "Creates a new user profile in PENDING status, awaiting admin approval")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Registration successful")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Username or email already exists")
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegisterResponseDTO>> registerUser(@Valid @RequestBody RegisterRequestDTO userDetails) {
         log.info("Processing registration for user: {}", userDetails.getUsername());
@@ -40,12 +47,17 @@ public class AuthController {
                 .body(ApiResponse.success("Registration successful", response));
     }
 
+    @Operation(summary = "Get all branches", description = "Fetches a list of all active branches for registration")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Branches fetched successfully")
     @GetMapping("/branches")
     public ResponseEntity<ApiResponse<List<Branch>>> getBranches() {
         List<Branch> branches = authService.getAllBranches();
         return ResponseEntity.ok(ApiResponse.success("Branches fetched successfully", branches));
     }
 
+    @Operation(summary = "Log in a user", description = "Authenticates a user and returns a JWT token if login is successful")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Login successful")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Invalid credentials or account not active")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LogInResponseDTO>> login(@Valid @RequestBody LogInRequestDTO logInRequestDTO) {
         log.info("Processing login for user: {}", logInRequestDTO.getUsername());
@@ -60,6 +72,9 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
 
+    @Operation(summary = "Verify supervisor credentials", description = "Validates supervisor credentials for override actions (e.g. returns)")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Supervisor verified successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Invalid credentials or insufficient role")
     @PostMapping("/verify-supervisor")
     public ResponseEntity<ApiResponse<Map<String, String>>> verifySupervisor(@Valid @RequestBody LogInRequestDTO credentials) {
         log.info("Processing supervisor verification for: {}", credentials.getUsername());
@@ -68,13 +83,16 @@ public class AuthController {
         if (verified) {
              return ResponseEntity.ok(ApiResponse.success("Supervisor verified successfully", 
                      Map.of("status", "verified")));
-        } else {
-             return ResponseEntity
-                     .status(HttpStatus.UNAUTHORIZED)
-                     .body(ApiResponse.error("Invalid supervisor credentials or insufficient permissions"));
-        }
+         } else {
+              return ResponseEntity
+                      .status(HttpStatus.UNAUTHORIZED)
+                      .body(ApiResponse.error("Invalid supervisor credentials or insufficient permissions"));
+         }
     }
 
+    @Operation(summary = "Submit password reset request", description = "Creates a request for password reset that must be approved by an administrator")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Request submitted successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid username or validation failure")
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody PasswordResetRequestDTO request) {
         log.info("Processing password reset request for: {}", request.getUsername());

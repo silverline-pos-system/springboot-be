@@ -74,3 +74,9 @@ rocs:
   rate-limit:
     requests-per-minute: ${RATE_LIMIT_RPM:60}
     login-attempts-per-minute: ${RATE_LIMIT_LOGIN_RPM:5}
+
+springdoc:
+  swagger-ui:
+    path: /api/docs
+  api-docs:
+    path: /api/v3/api-docs
