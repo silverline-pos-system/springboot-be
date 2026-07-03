@@ -94,8 +94,12 @@ public class SecurityConfig {
                                 "/api/v1/auth/**",
                                 "/api/v1/system/**",
                                 "/public/**",
+                                "/api/docs",
                                 "/api/docs/**",
+                                "/api/v3/api-docs",
+                                "/api/v3/api-docs/**",
                                 "/swagger-ui/**",
+                                "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/actuator/**"
                         ).permitAll()
