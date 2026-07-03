@@ -1,7 +1,7 @@
 package com.silverline.erp.module.admin.service.impl;
 
 import com.silverline.erp.common.audit.repository.ApprovalRepository;
-import com.silverline.erp.common.email.EmailService;
+import com.silverline.erp.infrastructure.email.EmailService;
 import com.silverline.erp.domain.audit.Approval;
 import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.enums.Role;

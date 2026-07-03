@@ -1,6 +1,6 @@
 package com.silverline.erp.module.admin.service.impl;
 
-import com.silverline.erp.common.email.EmailService;
+import com.silverline.erp.infrastructure.email.EmailService;
 import com.silverline.erp.common.exception.ResourceNotFoundException;
 import com.silverline.erp.common.exception.ValidationException;
 import com.silverline.erp.domain.system.FeatureVerificationCode;

@@ -1,7 +1,7 @@
 package com.silverline.erp.module.pos.service.impl;
 
 import com.silverline.erp.common.audit.AuditLogService;
-import com.silverline.erp.common.email.EmailService;
+import com.silverline.erp.infrastructure.email.EmailService;
 import com.silverline.erp.domain.pos.Customer;
 import com.silverline.erp.domain.pos.LoyaltyOtp;
 import com.silverline.erp.module.pos.dto.customer.CreateCustomerRequest;
