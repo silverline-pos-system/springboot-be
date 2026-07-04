@@ -199,14 +199,17 @@ public class UserServiceImpl implements UserService {
         dto.setFullName(user.getFullName());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
         dto.setEmployeeId(user.getEmployeeId());
         dto.setRole(user.getRole() != null ? user.getRole().name() : null);
         dto.setStatus(user.getAccountStatus() != null ? user.getAccountStatus().name() : null);
+        dto.setCreatedAt(user.getCreatedAt());
         
         // Set approved by information if user has been approved
         if (user.getApprovedBy() != null) {
             dto.setApprovedById(user.getApprovedBy().getUserId());
             dto.setApprovedByName(user.getApprovedBy().getFullName());
+            dto.setApprovedAt(user.getApprovedAt());
         } else {
             // Fallback for historical records: read approver from approvals table
             Optional<Approval> latestApprovedRegistration = approvalRepository
@@ -218,11 +221,11 @@ public class UserServiceImpl implements UserService {
             latestApprovedRegistration.ifPresent(a -> {
                 dto.setApprovedById(a.getApprovedBy());
                 userRepository.findById(a.getApprovedBy()).ifPresent(approver -> dto.setApprovedByName(approver.getFullName()));
+                dto.setApprovedAt(a.getApprovedAt());
             });
         }
         
-        // NOTE: No branch info â€” users are NOT tied to branches
+        // NOTE: No branch info — users are NOT tied to branches
         return dto;
     }
 }
-
