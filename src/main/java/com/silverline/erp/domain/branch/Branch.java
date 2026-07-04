@@ -19,7 +19,7 @@ public class Branch {
     @Column(name = "branch_id")
     private Long branchId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false, unique = true)
