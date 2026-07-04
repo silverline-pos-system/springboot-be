@@ -74,7 +74,15 @@ public class UserServiceImpl implements UserService {
         user.setFullName(userDTO.getFullName());
         user.setUsername(userDTO.getUsername());
         user.setEmail(userDTO.getEmail());
-        user.setEmployeeId(generateSequentialEmployeeId());
+        String employeeId = generateSequentialEmployeeId();
+        int attempts = 0;
+        while (userRepository.existsByEmployeeId(employeeId) && attempts < 100) {
+            attempts++;
+            Long maxNumber = userRepository.findMaxEmployeeIdSequence();
+            long nextNumber = (maxNumber != null ? maxNumber : 0) + 1 + attempts;
+            employeeId = String.format("EMP-%03d", nextNumber);
+        }
+        user.setEmployeeId(employeeId);
         
         Role role;
         try {
@@ -143,6 +151,11 @@ public class UserServiceImpl implements UserService {
             user.setAccountStatus(AccountStatus.ACTIVE);
 
             if (activating) {
+                Long currentAdminId = com.silverline.erp.common.security.SecurityUtils.getCurrentUserId();
+                if (currentAdminId != null) {
+                    userRepository.findById(currentAdminId).ifPresent(user::setApprovedBy);
+                    user.setApprovedAt(java.time.LocalDateTime.now());
+                }
                 try {
                     String tempPassword = "temp@" + user.getUsername();
                     user.setPassword(passwordEncoder.encode(tempPassword));

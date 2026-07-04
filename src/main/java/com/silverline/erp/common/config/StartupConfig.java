@@ -2,7 +2,9 @@ package com.silverline.erp.common.config;
 
 import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.enums.Role;
+import com.silverline.erp.domain.system.SaasFeature;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.module.admin.repository.SaasFeatureRepository;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ public class StartupConfig implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SaasFeatureRepository saasFeatureRepository;
 
     @Value("${rocs.admin.username:admin}")
     private String adminUsername;
@@ -33,6 +36,7 @@ public class StartupConfig implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         createDefaultSuperAdmin();
+        seedSaasFeatures();
     }
 
     private void createDefaultSuperAdmin() {
@@ -57,5 +61,36 @@ public class StartupConfig implements CommandLineRunner {
         } else {
             log.info("System already has users. Skipping default SUPER_ADMIN creation.");
         }
+    }
+
+    private void seedSaasFeatures() {
+        if (saasFeatureRepository.count() == 0) {
+            log.info("No SaaS features found. Seeding default features...");
+            
+            // Common Features (Active by default)
+            saveFeature("SIMPLE_POS", "Simple POS", "COMMON", true);
+            saveFeature("SIMPLE_INVENTORY", "Simple Inventory", "COMMON", true);
+            saveFeature("SIMPLE_MANAGER", "Simple Manager", "COMMON", true);
+            
+            // Premium Features (Inactive by default)
+            saveFeature("POS_LOYALTY", "POS Loyalty Program", "PREMIUM", false);
+            saveFeature("POS_SERVICE_REPAIRS", "POS Service & Repairs", "PREMIUM", false);
+            saveFeature("INVENTORY_EXPIRE_CALENDAR", "Inventory Expiry Calendar", "PREMIUM", false);
+            saveFeature("MANAGER_LOYALTY", "Manager Loyalty Program", "PREMIUM", false);
+            saveFeature("SALES_REPORTS", "Sales Reports & Analytics", "PREMIUM", false);
+            saveFeature("MANAGER_ACCOUNTING", "Manager Accounting Module", "PREMIUM", false);
+            saveFeature("ALLOW_OUT_OF_STOCK", "Allow Out Of Stock POS Sales", "PREMIUM", false);
+            
+            log.info("Default SaaS features seeded successfully!");
+        }
+    }
+
+    private void saveFeature(String code, String name, String category, boolean isActive) {
+        SaasFeature feature = new SaasFeature();
+        feature.setFeatureCode(code);
+        feature.setFeatureName(name);
+        feature.setFeatureCategory(category);
+        feature.setIsActive(isActive);
+        saasFeatureRepository.save(feature);
     }
 }

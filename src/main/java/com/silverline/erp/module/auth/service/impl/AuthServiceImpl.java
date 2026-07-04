@@ -91,6 +91,13 @@ public class AuthServiceImpl implements AuthService {
         userProfile.setPhone(registerRequestDTO.getPhone());
         
         String employeeId = generateSequentialEmployeeId();
+        int attempts = 0;
+        while (userProfileRepository.findByEmployeeId(employeeId).isPresent() && attempts < 100) {
+            attempts++;
+            Long maxNumber = userProfileRepository.findMaxEmployeeIdSequence();
+            long nextNumber = (maxNumber != null ? maxNumber : 0) + 1 + attempts;
+            employeeId = String.format("EMP-%03d", nextNumber);
+        }
         userProfile.setEmployeeId(employeeId);
         userProfile.setRole(null);
         userProfile.setAccountStatus(AccountStatus.PENDING);
