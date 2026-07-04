@@ -70,15 +70,11 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
-        if (userRepository.existsByEmployeeId(userDTO.getEmployeeId())) {
-            throw new RuntimeException("Employee ID already exists");
-        }
-
         UserProfile user = new UserProfile();
         user.setFullName(userDTO.getFullName());
         user.setUsername(userDTO.getUsername());
         user.setEmail(userDTO.getEmail());
-        user.setEmployeeId(userDTO.getEmployeeId());
+        user.setEmployeeId(generateSequentialEmployeeId());
         
         Role role;
         try {
@@ -110,9 +106,8 @@ public class UserServiceImpl implements UserService {
 
         if (userDTO.getFullName() != null) user.setFullName(userDTO.getFullName());
         if (userDTO.getEmail() != null) user.setEmail(userDTO.getEmail());
-        if (userDTO.getEmployeeId() != null) user.setEmployeeId(userDTO.getEmployeeId());
         
-        // NOTE: No branch assignment update â€” branch_id removed from user_profiles and UserBranch table removed
+        // NOTE: No branch assignment update — branch_id removed from user_profiles and UserBranch table removed
 
         UserProfile updatedUser = userRepository.save(user);
 
@@ -227,5 +222,11 @@ public class UserServiceImpl implements UserService {
         
         // NOTE: No branch info — users are NOT tied to branches
         return dto;
+    }
+
+    private String generateSequentialEmployeeId() {
+        Long maxNumber = userRepository.findMaxEmployeeIdSequence();
+        long nextNumber = (maxNumber != null ? maxNumber : 0) + 1;
+        return String.format("EMP-%03d", nextNumber);
     }
 }
