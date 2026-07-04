@@ -37,6 +37,12 @@ public class BranchServiceImpl implements BranchService {
     @Override
     @org.springframework.transaction.annotation.Transactional
     public BranchDTO createBranch(BranchDTO dto) {
+        if (dto.getName() != null && branchRepository.existsByName(dto.getName())) {
+            throw new com.silverline.erp.common.exception.DuplicateResourceException("Branch name already exists");
+        }
+        if (dto.getCode() != null && branchRepository.existsByCode(dto.getCode())) {
+            throw new com.silverline.erp.common.exception.DuplicateResourceException("Branch code already exists");
+        }
         Branch entity = toEntity(dto);
         Branch saved = branchRepository.save(entity);
         return toDTO(saved);
@@ -68,6 +74,13 @@ public class BranchServiceImpl implements BranchService {
     public BranchDTO updateBranch(Long id, BranchDTO dto) {
         Branch existing = branchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
+
+        if (dto.getName() != null && !dto.getName().equals(existing.getName()) && branchRepository.existsByNameAndBranchIdNot(dto.getName(), id)) {
+            throw new com.silverline.erp.common.exception.DuplicateResourceException("Branch name already exists");
+        }
+        if (dto.getCode() != null && !dto.getCode().equals(existing.getCode()) && branchRepository.existsByCodeAndBranchIdNot(dto.getCode(), id)) {
+            throw new com.silverline.erp.common.exception.DuplicateResourceException("Branch code already exists");
+        }
 
         // update fields
         if (dto.getName() != null) existing.setName(dto.getName());

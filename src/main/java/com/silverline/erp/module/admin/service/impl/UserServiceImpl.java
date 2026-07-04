@@ -70,15 +70,11 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
-        if (userRepository.existsByEmployeeId(userDTO.getEmployeeId())) {
-            throw new RuntimeException("Employee ID already exists");
-        }
-
         UserProfile user = new UserProfile();
         user.setFullName(userDTO.getFullName());
         user.setUsername(userDTO.getUsername());
         user.setEmail(userDTO.getEmail());
-        user.setEmployeeId(userDTO.getEmployeeId());
+        user.setEmployeeId(generateSequentialEmployeeId());
         
         Role role;
         try {
@@ -110,9 +106,8 @@ public class UserServiceImpl implements UserService {
 
         if (userDTO.getFullName() != null) user.setFullName(userDTO.getFullName());
         if (userDTO.getEmail() != null) user.setEmail(userDTO.getEmail());
-        if (userDTO.getEmployeeId() != null) user.setEmployeeId(userDTO.getEmployeeId());
         
-        // NOTE: No branch assignment update â€” branch_id removed from user_profiles and UserBranch table removed
+        // NOTE: No branch assignment update — branch_id removed from user_profiles and UserBranch table removed
 
         UserProfile updatedUser = userRepository.save(user);
 
@@ -199,14 +194,17 @@ public class UserServiceImpl implements UserService {
         dto.setFullName(user.getFullName());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
         dto.setEmployeeId(user.getEmployeeId());
         dto.setRole(user.getRole() != null ? user.getRole().name() : null);
         dto.setStatus(user.getAccountStatus() != null ? user.getAccountStatus().name() : null);
+        dto.setCreatedAt(user.getCreatedAt());
         
         // Set approved by information if user has been approved
         if (user.getApprovedBy() != null) {
             dto.setApprovedById(user.getApprovedBy().getUserId());
             dto.setApprovedByName(user.getApprovedBy().getFullName());
+            dto.setApprovedAt(user.getApprovedAt());
         } else {
             // Fallback for historical records: read approver from approvals table
             Optional<Approval> latestApprovedRegistration = approvalRepository
@@ -218,11 +216,17 @@ public class UserServiceImpl implements UserService {
             latestApprovedRegistration.ifPresent(a -> {
                 dto.setApprovedById(a.getApprovedBy());
                 userRepository.findById(a.getApprovedBy()).ifPresent(approver -> dto.setApprovedByName(approver.getFullName()));
+                dto.setApprovedAt(a.getApprovedAt());
             });
         }
         
-        // NOTE: No branch info â€” users are NOT tied to branches
+        // NOTE: No branch info — users are NOT tied to branches
         return dto;
     }
-}
 
+    private String generateSequentialEmployeeId() {
+        Long maxNumber = userRepository.findMaxEmployeeIdSequence();
+        long nextNumber = (maxNumber != null ? maxNumber : 0) + 1;
+        return String.format("EMP-%03d", nextNumber);
+    }
+}

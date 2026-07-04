@@ -22,6 +22,8 @@ public interface UserRepository extends JpaRepository<UserProfile, Long> {
 
     boolean existsByEmployeeId(String employeeId);
 
+    @org.springframework.data.jpa.repository.Query("SELECT MAX(CAST(SUBSTRING(REPLACE(u.employeeId, '-', ''), 4) as java.lang.Long)) FROM UserProfile u WHERE u.employeeId LIKE 'EMP%' AND u.employeeId NOT LIKE 'EMP_%'")
+    Long findMaxEmployeeIdSequence();
 
     Optional<UserProfile> findByEmail(String email);
 }

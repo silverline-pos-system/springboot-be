@@ -63,8 +63,7 @@ public class ManagerController {
                 approvalId,
                 request.getStatus(),
                 request.getNotes(),
-                request.getRole(),
-                request.getApproverId()
+                request.getRole()
         );
         return ResponseEntity.ok(ApiResponse.success("Approval status updated", approval));
     }

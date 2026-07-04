@@ -90,15 +90,7 @@ public class AuthServiceImpl implements AuthService {
         userProfile.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
         userProfile.setPhone(registerRequestDTO.getPhone());
         
-        String employeeId = registerRequestDTO.getEmployeeId();
-        if (employeeId != null && !employeeId.trim().isEmpty()) {
-            Optional<UserProfile> existUserByEmployeeId = userProfileRepository.findByEmployeeId(employeeId);
-            if (existUserByEmployeeId.isPresent()) {
-                return new RegisterResponseDTO("EMPLOYEE_ID: User with this Employee ID already exists");
-            }
-        } else {
-            employeeId = generateSequentialEmployeeId();
-        }
+        String employeeId = generateSequentialEmployeeId();
         userProfile.setEmployeeId(employeeId);
         userProfile.setRole(null);
         userProfile.setAccountStatus(AccountStatus.PENDING);

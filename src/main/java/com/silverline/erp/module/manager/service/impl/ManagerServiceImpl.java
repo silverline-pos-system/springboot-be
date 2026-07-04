@@ -151,18 +151,19 @@ public class ManagerServiceImpl implements ManagerService {
 
     @Override
     @Transactional
-    public ApprovalDTO updateApprovalStatus(Long approvalId, String status, String notes, String role, Long approverId) {
+    public ApprovalDTO updateApprovalStatus(Long approvalId, String status, String notes, String role) {
         Approval approval = approvalRepository.findById(approvalId)
                 .orElseThrow(() -> new RuntimeException("Approval not found: " + approvalId));
 
-        Long effectiveApproverId = approverId != null ? approverId : com.silverline.erp.common.security.SecurityUtils.getCurrentUserId();
+        Long approverId = com.silverline.erp.common.security.SecurityUtils.getCurrentUserId();
+        if (approverId == null) {
+            throw new com.silverline.erp.common.exception.UnauthorizedException("Authenticated user required to approve requests");
+        }
 
         approval.setStatus(status.toUpperCase());
         approval.setApprovalNotes(notes);
         approval.setApprovedAt(LocalDateTime.now());
-        if (effectiveApproverId != null) {
-            approval.setApprovedBy(effectiveApproverId);
-        }
+        approval.setApprovedBy(approverId);
 
         UserProfile user = null;
         if ("USER_REGISTRATION".equals(approval.getType()) && "APPROVED".equalsIgnoreCase(status)) {
@@ -170,10 +171,8 @@ public class ManagerServiceImpl implements ManagerService {
                     .orElseThrow(() -> new RuntimeException("Ref User not found: " + approval.getReferenceId()));
 
             user.setAccountStatus(AccountStatus.ACTIVE);
-            if (effectiveApproverId != null) {
-                userRepository.findById(effectiveApproverId).ifPresent(user::setApprovedBy);
-                user.setApprovedAt(LocalDateTime.now());
-            }
+            userRepository.findById(approverId).ifPresent(user::setApprovedBy);
+            user.setApprovedAt(LocalDateTime.now());
             if (role != null && !role.trim().isEmpty()) {
                 if (role.toUpperCase().equals("SUPER_ADMIN") || role.toUpperCase().equals("MANAGER")) {
                     throw new RuntimeException("Permission denied: Cannot assign Super Admin or Manager roles from this console.");

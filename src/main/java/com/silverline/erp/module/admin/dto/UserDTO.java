@@ -2,6 +2,8 @@ package com.silverline.erp.module.admin.dto;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class UserDTO {
     private Long userId;
@@ -17,5 +19,6 @@ public class UserDTO {
     private String password; // Only for creation
     private Long approvedById;
     private String approvedByName;
+    private LocalDateTime approvedAt;
+    private LocalDateTime createdAt;
 }
-
