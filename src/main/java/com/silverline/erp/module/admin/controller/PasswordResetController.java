@@ -1,12 +1,14 @@
 package com.silverline.erp.module.admin.controller;
 
 import com.silverline.erp.common.audit.repository.PasswordResetRequestRepository;
+import com.silverline.erp.common.security.SecurityUtils;
 import com.silverline.erp.infrastructure.email.EmailService;
 import com.silverline.erp.domain.audit.PasswordResetRequest;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.dto.PasswordResetResponseDTO;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/admin/password-requests")
 @RequiredArgsConstructor
@@ -79,6 +82,7 @@ public class PasswordResetController {
 
         // Update request status
         request.setStatus("APPROVED");
+        request.setReviewedBy(SecurityUtils.getCurrentUserId());
         request.setReviewedAt(LocalDateTime.now());
         if (body != null && body.containsKey("adminNotes")) {
             request.setAdminNotes(body.get("adminNotes"));
@@ -96,7 +100,7 @@ public class PasswordResetController {
                     "Silverline Admin Team";
             emailService.sendSimpleMessage(request.getEmail(), subject, emailBody);
         } catch (Exception e) {
-            System.err.println("Failed to send password reset approval email: " + e.getMessage());
+            log.error("Failed to send password reset approval email to {}: {}", request.getEmail(), e.getMessage());
         }
 
         return ResponseEntity.ok(Map.of("message", "Password reset approved successfully. User has been notified."));
@@ -119,6 +123,7 @@ public class PasswordResetController {
 
         // Update request status
         request.setStatus("REJECTED");
+        request.setReviewedBy(SecurityUtils.getCurrentUserId());
         request.setReviewedAt(LocalDateTime.now());
         if (body != null && body.containsKey("adminNotes")) {
             request.setAdminNotes(body.get("adminNotes"));
@@ -137,7 +142,7 @@ public class PasswordResetController {
                     "Silverline Admin Team";
             emailService.sendSimpleMessage(request.getEmail(), subject, emailBody);
         } catch (Exception e) {
-            System.err.println("Failed to send password reset rejection email: " + e.getMessage());
+            log.error("Failed to send password reset rejection email to {}: {}", request.getEmail(), e.getMessage());
         }
 
         return ResponseEntity.ok(Map.of("message", "Password reset request rejected."));

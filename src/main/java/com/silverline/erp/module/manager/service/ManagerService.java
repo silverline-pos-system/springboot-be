@@ -10,6 +10,6 @@ public interface ManagerService {
     List<StaffSummaryDTO> getStaffSummary(Long branchId);
     List<ApprovalDTO> getMyApprovals(Long branchId);
     List<ApprovalDTO> getApprovals(String status, Long branchId);
-    ApprovalDTO updateApprovalStatus(Long approvalId, String status, String notes, String role, Long approverId);
+    ApprovalDTO updateApprovalStatus(Long approvalId, String status, String notes, String role);
     List<ActivityLogDTO> getBranchActivityLog(int limit, Long branchId);
 }
