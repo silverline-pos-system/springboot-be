@@ -257,6 +257,6 @@ public class AuthServiceImpl implements AuthService {
     private String generateSequentialEmployeeId() {
         Long maxNumber = userProfileRepository.findMaxEmployeeIdSequence();
         long nextNumber = (maxNumber != null ? maxNumber : 0) + 1;
-        return String.format("EMP%03d", nextNumber);
+        return String.format("EMP-%03d", nextNumber);
     }
 }

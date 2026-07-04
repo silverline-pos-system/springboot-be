@@ -85,6 +85,7 @@ class AuthServiceImplTest {
         when(userProfileRepository.save(any(UserProfile.class))).thenAnswer(i -> {
             UserProfile u = i.getArgument(0);
             u.setUserId(10L);
+            assertEquals("EMP-001", u.getEmployeeId());
             return u;
         });
 
