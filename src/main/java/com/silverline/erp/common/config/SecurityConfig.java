@@ -153,7 +153,7 @@ public class SecurityConfig {
 
                         // Manager endpoints
                         .requestMatchers("/api/v1/manager/**")
-                        .hasAnyRole(Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+                        .hasAnyRole(Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
                         // All other requests need authentication
                         .anyRequest().authenticated())
