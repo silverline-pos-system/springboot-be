@@ -143,6 +143,11 @@ public class UserServiceImpl implements UserService {
             user.setAccountStatus(AccountStatus.ACTIVE);
 
             if (activating) {
+                Long currentAdminId = com.silverline.erp.common.security.SecurityUtils.getCurrentUserId();
+                if (currentAdminId != null) {
+                    userRepository.findById(currentAdminId).ifPresent(user::setApprovedBy);
+                    user.setApprovedAt(java.time.LocalDateTime.now());
+                }
                 try {
                     String tempPassword = "temp@" + user.getUsername();
                     user.setPassword(passwordEncoder.encode(tempPassword));

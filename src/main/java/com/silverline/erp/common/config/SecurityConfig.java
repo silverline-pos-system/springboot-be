@@ -1,6 +1,7 @@
 package com.silverline.erp.common.config;
 
 import com.silverline.erp.common.filter.JwtFilter;
+import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.module.auth.service.MyUserDetailsService;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,40 +116,44 @@ public class SecurityConfig {
                         // Notification endpoints - any authenticated user
                         .requestMatchers("/api/v1/notifications/**").authenticated()
 
-                        // POS endpoints - accessible by CASHIER, SUPERVISOR, MANAGER, ADMIN, SUPER_ADMIN
+                        // POS endpoints - accessible by CASHIER, SUPERVISOR, MANAGER, SUPER_ADMIN
                         .requestMatchers("/api/v1/pos/**")
-                        .hasAnyRole("CASHIER", "SUPERVISOR", "MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
                         // Inventory PO endpoints - accessible by CASHIER for supplier payments
                         .requestMatchers("/api/inventory/po/status/**", "/api/inventory/po/*/items", "/api/inventory/po/*/process")
-                        .hasAnyRole("CASHIER", "STORE_KEEPER", "MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.STORE_KEEPER.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
-                        // Inventory endpoints - accessible by STORE_KEEPER, MANAGER, ADMIN, SUPER_ADMIN
+                        // Inventory endpoints - accessible by STORE_KEEPER, MANAGER, SUPER_ADMIN
                         .requestMatchers("/api/inventory/**")
-                        .hasAnyRole("STORE_KEEPER", "MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .hasAnyRole(Role.STORE_KEEPER.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
-                        // Dashboard endpoints - accessible by MANAGER, ADMIN, SUPER_ADMIN
+                        // Dashboard endpoints - accessible by MANAGER, SUPER_ADMIN
                         .requestMatchers("/api/v1/dashboard/**")
-                        .hasAnyRole("MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .hasAnyRole(Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
-                        // Password reset requests - accessible by MANAGER, ADMIN, and SUPER_ADMIN
+                        // Password reset requests - accessible by MANAGER, and SUPER_ADMIN
                         .requestMatchers("/api/v1/admin/password-requests/**")
-                        .hasAnyRole("MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .hasAnyRole(Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+
+                        // User management endpoints - accessible by MANAGER, and SUPER_ADMIN
+                        .requestMatchers("/api/v1/admin/users/**")
+                        .hasAnyRole(Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
                         // Admin only endpoints
                         .requestMatchers("/api/v1/admin/**", "/api/admin/**")
-                        .hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        .hasAnyRole(Role.SUPER_ADMIN.name())
 
                         // Secondary role "me" endpoint - any authenticated user
                         .requestMatchers("/api/v1/manager/secondary-roles/me").authenticated()
 
                         // Grant Store Keeper access to activity logs
                         .requestMatchers("/api/v1/manager/activity/**")
-                        .hasAnyRole("STORE_KEEPER", "MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .hasAnyRole(Role.STORE_KEEPER.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
                         // Manager endpoints
                         .requestMatchers("/api/v1/manager/**")
-                        .hasAnyRole("MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .hasAnyRole(Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
                         // All other requests need authentication
                         .anyRequest().authenticated())
