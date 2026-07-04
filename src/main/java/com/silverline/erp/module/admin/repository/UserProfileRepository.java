@@ -27,7 +27,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
     Optional<UserProfile> findByPhone(String phone);
     Optional<UserProfile> findByEmployeeId(String employeeId);
 
-    @Query("SELECT MAX(CAST(SUBSTRING(REPLACE(u.employeeId, '-', ''), 4) as java.lang.Long)) FROM UserProfile u WHERE u.employeeId LIKE 'EMP%' AND u.employeeId NOT LIKE 'EMP_%'")
+    @Query("SELECT MAX(CAST(SUBSTRING(REPLACE(u.employeeId, '-', ''), 4) as java.lang.Long)) FROM UserProfile u WHERE u.employeeId LIKE 'EMP-%'")
     Long findMaxEmployeeIdSequence();
 
     List<UserProfile> findByRole(Role role);

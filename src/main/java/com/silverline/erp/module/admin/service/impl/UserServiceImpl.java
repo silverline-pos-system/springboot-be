@@ -74,7 +74,15 @@ public class UserServiceImpl implements UserService {
         user.setFullName(userDTO.getFullName());
         user.setUsername(userDTO.getUsername());
         user.setEmail(userDTO.getEmail());
-        user.setEmployeeId(generateSequentialEmployeeId());
+        String employeeId = generateSequentialEmployeeId();
+        int attempts = 0;
+        while (userRepository.existsByEmployeeId(employeeId) && attempts < 100) {
+            attempts++;
+            Long maxNumber = userRepository.findMaxEmployeeIdSequence();
+            long nextNumber = (maxNumber != null ? maxNumber : 0) + 1 + attempts;
+            employeeId = String.format("EMP-%03d", nextNumber);
+        }
+        user.setEmployeeId(employeeId);
         
         Role role;
         try {
