@@ -2,7 +2,9 @@ package com.silverline.erp.module.notification.controller;
 
 import com.silverline.erp.domain.notification.NotificationRecipient;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import com.silverline.erp.module.notification.service.NotificationService;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +23,7 @@ import java.util.Map;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final SseEmitterRegistry sseEmitterRegistry;
 
     /**
      * GET /api/v1/notifications
@@ -84,6 +87,28 @@ public class NotificationController {
         Long userId = getCurrentUserId();
         notificationService.markAllAsRead(userId);
         return ResponseEntity.ok(Map.of("message", "All notifications marked as read"));
+    }
+
+    /**
+     * GET /api/v1/notifications/stream
+     * Establish a Server-Sent Events stream for the current authenticated user.
+     */
+    @GetMapping("/stream")
+    public SseEmitter streamNotifications() {
+        Long userId = getCurrentUserId();
+        SseEmitter emitter = new SseEmitter(180_000L); // 3 minutes timeout
+        sseEmitterRegistry.register(userId, emitter);
+
+        // Send connection initialization event
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("connection")
+                    .data("connected"));
+        } catch (Exception e) {
+            // registry's onError will handle cleaning up the emitter
+        }
+
+        return emitter;
     }
 
     private Long getCurrentUserId() {

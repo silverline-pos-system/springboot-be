@@ -26,7 +26,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping("/api/v1/pos")
 @RequiredArgsConstructor
-@CrossOrigin
 @Tag(name = "POS Checkout", description = "Point of Sale transaction, billing, returns, and loyalty discount processing APIs")
 public class PosController {
 

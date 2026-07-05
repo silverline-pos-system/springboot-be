@@ -79,6 +79,11 @@ public class JwtFilter extends OncePerRequestFilter {
             String token = bearer.substring(7).trim();
             return token.isEmpty() ? null : token;
         }
+        // Fallback to query parameter (needed for standard EventSource/SSE connections)
+        String tokenParam = request.getParameter("token");
+        if (tokenParam != null && !tokenParam.trim().isEmpty()) {
+            return tokenParam.trim();
+        }
         return null;
     }
 }

@@ -128,15 +128,11 @@ public class SaasFeatureController {
      * Extract current admin user ID from Spring Security context
      */
     private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UserDetails) {
-            String username = ((UserDetails) auth.getPrincipal()).getUsername();
-            UserProfile user = userRepository.findByUsername(username).orElse(null);
-            if (user != null) {
-                return user.getUserId();
-            }
+        Long userId = com.silverline.erp.common.security.SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new RuntimeException("User is not authenticated");
         }
-        return 1L; // Fallback for dev
+        return userId;
     }
 }
 

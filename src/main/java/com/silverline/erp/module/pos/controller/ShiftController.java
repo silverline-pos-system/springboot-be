@@ -20,7 +20,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v1/pos")
-@CrossOrigin // Added to fix CORS issues
 @RequiredArgsConstructor
 @Tag(name = "Cash Shift Management", description = "Cashier shift opening, closing, and reconciliation APIs")
 public class ShiftController {
@@ -30,11 +29,11 @@ public class ShiftController {
     private final CashReconciliationService cashReconciliationService;
 
     private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UserProfile) {
-            return ((UserProfile) auth.getPrincipal()).getUserId();
+        Long userId = com.silverline.erp.common.security.SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new RuntimeException("User is not authenticated");
         }
-        return 1001L; // Keeping fallback for safety during dev, but ideally remove
+        return userId;
     }
 
     @Operation(summary = "Open a cash shift", description = "Opens a cashier shift with opening cash denomination details")
@@ -59,8 +58,8 @@ public class ShiftController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "No active shift found")
     @GetMapping("/shift/active")
     public ResponseEntity<ApiResponse<com.silverline.erp.module.pos.dto.shift.ShiftResponse>> getActiveShift(
-            @RequestParam(required = false) Long branchId, 
-            @RequestParam(required = false) Long cashierId) {
+             @RequestParam(required = false) Long branchId, 
+             @RequestParam(required = false) Long cashierId) {
         try {
             com.silverline.erp.module.pos.dto.shift.ShiftResponse activeShift = shiftService.getActiveShift(branchId, cashierId);
             if (activeShift == null) {
@@ -89,14 +88,8 @@ public class ShiftController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "No active shift found or pending flow requests exist")
     @PostMapping("/shift/close")
     public ResponseEntity<ApiResponse<String>> closeShift(@Valid @RequestBody CloseShiftRequest request) {
-        Long cashierId;
         try {
-             cashierId = getCurrentUserId();
-        } catch (Exception e) {
-             cashierId = 1001L;
-        }
-
-        try {
+            Long cashierId = getCurrentUserId();
             shiftService.closeShift(cashierId, request);
             return ResponseEntity.ok(ApiResponse.success("Shift closed successfully", "Shift closed"));
         } catch (Exception e) {
@@ -133,13 +126,8 @@ public class ShiftController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Cash flow recorded successfully")
     @PostMapping("/cash-flows")
     public ResponseEntity<ApiResponse<com.silverline.erp.domain.pos.CashFlow>> recordCashFlow(@Valid @RequestBody com.silverline.erp.module.pos.dto.CashFlowRequest request) {
-        Long cashierId;
         try {
-             cashierId = getCurrentUserId();
-        } catch (Exception e) {
-              cashierId = 1001L;
-        }
-        try {
+            Long cashierId = getCurrentUserId();
             com.silverline.erp.domain.pos.CashFlow flow = cashReconciliationService.recordCashFlow(cashierId, request);
             return ResponseEntity.ok(ApiResponse.success("Cash flow recorded", flow));
         } catch (Exception e) {

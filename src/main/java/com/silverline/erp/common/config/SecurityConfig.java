@@ -110,9 +110,6 @@ public class SecurityConfig {
                         // Health check endpoint
                         .requestMatchers("/api/v1/health/**").permitAll()
 
-                        // WebSocket endpoint
-                        .requestMatchers("/ws/**").permitAll()
-
                         // Notification endpoints - any authenticated user
                         .requestMatchers("/api/v1/notifications/**").authenticated()
 
@@ -138,6 +135,26 @@ public class SecurityConfig {
 
                         // User management endpoints - accessible by MANAGER, and SUPER_ADMIN
                         .requestMatchers("/api/v1/admin/users/**")
+                        .hasAnyRole(Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+
+                        // Dispatch payment requests
+                        .requestMatchers("/api/v1/dispatch-payments/**")
+                        .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+
+                        // Services / Repair jobs
+                        .requestMatchers("/api/v1/services/**")
+                        .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name(), Role.DTV_TECHNICIAN.name(), Role.MOBILE_TECHNICIAN.name())
+
+                        // Finance accounting endpoints
+                        .requestMatchers("/api/v1/finance/accounting/**")
+                        .hasAnyRole(Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+
+                        // Analytics reports
+                        .requestMatchers("/api/v1/analytics/reports/**")
+                        .hasAnyRole(Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+
+                        // Sales lookup endpoints
+                        .requestMatchers("/api/v1/sales/**", "/api/sales/**")
                         .hasAnyRole(Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
                         // Admin only endpoints

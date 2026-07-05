@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationRecipientRepository notificationRecipientRepository;
     private final UserRepository userRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final SseEmitterRegistry sseEmitterRegistry;
 
     @Async
     @Override
@@ -53,7 +53,8 @@ public class NotificationServiceImpl implements NotificationService {
         List<UserProfile> recipients = userRepository.findAll().stream()
                 .filter(u -> u.getRole() != null &&
                         (u.getRole() == Role.MANAGER ||
-                         u.getRole() == Role.SUPER_ADMIN))
+                         u.getRole() == Role.SUPER_ADMIN ||
+                         u.getRole() == Role.SUPERVISOR))
                 .filter(u -> u.getAccountStatus() != null &&
                         u.getAccountStatus().name().equals("ACTIVE"))
                 .collect(Collectors.toList());
@@ -67,22 +68,20 @@ public class NotificationServiceImpl implements NotificationService {
             notificationRecipientRepository.save(nr);
         }
 
-        Map<String, Object> wsPayload = new HashMap<>();
-        wsPayload.put("notificationId", notification.getNotificationId());
-        wsPayload.put("type", notification.getType());
-        wsPayload.put("title", notification.getTitle());
-        wsPayload.put("message", notification.getMessage());
-        wsPayload.put("referenceType", notification.getReferenceType());
-        wsPayload.put("referenceId", notification.getReferenceId());
-        wsPayload.put("priority", notification.getPriority());
-        wsPayload.put("createdAt", notification.getCreatedAt());
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("notificationId", notification.getNotificationId());
+        payload.put("type", notification.getType());
+        payload.put("title", notification.getTitle());
+        payload.put("message", notification.getMessage());
+        payload.put("referenceType", notification.getReferenceType());
+        payload.put("referenceId", notification.getReferenceId());
+        payload.put("priority", notification.getPriority());
+        payload.put("createdAt", notification.getCreatedAt());
 
-        try {
-            messagingTemplate.convertAndSend("/topic/manager-notifications", (Object) wsPayload);
-            log.info("Broadcast notification '{}' to {} managers/admins", title, recipients.size());
-        } catch (Exception e) {
-            log.error("Failed to broadcast WebSocket notification: {}", e.getMessage());
+        for (UserProfile recipient : recipients) {
+            sseEmitterRegistry.sendToUser(recipient.getUserId(), payload);
         }
+        log.info("Broadcast SSE notification '{}' to {} managers/admins", title, recipients.size());
     }
 
     @Override
@@ -110,16 +109,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Async
     @Override
     public void broadcastDashboardUpdate(String eventType, Map<String, Object> data) {
-        Map<String, Object> wsPayload = new HashMap<>();
-        wsPayload.put("eventType", eventType);
-        wsPayload.put("data", data);
-        wsPayload.put("timestamp", LocalDateTime.now());
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("eventType", eventType);
+        payload.put("data", data);
+        payload.put("timestamp", LocalDateTime.now());
 
-        try {
-            messagingTemplate.convertAndSend("/topic/manager-dashboard", (Object) wsPayload);
-            log.info("Broadcast dashboard update: {}", eventType);
-        } catch (Exception e) {
-            log.error("Failed to broadcast dashboard update: {}", e.getMessage());
-        }
+        sseEmitterRegistry.broadcast("dashboard-update", payload);
+        log.info("Broadcast SSE dashboard update: {}", eventType);
     }
 }
