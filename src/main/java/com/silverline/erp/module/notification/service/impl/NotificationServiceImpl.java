@@ -53,7 +53,8 @@ public class NotificationServiceImpl implements NotificationService {
         List<UserProfile> recipients = userRepository.findAll().stream()
                 .filter(u -> u.getRole() != null &&
                         (u.getRole() == Role.MANAGER ||
-                         u.getRole() == Role.SUPER_ADMIN))
+                         u.getRole() == Role.SUPER_ADMIN ||
+                         u.getRole() == Role.SUPERVISOR))
                 .filter(u -> u.getAccountStatus() != null &&
                         u.getAccountStatus().name().equals("ACTIVE"))
                 .collect(Collectors.toList());

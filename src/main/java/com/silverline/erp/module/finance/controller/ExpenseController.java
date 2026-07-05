@@ -105,15 +105,11 @@ public class ExpenseController {
     // --- Helpers ---
 
     private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            Optional<UserProfile> userOpt = userRepository.findByUsername(username);
-            if (userOpt.isPresent()) {
-                return userOpt.get().getUserId();
-            }
+        Long userId = com.silverline.erp.common.security.SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new RuntimeException("User is not authenticated");
         }
-        return 1L; // Fallback for safety/testing, ideally throw error if not found
+        return userId;
     }
 }
 

@@ -25,11 +25,11 @@ public class DispatchPaymentRequestController {
     private final DispatchPaymentRequestService paymentRequestService;
 
     private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UserProfile) {
-            return ((UserProfile) auth.getPrincipal()).getUserId();
+        Long userId = com.silverline.erp.common.security.SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new RuntimeException("User is not authenticated");
         }
-        return 1L; // Default fallback
+        return userId;
     }
 
     // NOTE: branchId now from request params — users are NOT tied to branches
