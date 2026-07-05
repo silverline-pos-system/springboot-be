@@ -18,7 +18,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/dispatch-payments")
-@CrossOrigin
 @RequiredArgsConstructor
 public class DispatchPaymentRequestController {
 
@@ -34,7 +33,10 @@ public class DispatchPaymentRequestController {
 
     // NOTE: branchId now from request params — users are NOT tied to branches
     private Long getBranchIdFromParam(Long branchId) {
-        return branchId != null ? branchId : 1L;
+        if (branchId == null) {
+            throw new IllegalArgumentException("Branch ID is required");
+        }
+        return branchId;
     }
 
     /**
@@ -42,7 +44,7 @@ public class DispatchPaymentRequestController {
      */
     @GetMapping("/branch")
     public ResponseEntity<ApiResponse<List<DispatchPaymentRequestDTO>>> getPaymentRequestsByBranch(
-            @RequestParam(required = false) Long branchId) {
+            @RequestParam(required = true) Long branchId) {
         Long targetBranchId = getBranchIdFromParam(branchId);
         List<DispatchPaymentRequestDTO> requests = paymentRequestService.getPaymentRequestsByBranch(targetBranchId);
         return ResponseEntity.ok(ApiResponse.success("Payment requests fetched", requests));
@@ -53,7 +55,7 @@ public class DispatchPaymentRequestController {
      */
     @GetMapping("/branch/pending-count")
     public ResponseEntity<ApiResponse<Map<String, Long>>> getPendingCount(
-            @RequestParam(required = false) Long branchId) {
+            @RequestParam(required = true) Long branchId) {
         Long targetBranchId = getBranchIdFromParam(branchId);
         Long count = paymentRequestService.getPendingCountByBranch(targetBranchId);
         return ResponseEntity.ok(ApiResponse.success("Count fetched", Map.of("count", count)));

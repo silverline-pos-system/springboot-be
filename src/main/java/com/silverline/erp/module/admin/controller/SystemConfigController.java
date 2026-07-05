@@ -18,7 +18,6 @@ import java.util.Map;
  * No admin auth required â€” read-only access.
  */
 @RestController
-@CrossOrigin
 @RequestMapping("/api/v1/system")
 @RequiredArgsConstructor
 public class SystemConfigController {
