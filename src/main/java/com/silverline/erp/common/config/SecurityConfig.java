@@ -110,9 +110,6 @@ public class SecurityConfig {
                         // Health check endpoint
                         .requestMatchers("/api/v1/health/**").permitAll()
 
-                        // WebSocket endpoint
-                        .requestMatchers("/ws/**").permitAll()
-
                         // Notification endpoints - any authenticated user
                         .requestMatchers("/api/v1/notifications/**").authenticated()
 
