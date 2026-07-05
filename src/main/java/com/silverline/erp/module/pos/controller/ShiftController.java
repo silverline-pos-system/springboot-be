@@ -20,7 +20,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v1/pos")
-@CrossOrigin // Added to fix CORS issues
 @RequiredArgsConstructor
 @Tag(name = "Cash Shift Management", description = "Cashier shift opening, closing, and reconciliation APIs")
 public class ShiftController {
