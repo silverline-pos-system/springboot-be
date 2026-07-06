@@ -50,14 +50,10 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
         notification = notificationRepository.save(notification);
 
-        List<UserProfile> recipients = userRepository.findAll().stream()
-                .filter(u -> u.getRole() != null &&
-                        (u.getRole() == Role.MANAGER ||
-                         u.getRole() == Role.SUPER_ADMIN ||
-                         u.getRole() == Role.SUPERVISOR))
-                .filter(u -> u.getAccountStatus() != null &&
-                        u.getAccountStatus().name().equals("ACTIVE"))
-                .collect(Collectors.toList());
+        List<UserProfile> recipients = userRepository.findByRoleInAndAccountStatus(
+                List.of(Role.MANAGER, Role.SUPER_ADMIN, Role.SUPERVISOR),
+                com.silverline.erp.domain.enums.AccountStatus.ACTIVE
+        );
 
         for (UserProfile recipient : recipients) {
             NotificationRecipient nr = NotificationRecipient.builder()

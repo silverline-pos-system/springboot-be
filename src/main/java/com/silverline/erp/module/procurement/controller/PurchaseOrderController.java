@@ -19,7 +19,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping({"/api/v1/procurement/po", "/api/inventory/po"})
-@CrossOrigin
 @RequiredArgsConstructor
 public class PurchaseOrderController {
 

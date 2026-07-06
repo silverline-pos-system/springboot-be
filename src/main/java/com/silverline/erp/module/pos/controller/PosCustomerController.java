@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/pos/customers")
 @RequiredArgsConstructor
-@CrossOrigin
 public class PosCustomerController {
 
     private final LoyaltyService loyaltyService;

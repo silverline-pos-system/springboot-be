@@ -26,4 +26,6 @@ public interface UserRepository extends JpaRepository<UserProfile, Long> {
     Long findMaxEmployeeIdSequence();
 
     Optional<UserProfile> findByEmail(String email);
+
+    List<UserProfile> findByRoleInAndAccountStatus(List<com.silverline.erp.domain.enums.Role> roles, com.silverline.erp.domain.enums.AccountStatus status);
 }

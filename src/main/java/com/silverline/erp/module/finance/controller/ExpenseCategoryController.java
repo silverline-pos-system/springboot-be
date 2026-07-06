@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/manager/expense-categories")
-@CrossOrigin
 @RequiredArgsConstructor
 public class ExpenseCategoryController {
 

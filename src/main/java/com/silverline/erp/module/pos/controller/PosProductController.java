@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/pos/products")
-@CrossOrigin
 @RequiredArgsConstructor
 public class PosProductController {
 

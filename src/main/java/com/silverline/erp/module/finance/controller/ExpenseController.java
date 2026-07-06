@@ -21,7 +21,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/manager/expenses")
-@CrossOrigin
 @RequiredArgsConstructor
 public class ExpenseController {
 
