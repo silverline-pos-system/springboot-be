@@ -22,4 +22,6 @@ public interface AuthService {
     boolean verifySupervisor(String username, String password);
 
     void forgotPassword(String username, String newPassword, String reason);
+
+    void verifyForgotPasswordToken(String username, String token);
 }

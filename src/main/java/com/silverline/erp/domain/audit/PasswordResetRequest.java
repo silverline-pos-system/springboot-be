@@ -33,8 +33,11 @@ public class PasswordResetRequest {
     @Column(name = "new_password_hash", nullable = false, length = 200)
     private String newPasswordHash;
 
+    @Column(name = "token_hash", length = 64)
+    private String tokenHash;
+
     @Column(name = "status", nullable = false, length = 20)
-    private String status = "PENDING"; // PENDING, APPROVED, REJECTED
+    private String status = "PENDING"; // PENDING, VERIFIED, APPROVED, REJECTED
 
     @Column(name = "request_notes", columnDefinition = "TEXT")
     private String requestNotes;

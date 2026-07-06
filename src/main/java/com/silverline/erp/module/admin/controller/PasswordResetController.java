@@ -65,16 +65,16 @@ public class PasswordResetController {
     public ResponseEntity<?> approveRequest(@PathVariable Long id,
                                             @RequestBody(required = false) Map<String, String> body) {
         PasswordResetRequest request = passwordResetRequestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
+                .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("Request not found"));
 
-        if (!"PENDING".equals(request.getStatus())) {
+        if (!"VERIFIED".equals(request.getStatus())) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "This request has already been " + request.getStatus().toLowerCase()));
+                    .body(Map.of("message", "Only verified password reset requests can be approved. Current status: " + request.getStatus()));
         }
 
         // Find the user and apply the new password
         UserProfile user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("User not found"));
 
         // Apply the pre-hashed password
         user.setPassword(request.getNewPasswordHash());
@@ -112,11 +112,11 @@ public class PasswordResetController {
     public ResponseEntity<?> rejectRequest(@PathVariable Long id,
                                            @RequestBody(required = false) Map<String, String> body) {
         PasswordResetRequest request = passwordResetRequestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
+                .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("Request not found"));
 
-        if (!"PENDING".equals(request.getStatus())) {
+        if (!"PENDING".equals(request.getStatus()) && !"VERIFIED".equals(request.getStatus())) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "This request has already been " + request.getStatus().toLowerCase()));
+                    .body(Map.of("message", "Only pending or verified requests can be rejected. Current status: " + request.getStatus()));
         }
 
         // Update request status

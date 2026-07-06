@@ -23,7 +23,7 @@ public class DispatchPaymentRequestController {
     private Long getCurrentUserId() {
         Long userId = com.silverline.erp.common.security.SecurityUtils.getCurrentUserId();
         if (userId == null) {
-            throw new RuntimeException("User is not authenticated");
+            throw new com.silverline.erp.common.exception.UnauthorizedException("User is not authenticated");
         }
         return userId;
     }

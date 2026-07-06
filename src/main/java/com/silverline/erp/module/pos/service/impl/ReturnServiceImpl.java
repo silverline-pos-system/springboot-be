@@ -43,7 +43,7 @@ public class ReturnServiceImpl implements ReturnService {
         String supPass = request.getSupervisorPassword();
 
         if (supUser == null || supUser.isEmpty() || supPass == null || supPass.isEmpty()) {
-            throw new RuntimeException("Supervisor approval is required for returns.");
+            throw new com.silverline.erp.common.exception.UnauthorizedException("Supervisor approval is required for returns.");
         }
 
         Long supervisorId = null;
@@ -53,18 +53,21 @@ public class ReturnServiceImpl implements ReturnService {
             );
             if (auth.isAuthenticated()) {
                 UserProfile supervisor = userProfileRepository.findByUsername(supUser)
-                        .orElseThrow(() -> new RuntimeException("Supervisor not found"));
+                        .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("Supervisor not found"));
                 supervisorId = supervisor.getUserId();
                 String role = supervisor.getRole().name();
                 if (!"SUPER_ADMIN".equals(role) && !"ADMIN".equals(role) && !"MANAGER".equals(role) && !"SUPERVISOR".equals(role)) {
-                    throw new RuntimeException("User does not have supervisor privileges.");
+                    throw new com.silverline.erp.common.exception.UnauthorizedException("User does not have supervisor privileges.");
                 }
             } else {
-                throw new RuntimeException("Invalid supervisor credentials");
+                throw new com.silverline.erp.common.exception.UnauthorizedException("Invalid supervisor credentials");
             }
         } catch (Exception e) {
             log.warn("Business rule violation: supervisor authorization failed for user '{}': {}", supUser, e.getMessage());
-            throw new RuntimeException("Supervisor authorization failed: " + e.getMessage());
+            if (e instanceof com.silverline.erp.common.exception.BusinessException) {
+                throw e;
+            }
+            throw new com.silverline.erp.common.exception.UnauthorizedException("Supervisor authorization failed: " + e.getMessage());
         }
 
         SalesReturn ret = new SalesReturn();

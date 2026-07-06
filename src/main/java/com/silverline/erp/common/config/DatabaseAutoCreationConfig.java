@@ -124,6 +124,21 @@ public class DatabaseAutoCreationConfig {
         config.setConnectionTimeout(connectionTimeout);
         config.setMaxLifetime(maxLifetime);
 
-        return new HikariDataSource(config);
+        HikariDataSource ds = new HikariDataSource(config);
+
+        log.info("Running Flyway migration directly on DataSource bean initialization...");
+        try {
+            org.flywaydb.core.Flyway.configure()
+                    .dataSource(ds)
+                    .baselineOnMigrate(true)
+                    .baselineVersion("1")
+                    .load()
+                    .migrate();
+            log.info("Flyway migration completed successfully during DataSource startup.");
+        } catch (Exception e) {
+            log.error("Flyway migration failed during DataSource startup", e);
+        }
+
+        return ds;
     }
 }

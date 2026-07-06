@@ -111,7 +111,7 @@ public class NotificationController {
     private Long getCurrentUserId() {
         Long userId = com.silverline.erp.common.security.SecurityUtils.getCurrentUserId();
         if (userId == null) {
-            throw new RuntimeException("Not authenticated");
+            throw new com.silverline.erp.common.exception.UnauthorizedException("Not authenticated");
         }
         return userId;
     }

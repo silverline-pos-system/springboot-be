@@ -20,7 +20,7 @@ public class SseEmitterRegistry {
      * Register a new SSE emitter for a user.
      */
     public void register(Long userId, SseEmitter emitter) {
-        emitters.computeIfAbsent(userId, k -> new ArrayList<>()).add(emitter);
+        emitters.computeIfAbsent(userId, k -> new java.util.concurrent.CopyOnWriteArrayList<>()).add(emitter);
         log.info("Registered SSE emitter for user ID: {}, active connections: {}", userId, emitters.get(userId).size());
 
         emitter.onCompletion(() -> remove(userId, emitter));
@@ -84,6 +84,71 @@ public class SseEmitterRegistry {
      */
     public void broadcast(String eventName, Object payload) {
         emitters.forEach((userId, list) -> sendToUser(userId, eventName, payload));
+    }
+
+    /**
+     * Send periodic keep-alive ping events to all connected clients (every 15 seconds)
+     * to prevent Nginx/Cloudflare and browser timeouts.
+     */
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 15000)
+    public void sendHeartbeat() {
+        if (emitters.isEmpty()) {
+            return;
+        }
+        log.debug("Sending SSE heartbeat ping to all active clients");
+        List<Long> emptyUsers = new ArrayList<>();
+
+        emitters.forEach((userId, userEmitters) -> {
+            if (userEmitters == null || userEmitters.isEmpty()) {
+                emptyUsers.add(userId);
+                return;
+            }
+
+            List<SseEmitter> deadEmitters = new ArrayList<>();
+            for (SseEmitter emitter : userEmitters) {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .name("ping")
+                            .data("heartbeat"));
+                } catch (IOException | IllegalStateException e) {
+                    deadEmitters.add(emitter);
+                }
+            }
+
+            if (!deadEmitters.isEmpty()) {
+                userEmitters.removeAll(deadEmitters);
+                if (userEmitters.isEmpty()) {
+                    emptyUsers.add(userId);
+                }
+            }
+        });
+
+        for (Long userId : emptyUsers) {
+            emitters.remove(userId);
+        }
+    }
+
+    /**
+     * Gracefully close all emitters on server shutdown.
+     */
+    @jakarta.annotation.PreDestroy
+    public void cleanup() {
+        log.info("Server shutting down. Gracefully completing all SSE emitters.");
+        emitters.forEach((userId, userEmitters) -> {
+            if (userEmitters != null) {
+                for (SseEmitter emitter : userEmitters) {
+                    try {
+                        emitter.send(SseEmitter.event()
+                                .name("shutdown")
+                                .data("Server is shutting down. Please reconnect later."));
+                        emitter.complete();
+                    } catch (Exception e) {
+                        // ignore failures during shutdown
+                    }
+                }
+            }
+        });
+        emitters.clear();
     }
 
     private void remove(Long userId, SseEmitter emitter) {
