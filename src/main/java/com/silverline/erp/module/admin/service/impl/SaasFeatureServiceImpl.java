@@ -115,7 +115,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         String body = buildVerificationEmail(systemName, feature.getFeatureName(), action, code, admin.getFullName());
 
         try {
-            emailService.sendSimpleMessage(adminEmail, subject, body);
+            emailService.sendHtmlMessage(adminEmail, subject, body);
         } catch (Exception e) {
             throw new ValidationException("Failed to send verification email. Please check email configuration.");
         }
@@ -164,7 +164,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         String body = buildVerificationEmail(systemName, featureLabel, action, code, admin.getFullName());
 
         try {
-            emailService.sendSimpleMessage(adminEmail, subject, body);
+            emailService.sendHtmlMessage(adminEmail, subject, body);
         } catch (Exception e) {
             throw new ValidationException("Failed to send verification email. Please check email configuration.");
         }
@@ -399,21 +399,16 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
 
     private String buildVerificationEmail(String systemName, String featureName,
                                            String action, int code, String adminName) {
-        return String.format(
-                "Hello %s,\n\n" +
-                "You have requested to %s the feature \"%s\" on %s.\n\n" +
-                "Your verification code is:\n\n" +
-                "    %d\n\n" +
-                "This code will expire in %d minutes.\n\n" +
-                "If you did not request this action, please ignore this email.\n\n" +
-                "— %s System",
-                adminName,
-                action.toLowerCase(),
-                featureName,
-                systemName,
-                code,
-                OTP_EXPIRY_MINUTES,
-                systemName
+        return com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
+                "saas_feature_verification",
+                Map.of(
+                        "adminName", adminName,
+                        "action", action.toLowerCase(),
+                        "featureName", featureName,
+                        "systemName", systemName,
+                        "verificationCode", String.valueOf(code),
+                        "expiresIn", String.valueOf(OTP_EXPIRY_MINUTES)
+                )
         );
     }
 

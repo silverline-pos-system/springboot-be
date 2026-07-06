@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Activated</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
+        .header { background: linear-gradient(135deg, #4f46e5, #4338ca); padding: 32px; text-align: center; color: #ffffff; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; }
+        .content { padding: 40px 32px; line-height: 1.6; }
+        .content p { margin: 0 0 16px; color: #475569; font-size: 16px; }
+        .credentials-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 24px 0; }
+        .credentials-row { display: flex; margin-bottom: 12px; font-size: 15px; }
+        .credentials-row:last-child { margin-bottom: 0; }
+        .label { font-weight: 600; color: #64748b; width: 140px; }
+        .value { color: #1e293b; font-family: monospace; font-size: 15px; }
+        .warning-text { color: #b45309; background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; font-size: 14px; border-radius: 4px; margin-top: 24px; }
+        .footer { background-color: #f1f5f9; padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0; }
+        .footer p { margin: 0; font-size: 13px; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Account Activated</h1>
+        </div>
+        <div class="content">
+            <p>Dear ${fullName},</p>
+            <p>We are pleased to inform you that your account on the Silverline platform has been successfully activated by the system administrator.</p>
+            <p>Please find your temporary login credentials below:</p>
+            
+            <div class="credentials-box">
+                <div class="credentials-row">
+                    <div class="label">Username</div>
+                    <div class="value">${username}</div>
+                </div>
+                <div class="credentials-row">
+                    <div class="label">Temp Password</div>
+                    <div class="value">${tempPassword}</div>
+                </div>
+            </div>
+
+            <p>For security purposes, you will be required to change your password upon your first login. Please ensure that your new password is strong and unique.</p>
+            
+            <div class="warning-text">
+                <strong>Important:</strong> Do not share your credentials with anyone. If you did not request this activation, please contact the system administrator immediately.
+            </div>
+        </div>
+        <div class="footer">
+            <p>Warm regards,<br>Silverline Administration Team</p>
+        </div>
+    </div>
+</body>
+</html>

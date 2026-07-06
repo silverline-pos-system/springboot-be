@@ -92,13 +92,11 @@ public class PasswordResetController {
         // Send email notification to user
         try {
             String subject = "Password Reset Approved - Silverline";
-            String emailBody = "Dear " + request.getFullName() + ",\n\n" +
-                    "Your password reset request has been approved by the administrator.\n" +
-                    "You can now log in with your new password.\n\n" +
-                    "If you did not request this change, please contact your administrator immediately.\n\n" +
-                    "Best Regards,\n" +
-                    "Silverline Admin Team";
-            emailService.sendSimpleMessage(request.getEmail(), subject, emailBody);
+            String htmlContent = com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
+                    "password_reset_approved",
+                    Map.of("fullName", request.getFullName())
+            );
+            emailService.sendHtmlMessage(request.getEmail(), subject, htmlContent);
         } catch (Exception e) {
             log.error("Failed to send password reset approval email to {}: {}", request.getEmail(), e.getMessage());
         }
@@ -134,13 +132,14 @@ public class PasswordResetController {
         try {
             String reason = (body != null && body.containsKey("adminNotes")) ? body.get("adminNotes") : "No reason provided";
             String subject = "Password Reset Request Rejected - Silverline";
-            String emailBody = "Dear " + request.getFullName() + ",\n\n" +
-                    "Your password reset request has been rejected by the administrator.\n" +
-                    "Reason: " + reason + "\n\n" +
-                    "If you believe this is an error, please contact your administrator.\n\n" +
-                    "Best Regards,\n" +
-                    "Silverline Admin Team";
-            emailService.sendSimpleMessage(request.getEmail(), subject, emailBody);
+            String htmlContent = com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
+                    "password_reset_rejected",
+                    Map.of(
+                            "fullName", request.getFullName(),
+                            "reason", reason
+                    )
+            );
+            emailService.sendHtmlMessage(request.getEmail(), subject, htmlContent);
         } catch (Exception e) {
             log.error("Failed to send password reset rejection email to {}: {}", request.getEmail(), e.getMessage());
         }
