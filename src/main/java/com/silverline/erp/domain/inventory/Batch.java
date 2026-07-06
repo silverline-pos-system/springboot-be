@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Entity(name = "InventoryBatch")
 @Table(name = "batches", indexes = {
-    @Index(name = "idx_batch_product_expiry", columnList = "product_id, expiry_date")
+        @Index(name = "idx_batch_product_expiry", columnList = "product_id, expiry_date")
 })
 @Data
 @NoArgsConstructor

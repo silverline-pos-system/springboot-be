@@ -4,6 +4,8 @@ import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.module.auth.dto.*;
 import com.silverline.erp.module.auth.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Slf4j
 @RestController
@@ -62,7 +61,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LogInResponseDTO>> login(@Valid @RequestBody LogInRequestDTO logInRequestDTO) {
         log.info("Processing login for user: {}", logInRequestDTO.getUsername());
         LogInResponseDTO response = authService.logInUser(logInRequestDTO.getUsername(), logInRequestDTO.getPassword());
-        
+
         if (response.getUserId() == null) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
@@ -79,15 +78,15 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Map<String, String>>> verifySupervisor(@Valid @RequestBody LogInRequestDTO credentials) {
         log.info("Processing supervisor verification for: {}", credentials.getUsername());
         boolean verified = authService.verifySupervisor(credentials.getUsername(), credentials.getPassword());
-        
+
         if (verified) {
-             return ResponseEntity.ok(ApiResponse.success("Supervisor verified successfully", 
-                     Map.of("status", "verified")));
-         } else {
-              return ResponseEntity
-                      .status(HttpStatus.UNAUTHORIZED)
-                      .body(ApiResponse.error("Invalid supervisor credentials or insufficient permissions"));
-         }
+            return ResponseEntity.ok(ApiResponse.success("Supervisor verified successfully",
+                    Map.of("status", "verified")));
+        } else {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Invalid supervisor credentials or insufficient permissions"));
+        }
     }
 
     @Operation(summary = "Submit password reset request", description = "Creates a request for password reset that must be approved by an administrator")

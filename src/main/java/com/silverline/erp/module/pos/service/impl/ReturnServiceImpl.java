@@ -49,7 +49,7 @@ public class ReturnServiceImpl implements ReturnService {
         Long supervisorId = null;
         try {
             Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(supUser, supPass)
+                    new UsernamePasswordAuthenticationToken(supUser, supPass)
             );
             if (auth.isAuthenticated()) {
                 UserProfile supervisor = userProfileRepository.findByUsername(supUser)
@@ -57,14 +57,14 @@ public class ReturnServiceImpl implements ReturnService {
                 supervisorId = supervisor.getUserId();
                 String role = supervisor.getRole().name();
                 if (!"SUPER_ADMIN".equals(role) && !"ADMIN".equals(role) && !"MANAGER".equals(role) && !"SUPERVISOR".equals(role)) {
-                     throw new RuntimeException("User does not have supervisor privileges.");
+                    throw new RuntimeException("User does not have supervisor privileges.");
                 }
             } else {
-                 throw new RuntimeException("Invalid supervisor credentials");
+                throw new RuntimeException("Invalid supervisor credentials");
             }
         } catch (Exception e) {
-             log.warn("Business rule violation: supervisor authorization failed for user '{}': {}", supUser, e.getMessage());
-             throw new RuntimeException("Supervisor authorization failed: " + e.getMessage());
+            log.warn("Business rule violation: supervisor authorization failed for user '{}': {}", supUser, e.getMessage());
+            throw new RuntimeException("Supervisor authorization failed: " + e.getMessage());
         }
 
         SalesReturn ret = new SalesReturn();
@@ -77,32 +77,32 @@ public class ReturnServiceImpl implements ReturnService {
         ret.setStatus("APPROVED");
 
         ret = salesReturnRepository.save(ret);
-        
+
         BigDecimal totalRefund = BigDecimal.ZERO;
         List<SalesReturnItem> items = new ArrayList<>();
 
         if (request.getItems() != null) {
             for (ReturnRequest.ReturnItemRequest itemReq : request.getItems()) {
-                 SalesReturnItem item = new SalesReturnItem();
-                 item.setSalesReturn(ret);
-                 item.setSaleItemId(itemReq.getSaleItemId());
-                 item.setProductId(itemReq.getProductId());
-                 item.setQty(itemReq.getQty());
-                 item.setUnitPrice(itemReq.getUnitPrice());
-                 item.setTotal(itemReq.getUnitPrice().multiply(itemReq.getQty()));
-                 
-                 items.add(item);
-                 totalRefund = totalRefund.add(item.getTotal());
+                SalesReturnItem item = new SalesReturnItem();
+                item.setSalesReturn(ret);
+                item.setSaleItemId(itemReq.getSaleItemId());
+                item.setProductId(itemReq.getProductId());
+                item.setQty(itemReq.getQty());
+                item.setUnitPrice(itemReq.getUnitPrice());
+                item.setTotal(itemReq.getUnitPrice().multiply(itemReq.getQty()));
 
-                 try {
-                     stockService.increaseStock(request.getBranchId(), itemReq.getProductId(), itemReq.getQty().intValue());
-                 } catch (Exception e) {
-                     log.error("Failed to restock product {}: {}", itemReq.getProductId(), e.getMessage());
-                 }
+                items.add(item);
+                totalRefund = totalRefund.add(item.getTotal());
+
+                try {
+                    stockService.increaseStock(request.getBranchId(), itemReq.getProductId(), itemReq.getQty().intValue());
+                } catch (Exception e) {
+                    log.error("Failed to restock product {}: {}", itemReq.getProductId(), e.getMessage());
+                }
             }
             salesReturnItemRepository.saveAll(items);
         }
-        
+
         ret.setTotalAmount(totalRefund);
         salesReturnRepository.save(ret);
 
@@ -111,18 +111,18 @@ public class ReturnServiceImpl implements ReturnService {
                 .orElse("Supervisor #" + supervisorId);
 
         activityLogService.logActivity(
-            request.getBranchId(),
-            null,
-            supervisorId, 
-            supervisorUsername,
-            "SUPERVISOR",
-            "RETURN",
-            "RETURN",
-            ret.getReturnId(), 
-            "Return processed for Sale #" + request.getSaleId() + ". Refund: " + totalRefund,
-            "{\"itemCount\":" + items.size() + "}"
+                request.getBranchId(),
+                null,
+                supervisorId,
+                supervisorUsername,
+                "SUPERVISOR",
+                "RETURN",
+                "RETURN",
+                ret.getReturnId(),
+                "Return processed for Sale #" + request.getSaleId() + ". Refund: " + totalRefund,
+                "{\"itemCount\":" + items.size() + "}"
         );
-        
+
         return ret.getReturnId();
     }
 

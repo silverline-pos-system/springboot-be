@@ -8,7 +8,10 @@ import java.util.List;
 
 public interface DtvService {
     SaleService requestDtvService(SaleServiceRequestDTO requestDTO);
+
     List<SaleService> getAllDtvServices();
+
     List<SaleService> getDtvServicesByTechnician(Long technicianId);
+
     SaleService updateDtvStatus(Long serviceId, String newStatus, Long technicianId, BigDecimal balanceCollected, String additionalItems);
 }

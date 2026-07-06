@@ -39,6 +39,7 @@ public class PosCustomerController {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
+
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<java.util.List<Customer>>> searchCustomers(@RequestParam String query) {
         try {
@@ -48,6 +49,7 @@ public class PosCustomerController {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
+
     @GetMapping("/code/{code}")
     public ResponseEntity<ApiResponse<Customer>> getCustomerByCode(@PathVariable String code) {
         Customer customer = loyaltyService.getCustomerByCode(code);

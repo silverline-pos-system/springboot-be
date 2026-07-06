@@ -21,10 +21,10 @@ public class SaleController {
     /**
      * GET /api/v1/admin/sales/sum
      * Optional query params:
-     *   branchId - Long
-     *   startDate - ISO-8601 LocalDateTime string (e.g. 2026-02-01T00:00:00)
-     *   endDate   - ISO-8601 LocalDateTime string
-     *
+     * branchId - Long
+     * startDate - ISO-8601 LocalDateTime string (e.g. 2026-02-01T00:00:00)
+     * endDate   - ISO-8601 LocalDateTime string
+     * <p>
      * Returns the sum of netTotal as a JSON number.
      */
     @GetMapping("/sum")
@@ -53,7 +53,7 @@ public class SaleController {
     }
 
     /**
-         * GET /api/v1/admin/sales/sum/all-time
+     * GET /api/v1/admin/sales/sum/all-time
      * Returns the total sum of netTotal across all branches for all time.
      */
     @GetMapping("/sum/all-time")

@@ -2,7 +2,6 @@ package com.silverline.erp.module.finance.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.common.dto.PagedResponse;
-import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.finance.dto.ExpenseDTO;
 import com.silverline.erp.module.finance.dto.ExpenseDashboardDTO;
@@ -13,11 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/manager/expenses")

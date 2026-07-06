@@ -19,6 +19,7 @@ public interface SaleItemRepository extends JpaRepository<@NonNull SaleItem, @No
 
     /**
      * Get all items for a sale
+     *
      * @param saleId - Sale ID
      * @return List of sale items
      */
@@ -26,6 +27,7 @@ public interface SaleItemRepository extends JpaRepository<@NonNull SaleItem, @No
 
     /**
      * Delete items by sale ID
+     *
      * @param saleId - Sale ID
      */
     @org.springframework.data.jpa.repository.Modifying
@@ -33,11 +35,11 @@ public interface SaleItemRepository extends JpaRepository<@NonNull SaleItem, @No
     void deleteBySaleId(Long saleId);
 
     @Query("SELECT new com.silverline.erp.module.pos.dto.sale.ProductSalesHistoryDTO(FUNCTION('DATE', s.saleDate), SUM(si.qty), SUM(si.total)) " +
-           "FROM SaleItem si JOIN Sale s ON si.saleId = s.saleId " +
-           "WHERE si.productId = :productId AND s.saleDate BETWEEN :startDate AND :endDate " +
-           "AND s.paymentStatus = 'PAID' " +
-           "GROUP BY FUNCTION('DATE', s.saleDate) " +
-           "ORDER BY FUNCTION('DATE', s.saleDate)")
+            "FROM SaleItem si JOIN Sale s ON si.saleId = s.saleId " +
+            "WHERE si.productId = :productId AND s.saleDate BETWEEN :startDate AND :endDate " +
+            "AND s.paymentStatus = 'PAID' " +
+            "GROUP BY FUNCTION('DATE', s.saleDate) " +
+            "ORDER BY FUNCTION('DATE', s.saleDate)")
     List<ProductSalesHistoryDTO> findDailySalesByProduct(@Param("productId") Long productId,
                                                          @Param("startDate") LocalDateTime startDate,
                                                          @Param("endDate") LocalDateTime endDate);

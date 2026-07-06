@@ -51,13 +51,13 @@ public class ExpenseService {
     }
 
     // --- Expense Categories ---
-    
+
     public List<ExpenseCategoryDTO> getAllCategories() {
         return categoryRepository.findAll().stream()
                 .map(this::mapToCategoryDTO)
                 .collect(Collectors.toList());
     }
-    
+
     public List<ExpenseCategoryDTO> getActiveCategories() {
         return categoryRepository.findAll().stream()
                 .filter(c -> Boolean.TRUE.equals(c.getIsActive()))
@@ -73,28 +73,28 @@ public class ExpenseService {
         category.setName(dto.getName());
         category.setDescription(dto.getDescription());
         category.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
-        
+
         return mapToCategoryDTO(categoryRepository.save(category));
     }
 
     public ExpenseCategoryDTO updateCategory(Long id, ExpenseCategoryDTO dto) {
         ExpenseCategory category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));
-        
+
         Optional<ExpenseCategory> existing = categoryRepository.findByName(dto.getName());
         if (existing.isPresent() && !existing.get().getCategoryId().equals(id)) {
             throw new RuntimeException("Category name already exists");
         }
-        
+
         category.setName(dto.getName());
         category.setDescription(dto.getDescription());
         if (dto.getIsActive() != null) {
             category.setIsActive(dto.getIsActive());
         }
-        
+
         return mapToCategoryDTO(categoryRepository.save(category));
     }
-    
+
     public void toggleCategoryStatus(Long id) {
         ExpenseCategory category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));
@@ -133,13 +133,13 @@ public class ExpenseService {
         if (dto.getAmount() == null || dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Amount must be greater than zero");
         }
-        
+
         ExpenseCategory category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));
-                
+
         Branch branch = branchRepository.findById(dto.getBranchId())
                 .orElseThrow(() -> new EntityNotFoundException("Branch not found"));
-                
+
         Expense expense = new Expense();
         expense.setExpenseNo(generateExpenseNo());
         expense.setBranchId(branch.getBranchId());
@@ -153,9 +153,9 @@ public class ExpenseService {
         expense.setCreatedBy(userId);
         expense.setApprovedBy(userId);
         expense.setApprovedAt(LocalDateTime.now());
-        
+
         Expense savedExpense = expenseRepository.save(expense);
-        
+
         // Auto-create payment if method is specified and amounts to full
         if (dto.getPaymentMethod() != null && !dto.getPaymentMethod().isEmpty() && !dto.getPaymentMethod().equalsIgnoreCase("UNPAID")) {
             ExpensePayment payment = new ExpensePayment();
@@ -168,7 +168,7 @@ public class ExpenseService {
             payment.setCreatedBy(userId);
             paymentRepository.save(payment);
         }
-        
+
         return getExpenseById(savedExpense.getExpenseId()); // Fetch to get fully structured DTO
     }
 
@@ -176,13 +176,13 @@ public class ExpenseService {
     public ExpenseDTO updateExpense(Long id, ExpenseDTO dto) {
         Expense expense = expenseRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Expense not found"));
-                
+
         if (dto.getCategoryId() != null) {
             ExpenseCategory category = categoryRepository.findById(dto.getCategoryId())
                     .orElseThrow(() -> new EntityNotFoundException("Category not found"));
             expense.setCategory(category);
         }
-        
+
         if (dto.getAmount() != null && dto.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             // Check if amount is less than total paid
             Double totalPaid = paymentRepository.sumPaymentsByExpenseId(id);
@@ -191,25 +191,25 @@ public class ExpenseService {
             }
             expense.setAmount(dto.getAmount());
         }
-        
+
         if (dto.getExpenseDate() != null) expense.setExpenseDate(dto.getExpenseDate());
         if (dto.getDescription() != null) expense.setDescription(dto.getDescription());
         if (dto.getReferenceNo() != null) expense.setReferenceNo(dto.getReferenceNo());
         if (dto.getPaymentMethod() != null) expense.setPaymentMethod(dto.getPaymentMethod());
-        
+
         expenseRepository.save(expense);
         return getExpenseById(expense.getExpenseId());
     }
-    
+
     @Transactional
     public void deleteExpense(Long id) {
         Expense expense = expenseRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Expense not found"));
-                
+
         // Delete associated payments first via cascade or manually
         List<ExpensePayment> payments = paymentRepository.findByExpense_ExpenseId(id);
         paymentRepository.deleteAll(payments);
-        
+
         expenseRepository.delete(expense);
     }
 
@@ -220,17 +220,17 @@ public class ExpenseService {
         if (dto.getAmount() == null || dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Payment amount must be greater than zero");
         }
-        
+
         Expense expense = expenseRepository.findById(dto.getExpenseId())
                 .orElseThrow(() -> new EntityNotFoundException("Expense not found"));
-                
+
         Double totalPaid = paymentRepository.sumPaymentsByExpenseId(expense.getExpenseId());
         BigDecimal balance = expense.getAmount().subtract(BigDecimal.valueOf(totalPaid));
-        
+
         if (dto.getAmount().compareTo(balance) > 0) {
             throw new RuntimeException("Payment amount exceeds outstanding balance of " + balance);
         }
-        
+
         ExpensePayment payment = new ExpensePayment();
         payment.setExpense(expense);
         payment.setPaymentDate(dto.getPaymentDate() != null ? dto.getPaymentDate() : LocalDate.now());
@@ -239,10 +239,10 @@ public class ExpenseService {
         payment.setReferenceNo(dto.getReferenceNo());
         payment.setNotes(dto.getNotes());
         payment.setCreatedBy(userId);
-        
+
         return mapToPaymentDTO(paymentRepository.save(payment));
     }
-    
+
     @Transactional
     public void deletePayment(Long id) {
         ExpensePayment payment = paymentRepository.findById(id)
@@ -255,18 +255,18 @@ public class ExpenseService {
     public ExpenseDashboardDTO getDashboardMetrics() {
         ExpenseDashboardDTO dashboard = new ExpenseDashboardDTO();
         LocalDate today = LocalDate.now();
-        
+
         // Today & Monthly totals
         dashboard.setTodayExpenses(BigDecimal.valueOf(expenseRepository.sumAmountByDate(today)));
         dashboard.setMonthlyExpenses(BigDecimal.valueOf(expenseRepository.sumAmountByMonthAndYear(today.getMonthValue(), today.getYear())));
-        
+
         // Get all expenses for rest of stats
         List<Expense> expenses = expenseRepository.findAll();
-        
+
         // Unpaid calculations
         BigDecimal totalUnpaid = BigDecimal.ZERO;
-        
-        for(Expense e : expenses) {
+
+        for (Expense e : expenses) {
             Double paid = paymentRepository.sumPaymentsByExpenseId(e.getExpenseId());
             BigDecimal balance = e.getAmount().subtract(BigDecimal.valueOf(paid));
             if (balance.compareTo(BigDecimal.ZERO) > 0) {
@@ -274,24 +274,24 @@ public class ExpenseService {
             }
         }
         dashboard.setUnpaidExpenses(totalUnpaid);
-        
+
         // Category breakdown (current month)
         List<Expense> thisMonthExpenses = expenseRepository.findByExpenseDateBetween(
-                today.withDayOfMonth(1), 
+                today.withDayOfMonth(1),
                 today.withDayOfMonth(today.lengthOfMonth())
         );
-        
+
         Map<String, BigDecimal> categoryTotals = new HashMap<>();
         for (Expense e : thisMonthExpenses) {
             String catName = e.getCategory().getName();
             categoryTotals.put(catName, categoryTotals.getOrDefault(catName, BigDecimal.ZERO).add(e.getAmount()));
         }
-        
+
         // Find top category
         String topCategory = null;
         BigDecimal maxAmount = BigDecimal.ZERO;
         List<Map<String, Object>> catBreakdown = new ArrayList<>();
-        
+
         for (Map.Entry<String, BigDecimal> entry : categoryTotals.entrySet()) {
             if (entry.getValue().compareTo(maxAmount) > 0) {
                 maxAmount = entry.getValue();
@@ -302,19 +302,19 @@ public class ExpenseService {
             map.put("amount", entry.getValue());
             catBreakdown.add(map);
         }
-        
-        catBreakdown.sort((a, b) -> ((BigDecimal)b.get("amount")).compareTo((BigDecimal)a.get("amount")));
-        
+
+        catBreakdown.sort((a, b) -> ((BigDecimal) b.get("amount")).compareTo((BigDecimal) a.get("amount")));
+
         dashboard.setTopCategoryName(topCategory != null ? topCategory : "N/A");
         dashboard.setTopCategoryAmount(maxAmount);
         dashboard.setMonthlyCategoryBreakdown(catBreakdown);
-        
+
         // Branch breakdown (current month)
         Map<Long, BigDecimal> branchTotalsMap = new HashMap<>();
         for (Expense e : thisMonthExpenses) {
             branchTotalsMap.put(e.getBranchId(), branchTotalsMap.getOrDefault(e.getBranchId(), BigDecimal.ZERO).add(e.getAmount()));
         }
-        
+
         List<Map<String, Object>> branchBreakdown = new ArrayList<>();
         for (Map.Entry<Long, BigDecimal> entry : branchTotalsMap.entrySet()) {
             Map<String, Object> map = new HashMap<>();
@@ -325,9 +325,9 @@ public class ExpenseService {
                 branchBreakdown.add(map);
             });
         }
-        
+
         dashboard.setBranchExpenseBreakdown(branchBreakdown);
-        
+
         return dashboard;
     }
 
@@ -354,10 +354,10 @@ public class ExpenseService {
         dto.setExpenseId(expense.getExpenseId());
         dto.setExpenseNo(expense.getExpenseNo());
         dto.setBranchId(expense.getBranchId());
-        
+
         branchRepository.findById(expense.getBranchId())
                 .ifPresent(branch -> dto.setBranchName(branch.getName()));
-                
+
         dto.setCategoryId(expense.getCategory().getCategoryId());
         dto.setCategoryName(expense.getCategory().getName());
         dto.setExpenseDate(expense.getExpenseDate());
@@ -367,26 +367,26 @@ public class ExpenseService {
         dto.setReferenceNo(expense.getReferenceNo());
         dto.setStatus(expense.getStatus());
         dto.setCreatedBy(expense.getCreatedBy());
-        
+
         if (expense.getCreatedBy() != null) {
             userRepository.findById(expense.getCreatedBy())
                     .ifPresent(u -> dto.setCreatedByName(u.getFullName()));
         }
-        
+
         dto.setApprovedBy(expense.getApprovedBy());
         dto.setCreatedAt(expense.getCreatedAt());
         dto.setApprovedAt(expense.getApprovedAt());
-        
+
         // Payments
         List<ExpensePayment> payments = paymentRepository.findByExpense_ExpenseId(expense.getExpenseId());
         List<ExpensePaymentDTO> paymentDTOs = payments.stream().map(this::mapToPaymentDTO).collect(Collectors.toList());
         dto.setPayments(paymentDTOs);
-        
+
         Double totalPaidDouble = paymentRepository.sumPaymentsByExpenseId(expense.getExpenseId());
         BigDecimal totalPaid = BigDecimal.valueOf(totalPaidDouble);
         dto.setTotalPaid(totalPaid);
         dto.setBalance(expense.getAmount().subtract(totalPaid));
-        
+
         return dto;
     }
 
@@ -401,12 +401,12 @@ public class ExpenseService {
         dto.setReferenceNo(payment.getReferenceNo());
         dto.setNotes(payment.getNotes());
         dto.setCreatedBy(payment.getCreatedBy());
-        
+
         if (payment.getCreatedBy() != null) {
             userRepository.findById(payment.getCreatedBy())
                     .ifPresent(u -> dto.setCreatedByName(u.getFullName()));
         }
-        
+
         dto.setCreatedAt(payment.getCreatedAt());
         return dto;
     }

@@ -11,7 +11,10 @@ import java.util.Optional;
 @Repository
 public interface SupplierPaymentRepository extends JpaRepository<SupplierPayment, Long> {
     Optional<SupplierPayment> findByPaymentNo(String paymentNo);
+
     List<SupplierPayment> findBySupplierId(Long supplierId);
+
     List<SupplierPayment> findByBranchId(Long branchId);
+
     List<SupplierPayment> findBySupplierIdAndPaymentDateBetween(Long supplierId, LocalDate startDate, LocalDate endDate);
 }

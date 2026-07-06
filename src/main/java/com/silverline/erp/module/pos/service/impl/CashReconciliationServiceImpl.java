@@ -48,7 +48,7 @@ public class CashReconciliationServiceImpl implements CashReconciliationService 
 
         BigDecimal paidIn = cashFlowRepository.getTotalByTypeAndStatus(shiftId, "PAID_IN", "APPROVED");
         if (paidIn == null) paidIn = BigDecimal.ZERO;
-        
+
         BigDecimal paidOut = cashFlowRepository.getTotalByTypeAndStatus(shiftId, "PAID_OUT", "APPROVED");
         if (paidOut == null) paidOut = BigDecimal.ZERO;
 
@@ -88,7 +88,7 @@ public class CashReconciliationServiceImpl implements CashReconciliationService 
                 .subtract(returns)
                 .add(paidIn)
                 .subtract(paidOut);
-        
+
         totals.put("expectedCash", expected);
 
         int transactionCount = saleRepository.countByShiftId(shiftId);
@@ -105,15 +105,15 @@ public class CashReconciliationServiceImpl implements CashReconciliationService 
         if (request.getShiftId() != null) {
             shift = shiftRepository.findById(request.getShiftId())
                     .orElseThrow(() -> new IllegalStateException("Shift not found: " + request.getShiftId()));
-            
+
             if (shift.getStatus() != CashShift.ShiftStatus.OPEN) {
-                 throw new IllegalStateException("Cannot record cash flow for closed shift: " + request.getShiftId());
+                throw new IllegalStateException("Cannot record cash flow for closed shift: " + request.getShiftId());
             }
         } else {
             shift = shiftRepository.findOpenShiftByCashierId(cashierId)
                     .orElseThrow(() -> new IllegalStateException("No open shift found for this cashier"));
         }
-        
+
         CashFlow flow = new CashFlow();
         flow.setShiftId(shift.getShiftId());
         flow.setCreatedBy(cashierId);
@@ -123,22 +123,22 @@ public class CashReconciliationServiceImpl implements CashReconciliationService 
         flow.setReason(request.getReason());
         flow.setReferenceNo(request.getReferenceNo());
         flow.setStatus("PENDING");
-        
+
         CashFlow savedFlow = cashFlowRepository.save(flow);
 
         if ("PENDING".equals(savedFlow.getStatus())) {
-             Approval approval = new Approval();
-             approval.setReferenceId(savedFlow.getFlowId());
-             approval.setType("CASH_FLOW_" + flow.getType());
-             approval.setStatus("PENDING");
-             approval.setRequestedBy(cashierId);
-             approval.setCreatedAt(LocalDateTime.now());
-             approval.setBranchId(shift.getBranchId());
-             
-             approval.setReferenceNo("CF-" + savedFlow.getFlowId());
-             approval.setRequestNotes(request.getType() + ": " + request.getAmount() + " - " + request.getReason());
-             
-             approvalRepository.save(approval);
+            Approval approval = new Approval();
+            approval.setReferenceId(savedFlow.getFlowId());
+            approval.setType("CASH_FLOW_" + flow.getType());
+            approval.setStatus("PENDING");
+            approval.setRequestedBy(cashierId);
+            approval.setCreatedAt(LocalDateTime.now());
+            approval.setBranchId(shift.getBranchId());
+
+            approval.setReferenceNo("CF-" + savedFlow.getFlowId());
+            approval.setRequestNotes(request.getType() + ": " + request.getAmount() + " - " + request.getReason());
+
+            approvalRepository.save(approval);
         }
 
         String cashierUsername = userProfileRepository.findById(cashierId)
@@ -146,16 +146,16 @@ public class CashReconciliationServiceImpl implements CashReconciliationService 
                 .orElse("Cashier #" + cashierId);
 
         activityLogService.logActivity(
-            shift.getBranchId(),
-            null,
-            cashierId,
-            cashierUsername,
-            "CASHIER",
-            "CASH_FLOW_REQUEST",
-            "CASH_FLOW",
-            savedFlow.getFlowId(),
-            "Requested " + request.getType() + " of " + request.getAmount(),
-            "{\"reason\":\"" + (request.getReason() != null ? request.getReason().replace("\"", "'") : "") + "\",\"amount\":\"" + request.getAmount() + "\"}"
+                shift.getBranchId(),
+                null,
+                cashierId,
+                cashierUsername,
+                "CASHIER",
+                "CASH_FLOW_REQUEST",
+                "CASH_FLOW",
+                savedFlow.getFlowId(),
+                "Requested " + request.getType() + " of " + request.getAmount(),
+                "{\"reason\":\"" + (request.getReason() != null ? request.getReason().replace("\"", "'") : "") + "\",\"amount\":\"" + request.getAmount() + "\"}"
         );
 
         return savedFlow;

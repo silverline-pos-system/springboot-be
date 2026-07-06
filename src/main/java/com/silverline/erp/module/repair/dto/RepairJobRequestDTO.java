@@ -29,9 +29,9 @@ public class RepairJobRequestDTO {
     private Long branchId;
 
     private Long createdBy;
-    
+
     // New fields for advance payment workflow
     private BigDecimal advancePayment;
-    private String paymentMethod; 
+    private String paymentMethod;
 }
 

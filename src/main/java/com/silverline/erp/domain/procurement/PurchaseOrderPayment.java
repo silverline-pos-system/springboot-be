@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "purchase_order_payments", indexes = {
-    @Index(name = "idx_po_payments_po", columnList = "po_id"),
-    @Index(name = "idx_po_payments_paid_at", columnList = "paid_at")
+        @Index(name = "idx_po_payments_po", columnList = "po_id"),
+        @Index(name = "idx_po_payments_paid_at", columnList = "paid_at")
 })
 @Getter
 @Setter

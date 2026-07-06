@@ -8,10 +8,16 @@ import java.util.function.Function;
 
 public interface JwtService {
     String generateToken(Map<String, Object> claims, UserDetails userDetails);
+
     Claims extractAllClaims(String token);
+
     <T> T extractClaim(String token, Function<Claims, T> claimsResolver);
+
     String extractUsername(String token);
+
     String getRoleClaim(String token);
+
     boolean isTokenExpired(String token);
+
     boolean validateToken(String token, UserDetails userDetails);
 }

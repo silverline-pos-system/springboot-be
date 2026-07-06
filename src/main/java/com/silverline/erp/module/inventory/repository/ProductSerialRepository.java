@@ -38,23 +38,23 @@ public interface ProductSerialRepository extends JpaRepository<ProductSerial, Lo
     @Query("SELECT COUNT(ps) FROM ProductSerial ps WHERE ps.productId = :productId AND ps.branchId = :branchId AND ps.status = 'IN_STOCK'")
     Long countAvailableSerialsByProduct(@Param("productId") Long productId, @Param("branchId") Long branchId);
 
-        @Query("SELECT ps FROM ProductSerial ps WHERE " +
+    @Query("SELECT ps FROM ProductSerial ps WHERE " +
             "(:branchId IS NULL OR ps.branchId = :branchId) AND " +
             "(:productId IS NULL OR ps.productId = :productId) AND " +
             "(:status IS NULL OR ps.status = :status) AND " +
             "(:search IS NULL OR lower(ps.serialNo) LIKE lower(concat('%', :search, '%')))")
-        Page<ProductSerial> findByLookupFilters(
+    Page<ProductSerial> findByLookupFilters(
             @Param("branchId") Long branchId,
             @Param("productId") Long productId,
             @Param("status") String status,
             @Param("search") String search,
             Pageable pageable);
 
-        @Query("SELECT ps FROM ProductSerial ps WHERE " +
+    @Query("SELECT ps FROM ProductSerial ps WHERE " +
             "(:status IS NULL OR ps.status = :status) AND " +
             "(:search IS NULL OR lower(ps.serialNo) LIKE lower(concat('%', :search, '%'))) AND " +
             "ps.branchId IN :branchIds AND ps.productId IN :productIds")
-        Page<ProductSerial> findByLookupFiltersWithLists(
+    Page<ProductSerial> findByLookupFiltersWithLists(
             @Param("branchIds") List<Long> branchIds,
             @Param("productIds") List<Long> productIds,
             @Param("status") String status,

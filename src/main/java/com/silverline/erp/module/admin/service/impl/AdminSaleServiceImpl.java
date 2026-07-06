@@ -23,8 +23,8 @@ public class AdminSaleServiceImpl implements AdminSaleService {
      * If start or end are null, caller may pass LocalDateTime.MIN / MAX. If branchId is null, repository should handle it.
      *
      * @param branchId optional branch id filter
-     * @param start inclusive start datetime
-     * @param end inclusive end datetime
+     * @param start    inclusive start datetime
+     * @param end      inclusive end datetime
      * @return sum of netTotal (BigDecimal.ZERO when none)
      */
     @Override

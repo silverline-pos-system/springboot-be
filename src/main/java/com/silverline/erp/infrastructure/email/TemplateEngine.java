@@ -20,7 +20,7 @@ public final class TemplateEngine {
      * and resolve variables of format ${variableName}.
      *
      * @param templateName the filename of the template (without .html extension)
-     * @param variables a map of variable names to replacement values
+     * @param variables    a map of variable names to replacement values
      * @return resolved HTML content string
      */
     public static String loadAndResolve(String templateName, Map<String, Object> variables) {

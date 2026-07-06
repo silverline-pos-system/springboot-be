@@ -49,7 +49,7 @@ public class AdminControllerContractTest {
         when(userService.getAllUsers()).thenReturn(Collections.singletonList(userDTO));
 
         mockMvc.perform(get("/api/v1/admin/users")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].username").value("adminUser"))
                 .andExpect(jsonPath("$[0].email").value("admin@example.com"));
@@ -60,7 +60,7 @@ public class AdminControllerContractTest {
         when(saasFeatureService.getSystemName()).thenReturn("Silverline ERP");
 
         mockMvc.perform(get("/api/v1/system/name")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.systemName").value("Silverline ERP"));
     }

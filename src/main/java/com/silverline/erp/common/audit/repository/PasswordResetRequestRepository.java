@@ -9,8 +9,12 @@ import java.util.List;
 @Repository
 public interface PasswordResetRequestRepository extends JpaRepository<PasswordResetRequest, Long> {
     List<PasswordResetRequest> findByStatus(String status);
+
     List<PasswordResetRequest> findByUserId(Long userId);
+
     List<PasswordResetRequest> findByStatusOrderByCreatedAtDesc(String status);
+
     List<PasswordResetRequest> findAllByOrderByCreatedAtDesc();
+
     long countByStatus(String status);
 }

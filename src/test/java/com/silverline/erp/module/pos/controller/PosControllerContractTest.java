@@ -79,7 +79,7 @@ public class PosControllerContractTest {
     public void submitOrder_Success() throws Exception {
         CreateSaleRequest request = new CreateSaleRequest();
         request.setBranchId(1L);
-        
+
         SaleItemRequest item = new SaleItemRequest();
         item.setProductId(100L);
         item.setQuantity(BigDecimal.ONE);
@@ -97,8 +97,8 @@ public class PosControllerContractTest {
         when(saleService.createSale(any(CreateSaleRequest.class), anyLong(), anyLong(), anyLong())).thenReturn(response);
 
         mockMvc.perform(post("/api/v1/pos/sales")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Order created successfully"))
@@ -112,8 +112,8 @@ public class PosControllerContractTest {
         request.setItems(Collections.emptyList()); // Empty items should fail validation
 
         mockMvc.perform(post("/api/v1/pos/sales")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -126,8 +126,8 @@ public class PosControllerContractTest {
         // branchId is not set to trigger validation error
 
         mockMvc.perform(post("/api/v1/pos/shift/open")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
     }

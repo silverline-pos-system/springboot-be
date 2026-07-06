@@ -23,16 +23,16 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
      */
     @Query("SELECT COALESCE(SUM(s.netTotal), 0) FROM Sale s WHERE s.branchId = :branchId AND s.saleDate >= :startDate AND s.saleDate < :endDate")
     BigDecimal getTotalSalesByBranchAndDate(@Param("branchId") Long branchId,
-                                             @Param("startDate") LocalDateTime startDate,
-                                             @Param("endDate") LocalDateTime endDate);
+                                            @Param("startDate") LocalDateTime startDate,
+                                            @Param("endDate") LocalDateTime endDate);
 
     /**
      * Get count of sales for a branch on a specific date
      */
     @Query("SELECT COUNT(s) FROM Sale s WHERE s.branchId = :branchId AND s.saleDate >= :startDate AND s.saleDate < :endDate")
     Long getCountByBranchAndDate(@Param("branchId") Long branchId,
-                                  @Param("startDate") LocalDateTime startDate,
-                                  @Param("endDate") LocalDateTime endDate);
+                                 @Param("startDate") LocalDateTime startDate,
+                                 @Param("endDate") LocalDateTime endDate);
 
     /**
      * Get daily sales totals for the last N days

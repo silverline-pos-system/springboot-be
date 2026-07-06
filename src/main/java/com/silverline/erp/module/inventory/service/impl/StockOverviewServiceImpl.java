@@ -23,8 +23,8 @@ public class StockOverviewServiceImpl implements StockOverviewService {
     @Override
     public List<StockDTO> getStockOverview(Long branchId) {
         List<Stock> stocks = branchId != null
-            ? stockRepository.findByBranchId(branchId)
-            : stockRepository.findAll();
+                ? stockRepository.findByBranchId(branchId)
+                : stockRepository.findAll();
 
         return stocks.stream()
                 .map(this::convertToDTO)

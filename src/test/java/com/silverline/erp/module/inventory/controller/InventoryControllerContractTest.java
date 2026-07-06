@@ -63,8 +63,8 @@ public class InventoryControllerContractTest {
         when(productService.createProduct(any(ProductDTO.class))).thenReturn(productDTO);
 
         mockMvc.perform(post("/api/inventory/products")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(productDTO)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(productDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Product created successfully"))
@@ -78,8 +78,8 @@ public class InventoryControllerContractTest {
         // name is not set, which triggers validation error
 
         mockMvc.perform(post("/api/inventory/products")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(productDTO)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(productDTO)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -98,7 +98,7 @@ public class InventoryControllerContractTest {
         when(stockService.getStockByBranch(anyLong(), any(Pageable.class))).thenReturn(pageInfo);
 
         mockMvc.perform(get("/api/inventory/stock/branch/2")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Stock retrieved successfully"))

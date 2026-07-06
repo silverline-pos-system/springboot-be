@@ -112,22 +112,22 @@ public class ShiftServiceImpl implements ShiftService {
 
         Long savedShiftId = shiftRepository.save(shift);
         shift.setShiftId(savedShiftId);
-     
+
         String cashierUsername = userProfileRepository.findById(request.getCashierId())
                 .map(UserProfile::getUsername)
                 .orElse("Cashier #" + request.getCashierId());
 
         activityLogService.logActivity(
-            request.getBranchId(),
-            null,
-            request.getCashierId(),
-            cashierUsername,
-            "CASHIER",
-            "SHIFT_OPEN",
-            "SHIFT",
-            savedShiftId,
-            "Shift #" + shift.getShiftNo() + " opened with opening cash " + request.getOpeningCash(),
-            "{\"openingCash\":\"" + request.getOpeningCash() + "\"}"
+                request.getBranchId(),
+                null,
+                request.getCashierId(),
+                cashierUsername,
+                "CASHIER",
+                "SHIFT_OPEN",
+                "SHIFT",
+                savedShiftId,
+                "Shift #" + shift.getShiftNo() + " opened with opening cash " + request.getOpeningCash(),
+                "{\"openingCash\":\"" + request.getOpeningCash() + "\"}"
         );
 
         return savedShiftId;
@@ -148,7 +148,7 @@ public class ShiftServiceImpl implements ShiftService {
         log.info("Closing shift: cashierId={}, closingCash={}", cashierId, request.getClosingCash());
         CashShift shift = shiftRepository.findOpenShiftByCashierId(cashierId)
                 .orElseThrow(() -> new IllegalStateException("No open shift found for this cashier"));
-        
+
         long pending = cashFlowRepository.countByShiftIdAndStatus(shift.getShiftId(), "PENDING");
         if (pending > 0) {
             log.warn("Business rule violation: Cashier {} attempted to close shift with {} pending cash flow requests.", cashierId, pending);
@@ -219,7 +219,7 @@ public class ShiftServiceImpl implements ShiftService {
         }
 
         if (shift == null && branchId != null) {
-             shift = shiftRepository.findOpenShiftByBranchId(branchId)
+            shift = shiftRepository.findOpenShiftByBranchId(branchId)
                     .map(s -> shiftRepository.findByIdWithStats(s.getShiftId()).orElse(s))
                     .orElse(null);
         }

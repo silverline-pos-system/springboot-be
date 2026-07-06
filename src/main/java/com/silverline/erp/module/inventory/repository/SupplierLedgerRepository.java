@@ -12,7 +12,9 @@ import java.util.List;
 @Repository
 public interface SupplierLedgerRepository extends JpaRepository<SupplierLedger, Long> {
     List<SupplierLedger> findBySupplierId(Long supplierId);
+
     List<SupplierLedger> findBySupplierIdAndBranchId(Long supplierId, Long branchId);
+
     List<SupplierLedger> findBySupplierIdAndTransactionDateBetween(Long supplierId, LocalDate startDate, LocalDate endDate);
 
     @Query("SELECT COALESCE(SUM(sl.debit) - SUM(sl.credit), 0) FROM SupplierLedger sl WHERE sl.supplierId = :supplierId")

@@ -31,7 +31,7 @@ public interface DispatchPaymentRequestRepository extends JpaRepository<Dispatch
 
     @Query("SELECT COUNT(r) FROM DispatchPaymentRequest r WHERE r.branchId = :branchId AND r.status IN ('PENDING', 'SUPERVISOR_APPROVED')")
     Long countPendingByBranch(@Param("branchId") Long branchId);
-    
+
     @Query("SELECT COUNT(r) FROM DispatchPaymentRequest r WHERE r.status IN ('TRANSFERRED_TO_MANAGER', 'PROCESSING')")
     Long countManagerPending();
 }

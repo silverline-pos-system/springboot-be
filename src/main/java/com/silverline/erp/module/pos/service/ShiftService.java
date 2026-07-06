@@ -9,9 +9,14 @@ import java.util.List;
 
 public interface ShiftService {
     Long startShift(ShiftStartRequest request);
+
     Long getActiveShiftId(Long cashierId);
+
     void closeShift(Long cashierId, CloseShiftRequest request);
+
     void closeShiftById(Long shiftId, CloseShiftRequest request);
+
     ShiftResponse getActiveShift(Long branchId, Long cashierId);
+
     List<UserProfile> getCashiersByBranch(Long branchId);
 }

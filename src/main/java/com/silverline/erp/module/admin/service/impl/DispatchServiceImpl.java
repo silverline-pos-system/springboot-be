@@ -80,7 +80,10 @@ public class DispatchServiceImpl implements DispatchService {
                 if (r[4] instanceof BigDecimal) dto.setTotalAmount((BigDecimal) r[4]);
                 else if (r[4] instanceof Number) dto.setTotalAmount(BigDecimal.valueOf(((Number) r[4]).doubleValue()));
                 else {
-                    try { dto.setTotalAmount(new BigDecimal(String.valueOf(r[4]))); } catch (Exception ignored) {}
+                    try {
+                        dto.setTotalAmount(new BigDecimal(String.valueOf(r[4])));
+                    } catch (Exception ignored) {
+                    }
                 }
             }
 
@@ -91,7 +94,10 @@ public class DispatchServiceImpl implements DispatchService {
             if (r.length > 6 && r[6] != null) {
                 if (r[6] instanceof Number) dto.setItemCount(((Number) r[6]).intValue());
                 else {
-                    try { dto.setItemCount(Integer.parseInt(String.valueOf(r[6]))); } catch (Exception ignored) {}
+                    try {
+                        dto.setItemCount(Integer.parseInt(String.valueOf(r[6])));
+                    } catch (Exception ignored) {
+                    }
                 }
             }
 

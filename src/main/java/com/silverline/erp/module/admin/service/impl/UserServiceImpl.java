@@ -1,11 +1,11 @@
 package com.silverline.erp.module.admin.service.impl;
 
 import com.silverline.erp.common.audit.repository.ApprovalRepository;
-import com.silverline.erp.infrastructure.email.EmailService;
 import com.silverline.erp.domain.audit.Approval;
 import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.infrastructure.email.EmailService;
 import com.silverline.erp.module.admin.dto.UserDTO;
 import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.admin.service.UserService;
@@ -54,8 +54,8 @@ public class UserServiceImpl implements UserService {
         String lowerQuery = query.toLowerCase();
         return userRepository.findAll().stream()
                 .filter(u -> (u.getUsername() != null && u.getUsername().toLowerCase().contains(lowerQuery)) ||
-                             (u.getFullName() != null && u.getFullName().toLowerCase().contains(lowerQuery)) ||
-                             (u.getEmployeeId() != null && u.getEmployeeId().toLowerCase().contains(lowerQuery)))
+                        (u.getFullName() != null && u.getFullName().toLowerCase().contains(lowerQuery)) ||
+                        (u.getEmployeeId() != null && u.getEmployeeId().toLowerCase().contains(lowerQuery)))
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
             employeeId = String.format("EMP-%03d", nextNumber);
         }
         user.setEmployeeId(employeeId);
-        
+
         Role role;
         try {
             role = userDTO.getRole() != null ? Role.valueOf(userDTO.getRole()) : Role.MANAGER;
@@ -91,11 +91,11 @@ public class UserServiceImpl implements UserService {
             role = Role.MANAGER;
         }
         user.setRole(role);
-        
+
         // NOTE: No branch assignment â€” managers are branch-free
         // Flow: Manager created by admin is PENDING by default
         user.setAccountStatus(AccountStatus.PENDING);
-        
+
         // Generate a temporary password: temp@<username>
         String rawPassword = "temp@" + userDTO.getUsername();
         user.setPassword(passwordEncoder.encode(rawPassword));
@@ -114,7 +114,7 @@ public class UserServiceImpl implements UserService {
 
         if (userDTO.getFullName() != null) user.setFullName(userDTO.getFullName());
         if (userDTO.getEmail() != null) user.setEmail(userDTO.getEmail());
-        
+
         // NOTE: No branch assignment update — branch_id removed from user_profiles and UserBranch table removed
 
         UserProfile updatedUser = userRepository.save(user);
@@ -200,7 +200,7 @@ public class UserServiceImpl implements UserService {
         dto.setRole(user.getRole() != null ? user.getRole().name() : null);
         dto.setStatus(user.getAccountStatus() != null ? user.getAccountStatus().name() : null);
         dto.setCreatedAt(user.getCreatedAt());
-        
+
         // Set approved by information if user has been approved
         if (user.getApprovedBy() != null) {
             dto.setApprovedById(user.getApprovedBy().getUserId());
@@ -220,7 +220,7 @@ public class UserServiceImpl implements UserService {
                 dto.setApprovedAt(a.getApprovedAt());
             });
         }
-        
+
         // NOTE: No branch info — users are NOT tied to branches
         return dto;
     }

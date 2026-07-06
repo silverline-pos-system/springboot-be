@@ -1,9 +1,9 @@
 package com.silverline.erp.module.pos.service.impl;
 
 import com.silverline.erp.common.audit.AuditLogService;
-import com.silverline.erp.infrastructure.email.EmailService;
 import com.silverline.erp.domain.pos.Customer;
 import com.silverline.erp.domain.pos.LoyaltyOtp;
+import com.silverline.erp.infrastructure.email.EmailService;
 import com.silverline.erp.module.pos.dto.customer.CreateCustomerRequest;
 import com.silverline.erp.module.pos.repository.CustomerRepository;
 import com.silverline.erp.module.pos.repository.LoyaltyOtpRepository;
@@ -67,19 +67,19 @@ public class LoyaltyServiceImpl implements LoyaltyService {
             Integer current = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
             customer.setLoyaltyPoints(current + points);
             customerRepository.save(customer);
-            
+
             try {
                 activityLogService.logActivity(
-                    1L,
-                    null,
-                    null,
-                    "System",
-                    "SYSTEM",
-                    "LOYALTY_UPDATE",
-                    "CUSTOMER",
-                    customerId,
-                    "Updated loyalty points for customer " + customer.getName() + ": " + (points > 0 ? "+" : "") + points,
-                    "{\"newBalance\":" + customer.getLoyaltyPoints() + "}"
+                        1L,
+                        null,
+                        null,
+                        "System",
+                        "SYSTEM",
+                        "LOYALTY_UPDATE",
+                        "CUSTOMER",
+                        customerId,
+                        "Updated loyalty points for customer " + customer.getName() + ": " + (points > 0 ? "+" : "") + points,
+                        "{\"newBalance\":" + customer.getLoyaltyPoints() + "}"
                 );
             } catch (Exception e) {
                 log.error("Failed to log loyalty update activity: {}", e.getMessage());
@@ -92,7 +92,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     public void requestLoyaltyRedemption(Long customerId, Integer pointsReq) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
-                
+
         if (customer.getLoyaltyPoints() == null || customer.getLoyaltyPoints() < 100) {
             throw new RuntimeException("Minimum 100 points required to redeem.");
         }
@@ -104,7 +104,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         }
 
         String otp = String.format("%04d", new Random().nextInt(10000));
-        
+
         // Save to DB and set expiry for 10 minutes
         loyaltyOtpRepository.deleteByCustomerId(customerId);
         loyaltyOtpRepository.save(new LoyaltyOtp(customerId, otp, LocalDateTime.now().plusMinutes(10)));
@@ -131,7 +131,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         if (!storedOtp.getOtpCode().equals(otpCode)) {
             throw new RuntimeException("Invalid or expired OTP code");
         }
-        
+
         // Clean up the OTP once verified
         loyaltyOtpRepository.deleteByCustomerId(customerId);
 
@@ -144,7 +144,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
         customer.setLoyaltyPoints(customer.getLoyaltyPoints() - pointsReq);
         customerRepository.save(customer);
-        
+
         return BigDecimal.valueOf(pointsReq);
     }
 
@@ -163,13 +163,13 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         if (query == null || query.trim().isEmpty()) {
             return new ArrayList<>();
         }
-        
+
         List<Customer> byPhone = customerRepository.findByPhoneContaining(query);
         List<Customer> byName = customerRepository.findByNameContainingIgnoreCase(query);
-        
+
         Set<Customer> merged = new HashSet<>(byPhone);
         merged.addAll(byName);
-        
+
         return new ArrayList<>(merged);
     }
 

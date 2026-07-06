@@ -1,7 +1,6 @@
 package com.silverline.erp.module.procurement.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
-import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.inventory.dto.ProcessPaymentRequest;
 import com.silverline.erp.module.inventory.dto.TransferToManagerRequest;
 import com.silverline.erp.module.procurement.dto.DispatchPaymentRequestDTO;
@@ -9,8 +8,6 @@ import com.silverline.erp.module.procurement.service.DispatchPaymentRequestServi
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

@@ -10,9 +10,13 @@ import java.util.List;
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     List<AuditLog> findByUserId(Long userId);
+
     List<AuditLog> findByBranchId(Long branchId);
+
     List<AuditLog> findByTableName(String tableName);
+
     List<AuditLog> findByRecordId(Long recordId);
+
     List<AuditLog> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }
 

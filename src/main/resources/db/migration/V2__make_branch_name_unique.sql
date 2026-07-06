@@ -1,1 +1,2 @@
-ALTER TABLE branches ADD CONSTRAINT unique_branch_name UNIQUE (name);
+ALTER TABLE branches
+    ADD CONSTRAINT unique_branch_name UNIQUE (name);

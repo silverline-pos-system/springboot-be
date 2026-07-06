@@ -5,46 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Approved</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
-        .header { background: linear-gradient(135deg, #10b981, #059669); padding: 32px; text-align: center; color: #ffffff; }
-        .header h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; }
-        .content { padding: 40px 32px; line-height: 1.6; }
-        .content p { margin: 0 0 16px; color: #475569; font-size: 16px; }
-        .details-table { width: 100%; border-collapse: collapse; margin: 24px 0; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-        .details-table th, .details-table td { padding: 14px 16px; text-align: left; font-size: 15px; }
-        .details-table th { background-color: #f8fafc; color: #64748b; font-weight: 600; width: 35%; border-right: 1px solid #e2e8f0; }
-        .details-table td { color: #1e293b; border-bottom: 1px solid #f1f5f9; }
-        .footer { background-color: #f1f5f9; padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0; }
-        .footer p { margin: 0; font-size: 13px; color: #64748b; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 32px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .content {
+            padding: 40px 32px;
+            line-height: 1.6;
+        }
+
+        .content p {
+            margin: 0 0 16px;
+            color: #475569;
+            font-size: 16px;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .details-table th, .details-table td {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 15px;
+        }
+
+        .details-table th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            width: 35%;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .details-table td {
+            color: #1e293b;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .footer {
+            background-color: #f1f5f9;
+            padding: 24px 32px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .footer p {
+            margin: 0;
+            font-size: 13px;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Welcome to ROCS!</h1>
-        </div>
-        <div class="content">
-            <p>Dear ${fullName},</p>
-            <p>Great news! Your registration request has been successfully approved.</p>
-            
-            <table class="details-table">
-                <tr>
-                    <th>Username</th>
-                    <td>${username}</td>
-                </tr>
-                <tr>
-                    <th>Role</th>
-                    <td>${role}</td>
-                </tr>
-            </table>
-
-            <p>You can now log in using the password you set during registration.</p>
-            <p>If you have forgotten your password, please use the "Forgot Password" option on the login page.</p>
-        </div>
-        <div class="footer">
-            <p>Best Regards,<br>Management, Silverline (pvt) ltd.</p>
-        </div>
+<div class="container">
+    <div class="header">
+        <h1>Welcome to ROCS!</h1>
     </div>
+    <div class="content">
+        <p>Dear ${fullName},</p>
+        <p>Great news! Your registration request has been successfully approved.</p>
+
+        <table class="details-table">
+            <tr>
+                <th>Username</th>
+                <td>${username}</td>
+            </tr>
+            <tr>
+                <th>Role</th>
+                <td>${role}</td>
+            </tr>
+        </table>
+
+        <p>You can now log in using the password you set during registration.</p>
+        <p>If you have forgotten your password, please use the "Forgot Password" option on the login page.</p>
+    </div>
+    <div class="footer">
+        <p>Best Regards,<br>Management, Silverline (pvt) ltd.</p>
+    </div>
+</div>
 </body>
 </html>

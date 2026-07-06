@@ -64,10 +64,10 @@ public class BranchActivity {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime timestamp;
-    
+
     // Transient fields for service layer convenience
     @Transient
-    private String username; 
+    private String username;
     @Transient
     private String userRole;
 

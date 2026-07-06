@@ -134,12 +134,12 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
         paymentRequest.setSupervisorApprovedAt(LocalDateTime.now());
         paymentRequest.setTransferredToManagerBy(transferredBy);
         paymentRequest.setTransferredAt(LocalDateTime.now());
-        
+
         if (request.getNotes() != null && !request.getNotes().isEmpty()) {
             String existingNotes = paymentRequest.getNotes() != null ? paymentRequest.getNotes() + "\n" : "";
             paymentRequest.setNotes(existingNotes + "Transfer Note: " + request.getNotes());
         }
-        
+
         if (request.getPriority() != null) {
             paymentRequest.setPriority(request.getPriority());
         }
@@ -168,7 +168,7 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
         paymentRequest.setProcessedAt(LocalDateTime.now());
         paymentRequest.setPaymentMethod(request.getPaymentMethod());
         paymentRequest.setPaymentReference(request.getPaymentReference());
-        
+
         if (request.getNotes() != null && !request.getNotes().isEmpty()) {
             String existingNotes = paymentRequest.getNotes() != null ? paymentRequest.getNotes() + "\n" : "";
             paymentRequest.setNotes(existingNotes + "Payment Note: " + request.getNotes());
@@ -198,7 +198,7 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
         paymentRequest.setStatus("REJECTED");
         paymentRequest.setProcessedBy(rejectedBy);
         paymentRequest.setProcessedAt(LocalDateTime.now());
-        
+
         String existingNotes = paymentRequest.getNotes() != null ? paymentRequest.getNotes() + "\n" : "";
         paymentRequest.setNotes(existingNotes + "Rejection Reason: " + reason);
 
@@ -227,7 +227,7 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password)
             );
-            
+
             if (!auth.isAuthenticated()) {
                 throw new RuntimeException("Invalid supervisor credentials");
             }

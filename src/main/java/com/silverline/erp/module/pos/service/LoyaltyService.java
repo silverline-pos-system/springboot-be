@@ -8,9 +8,14 @@ import java.util.List;
 
 public interface LoyaltyService {
     Customer createCustomer(CreateCustomerRequest request);
+
     void updateLoyaltyPoints(Long customerId, Integer points);
+
     void requestLoyaltyRedemption(Long customerId, Integer pointsReq);
+
     BigDecimal verifyLoyaltyRedemption(Long customerId, Integer pointsReq, String otpCode);
+
     List<Customer> searchCustomers(String query);
+
     Customer getCustomerByCode(String code);
 }

@@ -123,17 +123,17 @@ public class BranchServiceImpl implements BranchService {
     public Map<String, Object> getBranchSummary(Long id) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
-        
+
         BranchDTO branchDTO = toDTO(branch);
-        
+
         // NOTE: No branch-specific users since user_profiles.branch_id is removed
         // Instead show all employees count
         long totalUsers = userRepository.count();
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("branch", branchDTO);
         response.put("userCount", totalUsers);
-        
+
         return response;
     }
 
@@ -141,9 +141,9 @@ public class BranchServiceImpl implements BranchService {
     public Map<String, Object> getBranchRealTimeSales(Long id) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
-        
+
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             BigDecimal sales = saleRepository.getDailySales(id, LocalDate.now());
             response.put("dailySales", sales != null ? sales.doubleValue() : 0.0);
@@ -152,13 +152,13 @@ public class BranchServiceImpl implements BranchService {
         }
 
         // NOTE: Terminal counts REMOVED â€” terminal concept eliminated
-        
+
         try {
             response.put("registeredCustomers", (int) customerRepository.count());
         } catch (Exception e) {
             response.put("registeredCustomers", 0);
         }
-        
+
         return response;
     }
 
@@ -167,7 +167,7 @@ public class BranchServiceImpl implements BranchService {
         // NOTE: Since users aren't tied to branches anymore,
         // return all active users (this endpoint may be deprecated)
         return userRepository.findAll().stream()
-                .filter(u -> u.getAccountStatus() != null && 
+                .filter(u -> u.getAccountStatus() != null &&
                         u.getAccountStatus().name().equals("ACTIVE"))
                 .map(this::mapToUserDTO)
                 .collect(Collectors.toList());
@@ -209,7 +209,7 @@ public class BranchServiceImpl implements BranchService {
         } catch (Exception e) {
             dto.setDailySales(0.0);
         }
-        
+
         try {
             dto.setRegisteredCustomers((int) customerRepository.count());
         } catch (Exception e) {

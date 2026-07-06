@@ -11,8 +11,11 @@ import java.util.Optional;
 @Repository
 public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long> {
     Optional<JournalEntry> findByJournalNo(String journalNo);
+
     List<JournalEntry> findByBranchId(Long branchId);
+
     List<JournalEntry> findByStatus(String status);
+
     List<JournalEntry> findByBranchIdAndEntryDateBetween(Long branchId, LocalDate startDate, LocalDate endDate);
 }
 

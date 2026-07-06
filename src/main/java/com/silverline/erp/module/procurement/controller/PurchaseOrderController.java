@@ -45,7 +45,7 @@ public class PurchaseOrderController {
     public ResponseEntity<List<PurchaseOrderResponse>> getManagerApprovals() {
         return ResponseEntity.ok(poService.getManagerApprovals());
     }
-    
+
     @GetMapping("/status/{status}")
     public ResponseEntity<List<PurchaseOrderResponse>> getPurchaseOrdersByStatus(@PathVariable String status) {
         return ResponseEntity.ok(poService.getPurchaseOrdersByStatus(status));

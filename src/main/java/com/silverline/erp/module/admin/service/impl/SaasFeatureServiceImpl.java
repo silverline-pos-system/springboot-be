@@ -1,12 +1,12 @@
 package com.silverline.erp.module.admin.service.impl;
 
-import com.silverline.erp.infrastructure.email.EmailService;
 import com.silverline.erp.common.exception.ResourceNotFoundException;
 import com.silverline.erp.common.exception.ValidationException;
 import com.silverline.erp.domain.system.FeatureVerificationCode;
 import com.silverline.erp.domain.system.SaasFeature;
 import com.silverline.erp.domain.system.SystemSetting;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.infrastructure.email.EmailService;
 import com.silverline.erp.module.admin.dto.*;
 import com.silverline.erp.module.admin.repository.FeatureVerificationCodeRepository;
 import com.silverline.erp.module.admin.repository.SaasFeatureRepository;
@@ -334,7 +334,8 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
                 if (user != null) {
                     dto.setActivatedByName(user.getFullName());
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         return dto;
@@ -398,7 +399,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
     }
 
     private String buildVerificationEmail(String systemName, String featureName,
-                                           String action, int code, String adminName) {
+                                          String action, int code, String adminName) {
         return com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
                 "saas_feature_verification",
                 Map.of(

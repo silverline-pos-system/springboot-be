@@ -27,9 +27,9 @@ public class StockTransferController {
 
     @GetMapping
     public ResponseEntity<List<StockTransferResponseDTO>> getTransfers(@RequestParam(required = false) String status,
-                                                                        @RequestParam(required = false) Long fromBranchId,
-                                                                        @RequestParam(required = false) Long toBranchId,
-                                                                        @RequestParam(required = false) Long requestedBy) {
+                                                                       @RequestParam(required = false) Long fromBranchId,
+                                                                       @RequestParam(required = false) Long toBranchId,
+                                                                       @RequestParam(required = false) Long requestedBy) {
         List<StockTransferResponseDTO> response = stockTransferService.getTransfers(status, fromBranchId, toBranchId, requestedBy);
         return ResponseEntity.ok(response);
     }

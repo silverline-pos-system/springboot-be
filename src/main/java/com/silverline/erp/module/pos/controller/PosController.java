@@ -6,6 +6,8 @@ import com.silverline.erp.common.security.SecurityUtils;
 import com.silverline.erp.module.pos.dto.sale.SaleResponse;
 import com.silverline.erp.module.pos.dto.sale.SaleSummaryDTO;
 import com.silverline.erp.module.pos.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Slf4j
 @RestController
@@ -80,7 +79,7 @@ public class PosController {
             @PageableDefault(size = 20) Pageable pageable
     ) {
         log.info("Fetching bills with status: {}, pageable: {}", status, pageable);
-        Long branchId = 1L; 
+        Long branchId = 1L;
         Page<SaleSummaryDTO> pageInfo = saleQueryService.getSaleSummaries(branchId, status, startDate, endDate, pageable);
         return ResponseEntity.ok(ApiResponse.success("Orders fetched", PagedResponse.from(pageInfo)));
     }
@@ -131,7 +130,7 @@ public class PosController {
             @RequestParam(required = false, defaultValue = "7") Integer days
     ) {
         log.info("Fetching returnable sales for last {} days", days);
-        Long branchId = 1L; 
+        Long branchId = 1L;
         List<SaleResponse> sales = saleQueryService.getReturnableSales(branchId, days);
         return ResponseEntity.ok(ApiResponse.success("Returnable sales fetched", sales));
     }

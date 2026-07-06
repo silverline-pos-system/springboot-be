@@ -57,10 +57,10 @@ public class PosProductController {
 
     @GetMapping("/{query}")
     public ResponseEntity<ApiResponse<PosProductDTO>> getProduct(
-            @PathVariable String query, 
+            @PathVariable String query,
             @RequestParam(required = false) Long branchId,
             @RequestParam(required = false, defaultValue = "false") boolean skipStockCheck) {
-        
+
         Long targetBranchId = getBranchIdFromParam(branchId);
 
         // 1. Try by ID (if numeric)
@@ -77,7 +77,8 @@ public class PosProductController {
                     }
                     return ResponseEntity.ok(ApiResponse.success("Product found", dto));
                 }
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         // 2. Try by Barcode
@@ -117,7 +118,7 @@ public class PosProductController {
                             .body(ApiResponse.error("Serial '" + query + "' is already " + s.getStatus().toLowerCase()));
                 }
             }
-            
+
             var product = productService.findById(s.getProductId());
             if (product != null) {
                 PosProductDTO dto = mapToDTO(product, targetBranchId);
@@ -139,7 +140,7 @@ public class PosProductController {
         List<PosProductDTO> products = quickPickService.getQuickPickProducts(targetBranchId).stream()
                 .map(p -> mapToDTO(p, targetBranchId))
                 .collect(Collectors.toList());
-        
+
         // Fallback to active items if none configured for branch
         if (products.isEmpty()) {
             products = productService.getActiveProductsLimit(10)
@@ -174,10 +175,10 @@ public class PosProductController {
             @PathVariable Long productId,
             @RequestParam(required = false) Long branchId) {
         Long targetBranchId = getBranchIdFromParam(branchId);
-        
+
         Integer stockVal = stockService.getCurrentStock(targetBranchId, productId);
         BigDecimal availableStock = stockVal != null ? BigDecimal.valueOf(stockVal) : BigDecimal.ZERO;
-        
+
         return ResponseEntity.ok(ApiResponse.success("Stock fetched", availableStock));
     }
 
@@ -189,12 +190,12 @@ public class PosProductController {
         dto.setSku(product.getSku());
         dto.setBarcode(product.getBarcode());
         dto.setIsSerialized(product.getIsSerialized());
-        
+
         // Fetch available stock for the branch
         Integer stockVal = stockService.getCurrentStock(branchId, product.getProductId());
         BigDecimal availableStock = stockVal != null ? BigDecimal.valueOf(stockVal) : BigDecimal.ZERO;
         dto.setAvailableStock(availableStock);
-        
+
         // Fetch available prices based on batches
         List<PosProductDTO.BatchPriceDTO> availablePrices = batchService.getFEFOBatches(product.getProductId(), branchId)
                 .stream()
@@ -209,7 +210,7 @@ public class PosProductController {
                 ))
                 .collect(Collectors.toList());
         dto.setAvailablePrices(availablePrices);
-        
+
         return dto;
     }
 }

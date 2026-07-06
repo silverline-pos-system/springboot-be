@@ -1,18 +1,15 @@
 package com.silverline.erp.module.notification.controller;
 
 import com.silverline.erp.domain.notification.NotificationRecipient;
-import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import com.silverline.erp.module.notification.service.NotificationService;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.HashMap;
 import java.util.Map;

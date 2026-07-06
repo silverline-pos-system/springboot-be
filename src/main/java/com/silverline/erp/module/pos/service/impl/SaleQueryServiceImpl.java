@@ -97,13 +97,13 @@ public class SaleQueryServiceImpl implements SaleQueryService {
     public List<SaleResponse> getReturnableSales(Long branchId, Integer days) {
         LocalDateTime endDate = LocalDateTime.now();
         LocalDateTime startDate = endDate.minusDays(days != null ? days : 7);
-        
+
         List<Sale> sales = saleRepository.findByDateRange(branchId, startDate, endDate);
-        
+
         sales = sales.stream()
                 .filter(s -> "PAID".equalsIgnoreCase(s.getPaymentStatus()))
                 .collect(Collectors.toList());
-        
+
         return sales.stream().map(sale -> {
             List<SaleItem> items = saleItemRepository.findBySaleId(sale.getSaleId());
             List<Payment> payments = paymentRepository.findBySaleId(sale.getSaleId());
@@ -139,7 +139,7 @@ public class SaleQueryServiceImpl implements SaleQueryService {
 
         LocalDateTime startDate = null;
         LocalDateTime endDate = null;
-        
+
         try {
             if (startDateStr != null) startDate = LocalDateTime.parse(startDateStr.replace("Z", ""));
             if (endDateStr != null) endDate = LocalDateTime.parse(endDateStr.replace("Z", ""));
@@ -148,12 +148,12 @@ public class SaleQueryServiceImpl implements SaleQueryService {
         }
 
         Pageable capped = capPageable(pageable);
-        
+
         Page<Sale> salesPage = managerSaleRepository.findSalesWithFilters(
-                branchId, 
-                dbStatus, 
-                startDate, 
-                endDate, 
+                branchId,
+                dbStatus,
+                startDate,
+                endDate,
                 capped
         );
 
@@ -179,7 +179,7 @@ public class SaleQueryServiceImpl implements SaleQueryService {
                 .map(Sale::getCustomerId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        
+
         Map<Long, String> customerNamesMap = new HashMap<>();
         if (!customerIds.isEmpty()) {
             customerNamesMap = customerRepository.findAllById(customerIds).stream()
@@ -192,7 +192,7 @@ public class SaleQueryServiceImpl implements SaleQueryService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         final Map<Long, String> finalCustomerNamesMap = customerNamesMap;
-        
+
         return salesPage.map(sale -> {
             long itemCount = itemCountsMap.getOrDefault(sale.getSaleId(), 0L);
             String customerName = "Walk-in Customer";
@@ -201,14 +201,14 @@ public class SaleQueryServiceImpl implements SaleQueryService {
             }
 
             return new SaleSummaryDTO(
-                sale.getSaleId(),
-                sale.getInvoiceNo(),
-                sale.getSaleDate() != null ? sale.getSaleDate().format(formatter) : "",
-                (int) itemCount,
-                sale.getNetTotal(),
-                sale.getGrossTotal(),
-                customerName,
-                sale.getPaymentStatus()
+                    sale.getSaleId(),
+                    sale.getInvoiceNo(),
+                    sale.getSaleDate() != null ? sale.getSaleDate().format(formatter) : "",
+                    (int) itemCount,
+                    sale.getNetTotal(),
+                    sale.getGrossTotal(),
+                    customerName,
+                    sale.getPaymentStatus()
             );
         });
     }
@@ -220,23 +220,23 @@ public class SaleQueryServiceImpl implements SaleQueryService {
 
         return heldSales.stream().map(sale -> {
             if (branchId != null && !branchId.equals(sale.getBranchId())) return null;
-            
+
             List<SaleItem> items = saleItemRepository.findBySaleId(sale.getSaleId());
             String customerName = "Walk-in Customer";
             if (sale.getCustomerId() != null) {
                 customerName = customerRepository.findById(sale.getCustomerId())
                         .map(c -> c.getName()).orElse("Walk-in Customer");
             }
-            
+
             return new SaleSummaryDTO(
-                sale.getSaleId(),
-                sale.getInvoiceNo(),
-                sale.getSaleDate() != null ? sale.getSaleDate().format(formatter) : "",
-                items.size(),
-                sale.getNetTotal(),
-                sale.getGrossTotal(),
-                customerName,
-                sale.getPaymentStatus()
+                    sale.getSaleId(),
+                    sale.getInvoiceNo(),
+                    sale.getSaleDate() != null ? sale.getSaleDate().format(formatter) : "",
+                    items.size(),
+                    sale.getNetTotal(),
+                    sale.getGrossTotal(),
+                    customerName,
+                    sale.getPaymentStatus()
             );
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }

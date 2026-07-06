@@ -16,12 +16,12 @@ public class PrintSettingsService {
 
     /**
      * Get header/footer settings for a branch.
-         * Returns an empty/default DTO when no override exists for the branch.
+     * Returns an empty/default DTO when no override exists for the branch.
      */
     public PrintHeaderFooterDTO getHeaderFooter(Long branchId) {
         return repository.findByBranchId(branchId)
-            .map(this::toDTO)
-            .orElseGet(this::emptyDTO);
+                .map(this::toDTO)
+                .orElseGet(this::emptyDTO);
     }
 
     /**

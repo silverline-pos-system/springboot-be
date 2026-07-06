@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 public interface AdminSaleService {
     BigDecimal getSumNetTotal(Long branchId, LocalDateTime start, LocalDateTime end);
+
     BigDecimal getTotalNetAllTime();
 }
 

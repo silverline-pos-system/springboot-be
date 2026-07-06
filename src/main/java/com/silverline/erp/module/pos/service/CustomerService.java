@@ -11,10 +11,16 @@ import java.util.Map;
 
 public interface CustomerService {
     List<LoyaltyStatsDTO> getLoyaltyStats();
+
     Page<ManagerCustomerDTO> getAllCustomers(Pageable pageable);
+
     Map<String, Double> getTierRules();
+
     void updateTierRules(Map<String, Double> newRules);
+
     void addPoints(Long customerId, int points, String reason);
+
     void updateCustomer(Long id, ManagerCustomerDTO dto);
+
     List<ManagerSaleDTO> getCustomerSales(Long customerId);
 }

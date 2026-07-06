@@ -22,7 +22,7 @@ public interface BranchService {
     java.util.Map<String, Object> getBranchSummary(Long id);
 
     java.util.Map<String, Object> getBranchRealTimeSales(Long id);
-    
+
     List<UserDTO> getUsersByBranchId(Long id);
 }
 

@@ -24,7 +24,9 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
     Optional<UserProfile> findByUsername(String username);
 
     Optional<UserProfile> findByEmail(String email);
+
     Optional<UserProfile> findByPhone(String phone);
+
     Optional<UserProfile> findByEmployeeId(String employeeId);
 
     @Query("SELECT MAX(CAST(SUBSTRING(REPLACE(u.employeeId, '-', ''), 4) as java.lang.Long)) FROM UserProfile u WHERE u.employeeId LIKE 'EMP-%'")

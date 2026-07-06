@@ -42,7 +42,7 @@ public class StartupConfig implements CommandLineRunner {
     private void createDefaultSuperAdmin() {
         if (userRepository.count() == 0) {
             log.info("No users found in the system. Creating default SUPER_ADMIN...");
-            
+
             UserProfile admin = new UserProfile();
             admin.setFullName("System Super Admin");
             admin.setUsername(adminUsername);
@@ -54,7 +54,7 @@ public class StartupConfig implements CommandLineRunner {
             admin.setCreatedAt(LocalDateTime.now());
             admin.setMustChangePassword(true);
             admin.setEmailVerified(true);
-            
+
             userRepository.save(admin);
             log.info("Default SUPER_ADMIN created successfully!");
             log.info("Username: {}", adminUsername);
@@ -66,12 +66,12 @@ public class StartupConfig implements CommandLineRunner {
     private void seedSaasFeatures() {
         if (saasFeatureRepository.count() == 0) {
             log.info("No SaaS features found. Seeding default features...");
-            
+
             // Common Features (Active by default)
             saveFeature("SIMPLE_POS", "Simple POS", "COMMON", true);
             saveFeature("SIMPLE_INVENTORY", "Simple Inventory", "COMMON", true);
             saveFeature("SIMPLE_MANAGER", "Simple Manager", "COMMON", true);
-            
+
             // Premium Features (Inactive by default)
             saveFeature("POS_LOYALTY", "POS Loyalty Program", "PREMIUM", false);
             saveFeature("POS_SERVICE_REPAIRS", "POS Service & Repairs", "PREMIUM", false);
@@ -80,7 +80,7 @@ public class StartupConfig implements CommandLineRunner {
             saveFeature("SALES_REPORTS", "Sales Reports & Analytics", "PREMIUM", false);
             saveFeature("MANAGER_ACCOUNTING", "Manager Accounting Module", "PREMIUM", false);
             saveFeature("ALLOW_OUT_OF_STOCK", "Allow Out Of Stock POS Sales", "PREMIUM", false);
-            
+
             log.info("Default SaaS features seeded successfully!");
         }
     }

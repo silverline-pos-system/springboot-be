@@ -41,6 +41,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private static final Map<String, Double> TIER_THRESHOLDS = new HashMap<>();
+
     static {
         TIER_THRESHOLDS.put("Platinum", 100000.0);
         TIER_THRESHOLDS.put("Gold", 50000.0);
@@ -69,7 +70,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .description("Total Issued")
                 .icon("star")
                 .build());
-        
+
         stats.add(LoyaltyStatsDTO.builder()
                 .title("Redemption Rate")
                 .value("12%")
@@ -105,7 +106,7 @@ public class CustomerServiceImpl implements CustomerService {
     private ManagerCustomerDTO mapToDTO(Customer customer) {
         BigDecimal spend = customer.getTotalPurchases() != null ? customer.getTotalPurchases() : BigDecimal.ZERO;
         String tier = calculateTier(spend);
-        
+
         return ManagerCustomerDTO.builder()
                 .id(customer.getCustomerId())
                 .name(customer.getName())
@@ -141,12 +142,12 @@ public class CustomerServiceImpl implements CustomerService {
     public void updateTierRules(Map<String, Double> newRules) {
         TIER_THRESHOLDS.putAll(newRules);
     }
-    
+
     @Override
     public void addPoints(Long customerId, int points, String reason) {
         Customer customer = customerRepository.findById(customerId)
-            .orElseThrow(() -> new RuntimeException("Customer not found"));
-        
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
         customer.setLoyaltyPoints((customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0) + points);
         customerRepository.save(customer);
         log.info("Adjusted points for customer {}: {} ({})", customerId, points, reason);
@@ -162,30 +163,30 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setEmail(dto.getEmail());
         customer.setAddress(dto.getAddress());
         customer.setCity(dto.getCity());
-        
+
         if (dto.getDateOfBirth() != null && !dto.getDateOfBirth().isEmpty()) {
-             customer.setDateOfBirth(LocalDate.parse(dto.getDateOfBirth()));
+            customer.setDateOfBirth(LocalDate.parse(dto.getDateOfBirth()));
         }
 
         if ("Active".equalsIgnoreCase(dto.getStatus())) {
             customer.setIsActive(true);
         } else if ("Inactive".equalsIgnoreCase(dto.getStatus())) {
-             customer.setIsActive(false);
+            customer.setIsActive(false);
         }
-        
+
         customerRepository.save(customer);
     }
-    
+
     @Override
     public List<ManagerSaleDTO> getCustomerSales(Long customerId) {
         return saleQueryService.findTop10ByCustomerIdOrderBySaleDateDesc(customerId).stream()
-            .map(s -> ManagerSaleDTO.builder()
-                .id(s.getSaleId())
-                .date(s.getSaleDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
-                .amount(s.getNetTotal())
-                .paymentStatus(s.getPaymentStatus())
-                .invoiceNo(s.getInvoiceNo())
-                .build())
-            .collect(Collectors.toList());
+                .map(s -> ManagerSaleDTO.builder()
+                        .id(s.getSaleId())
+                        .date(s.getSaleDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
+                        .amount(s.getNetTotal())
+                        .paymentStatus(s.getPaymentStatus())
+                        .invoiceNo(s.getInvoiceNo())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

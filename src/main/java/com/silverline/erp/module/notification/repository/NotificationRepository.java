@@ -15,11 +15,11 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
     @Query("SELECT n FROM Notification n JOIN NotificationRecipient nr ON nr.notification.notificationId = n.notificationId " +
-           "WHERE nr.userId = :userId ORDER BY n.createdAt DESC")
+            "WHERE nr.userId = :userId ORDER BY n.createdAt DESC")
     Page<Notification> findByRecipientUserId(@Param("userId") Long userId, Pageable pageable);
 
     @Query("SELECT n FROM Notification n JOIN NotificationRecipient nr ON nr.notification.notificationId = n.notificationId " +
-           "WHERE nr.userId = :userId AND nr.isRead = false ORDER BY n.createdAt DESC")
+            "WHERE nr.userId = :userId AND nr.isRead = false ORDER BY n.createdAt DESC")
     List<Notification> findUnreadByRecipientUserId(@Param("userId") Long userId);
 
     @Query("SELECT COUNT(nr) FROM NotificationRecipient nr WHERE nr.userId = :userId AND nr.isRead = false")

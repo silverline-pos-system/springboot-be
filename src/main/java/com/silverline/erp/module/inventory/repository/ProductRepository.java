@@ -58,18 +58,18 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @EntityGraph(attributePaths = {"category", "subCategory", "brand", "unit"})
     @Query("SELECT p FROM Product p WHERE " +
-           "p.isActive = true AND (" +
-           "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(p.sku) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(p.barcode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+            "p.isActive = true AND (" +
+            "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(p.sku) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(p.barcode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Product> searchProducts(@Param("keyword") String keyword);
 
     @EntityGraph(attributePaths = {"category", "subCategory", "brand", "unit"})
     @Query("SELECT p FROM Product p WHERE " +
-           "p.isActive = true AND (" +
-           "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(p.sku) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(p.barcode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+            "p.isActive = true AND (" +
+            "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(p.sku) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(p.barcode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Product> searchProducts(@Param("keyword") String keyword, Pageable pageable);
 
     @Query("SELECT MAX(p.productId) FROM Product p")

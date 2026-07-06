@@ -10,7 +10,9 @@ import java.util.Optional;
 @Repository
 public interface QuickPickRepository extends JpaRepository<QuickPickItem, Long> {
     List<QuickPickItem> findByBranchId(Long branchId);
+
     Optional<QuickPickItem> findByBranchIdAndProductId(Long branchId, Long productId);
+
     void deleteByBranchIdAndProductId(Long branchId, Long productId);
 }
 
