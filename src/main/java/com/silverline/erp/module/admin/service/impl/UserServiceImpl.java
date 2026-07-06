@@ -96,8 +96,8 @@ public class UserServiceImpl implements UserService {
         // Flow: Manager created by admin is PENDING by default
         user.setAccountStatus(AccountStatus.PENDING);
 
-        // Generate a temporary password: temp@<username>
-        String rawPassword = "temp@" + userDTO.getUsername();
+        // Generate a cryptographically secure temporary password
+        String rawPassword = com.silverline.erp.common.security.SecurityUtils.generateSecureTemporaryPassword();
         user.setPassword(passwordEncoder.encode(rawPassword));
 
         UserProfile savedUser = userRepository.save(user);
@@ -157,7 +157,7 @@ public class UserServiceImpl implements UserService {
                     user.setApprovedAt(java.time.LocalDateTime.now());
                 }
                 try {
-                    String tempPassword = "temp@" + user.getUsername();
+                    String tempPassword = com.silverline.erp.common.security.SecurityUtils.generateSecureTemporaryPassword();
                     user.setPassword(passwordEncoder.encode(tempPassword));
                     user.setMustChangePassword(true);
 

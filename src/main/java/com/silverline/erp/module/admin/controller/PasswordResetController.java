@@ -67,9 +67,9 @@ public class PasswordResetController {
         PasswordResetRequest request = passwordResetRequestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Request not found"));
 
-        if (!"PENDING".equals(request.getStatus())) {
+        if (!"VERIFIED".equals(request.getStatus())) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "This request has already been " + request.getStatus().toLowerCase()));
+                    .body(Map.of("message", "Only verified password reset requests can be approved. Current status: " + request.getStatus()));
         }
 
         // Find the user and apply the new password
@@ -114,9 +114,9 @@ public class PasswordResetController {
         PasswordResetRequest request = passwordResetRequestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Request not found"));
 
-        if (!"PENDING".equals(request.getStatus())) {
+        if (!"PENDING".equals(request.getStatus()) && !"VERIFIED".equals(request.getStatus())) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "This request has already been " + request.getStatus().toLowerCase()));
+                    .body(Map.of("message", "Only pending or verified requests can be rejected. Current status: " + request.getStatus()));
         }
 
         // Update request status

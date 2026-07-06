@@ -227,6 +227,8 @@ public class AuthServiceImpl implements AuthService {
         return passwordEncoder.matches(password, user.getPassword());
     }
 
+    private final com.silverline.erp.infrastructure.email.EmailService emailService;
+
     @Override
     @Transactional
     public void forgotPassword(String username, String newPassword, String reason) {
@@ -236,10 +238,14 @@ public class AuthServiceImpl implements AuthService {
         }
 
         List<PasswordResetRequest> existing = passwordResetRequestRepository.findByUserId(user.getUserId());
-        boolean hasPending = existing.stream().anyMatch(r -> "PENDING".equals(r.getStatus()));
+        boolean hasPending = existing.stream().anyMatch(r -> "PENDING".equals(r.getStatus()) || "VERIFIED".equals(r.getStatus()));
         if (hasPending) {
-            throw new RuntimeException("You already have a pending password reset request. Please wait for admin approval.");
+            throw new RuntimeException("You already have a pending or verified password reset request. Please wait for admin approval.");
         }
+
+        // Generate a 6-digit verification code
+        String token = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
+        String tokenHash = com.silverline.erp.common.security.SecurityUtils.hashToken(token);
 
         PasswordResetRequest resetRequest = new PasswordResetRequest();
         resetRequest.setUserId(user.getUserId());
@@ -247,10 +253,50 @@ public class AuthServiceImpl implements AuthService {
         resetRequest.setFullName(user.getFullName());
         resetRequest.setEmail(user.getEmail());
         resetRequest.setNewPasswordHash(passwordEncoder.encode(newPassword));
+        resetRequest.setTokenHash(tokenHash);
         resetRequest.setStatus("PENDING");
         resetRequest.setRequestNotes(reason != null ? reason : "Password reset requested");
 
         passwordResetRequestRepository.save(resetRequest);
+
+        // Send email with verification code
+        try {
+            String subject = "Password Reset Verification - Silverline";
+            String htmlContent = com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
+                    "password_reset_request",
+                    Map.of(
+                            "fullName", user.getFullName(),
+                            "username", user.getUsername(),
+                            "verificationCode", token
+                    )
+            );
+            emailService.sendHtmlMessage(user.getEmail(), subject, htmlContent);
+        } catch (Exception e) {
+            log.error("Failed to send password reset verification email: {}", e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void verifyForgotPasswordToken(String username, String token) {
+        UserProfile user = findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("Username not found.");
+        }
+
+        List<PasswordResetRequest> requests = passwordResetRequestRepository.findByUserId(user.getUserId());
+        PasswordResetRequest pendingRequest = requests.stream()
+                .filter(r -> "PENDING".equals(r.getStatus()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No pending password reset request found."));
+
+        String inputHash = com.silverline.erp.common.security.SecurityUtils.hashToken(token);
+        if (!inputHash.equals(pendingRequest.getTokenHash())) {
+            throw new RuntimeException("Invalid verification code. Please try again.");
+        }
+
+        pendingRequest.setStatus("VERIFIED");
+        passwordResetRequestRepository.save(pendingRequest);
     }
 
     private String generateSequentialEmployeeId() {
