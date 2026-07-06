@@ -53,15 +53,15 @@ public class ShiftServiceImpl implements ShiftService {
             String password = request.getSupervisorPassword();
 
             if (password == null || password.isEmpty()) {
-                throw new RuntimeException("Supervisor password is required");
+                throw new com.silverline.erp.common.exception.ValidationException("Supervisor password is required");
             }
 
             try {
                 UserProfile supervisor = userProfileRepository.findByUsername(username)
-                        .orElseThrow(() -> new RuntimeException("Supervisor user not found: " + username));
+                        .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("Supervisor user not found: " + username));
 
                 if (supervisor.getAccountStatus() != AccountStatus.ACTIVE) {
-                    throw new RuntimeException("Supervisor account is not active. Current status: " + supervisor.getAccountStatus());
+                    throw new com.silverline.erp.common.exception.UnauthorizedException("Supervisor account is not active. Current status: " + supervisor.getAccountStatus());
                 }
 
                 Authentication auth = authenticationManager.authenticate(
@@ -69,23 +69,23 @@ public class ShiftServiceImpl implements ShiftService {
                 );
 
                 if (!auth.isAuthenticated()) {
-                    throw new RuntimeException("Invalid supervisor credentials");
+                    throw new com.silverline.erp.common.exception.UnauthorizedException("Invalid supervisor credentials");
                 }
 
                 String role = supervisor.getRole() != null ? supervisor.getRole().name().toUpperCase() : "";
                 if (!"SUPER_ADMIN".equals(role) && !"ADMIN".equals(role) && !"MANAGER".equals(role) && !"SUPERVISOR".equals(role)) {
-                    throw new RuntimeException("Access Denied: User " + supervisor.getUsername() + " is a " + role + " and cannot approve shifts.");
+                    throw new com.silverline.erp.common.exception.UnauthorizedException("Access Denied: User " + supervisor.getUsername() + " is a " + role + " and cannot approve shifts.");
                 }
 
                 supervisorId = supervisor.getUserId();
                 approvedAt = LocalDateTime.now();
 
             } catch (org.springframework.security.authentication.DisabledException e) {
-                throw new RuntimeException("Supervisor account is disabled or not active");
+                throw new com.silverline.erp.common.exception.UnauthorizedException("Supervisor account is disabled or not active");
             } catch (org.springframework.security.authentication.BadCredentialsException e) {
-                throw new RuntimeException("Invalid supervisor password");
+                throw new com.silverline.erp.common.exception.UnauthorizedException("Invalid supervisor password");
             } catch (org.springframework.security.core.AuthenticationException e) {
-                throw new RuntimeException("Authentication Failed: " + e.getMessage());
+                throw new com.silverline.erp.common.exception.UnauthorizedException("Authentication Failed: " + e.getMessage());
             }
         }
 

@@ -51,8 +51,8 @@ public class AdminControllerContractTest {
         mockMvc.perform(get("/api/v1/admin/users")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].username").value("adminUser"))
-                .andExpect(jsonPath("$[0].email").value("admin@example.com"));
+                .andExpect(jsonPath("$.data[0].username").value("adminUser"))
+                .andExpect(jsonPath("$.data[0].email").value("admin@example.com"));
     }
 
     @Test
@@ -62,6 +62,6 @@ public class AdminControllerContractTest {
         mockMvc.perform(get("/api/v1/system/name")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.systemName").value("Silverline ERP"));
+                .andExpect(jsonPath("$.data.systemName").value("Silverline ERP"));
     }
 }

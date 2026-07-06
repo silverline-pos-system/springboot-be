@@ -77,13 +77,13 @@ public class PosSaleServiceImpl implements PosSaleService {
 
                     if (availableQty.compareTo(BigDecimal.ZERO) <= 0) {
                         log.warn("Out of stock business rule violation: product='{}', branchId={}", productName, branchId);
-                        throw new RuntimeException("Cannot sell '" + productName + "' — item is out of stock (Available: 0)");
+                        throw new com.silverline.erp.common.exception.InsufficientStockException("Cannot sell '" + productName + "' — item is out of stock (Available: 0)");
                     }
 
                     if (availableQty.compareTo(requiredQty) < 0) {
                         log.warn("Insufficient stock business rule violation: product='{}', branchId={}, requested={}, available={}",
                                 productName, branchId, requiredQty, availableQty);
-                        throw new RuntimeException("Insufficient stock for '" + productName
+                        throw new com.silverline.erp.common.exception.InsufficientStockException("Insufficient stock for '" + productName
                                 + "'. Requested: " + requiredQty + ", Available: " + availableQty);
                     }
                 }

@@ -32,17 +32,17 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Transactional
     public Customer createCustomer(CreateCustomerRequest request) {
         if (request.getName() == null || request.getName().isEmpty()) {
-            throw new RuntimeException("Customer Name is required");
+            throw new com.silverline.erp.common.exception.ValidationException("Customer Name is required");
         }
         if (request.getPhone() == null || request.getPhone().isEmpty()) {
-            throw new RuntimeException("Phone is required");
+            throw new com.silverline.erp.common.exception.ValidationException("Phone is required");
         }
         if (request.getEmail() == null || request.getEmail().isEmpty()) {
-            throw new RuntimeException("Email is required");
+            throw new com.silverline.erp.common.exception.ValidationException("Email is required");
         }
 
         if (customerRepository.findByPhone(request.getPhone()).isPresent()) {
-            throw new RuntimeException("Customer with this phone already exists");
+            throw new com.silverline.erp.common.exception.DuplicateResourceException("Customer with this phone already exists");
         }
 
         Customer customer = new Customer();
@@ -91,16 +91,16 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Transactional
     public void requestLoyaltyRedemption(Long customerId, Integer pointsReq) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("Customer not found"));
 
         if (customer.getLoyaltyPoints() == null || customer.getLoyaltyPoints() < 100) {
-            throw new RuntimeException("Minimum 100 points required to redeem.");
+            throw new com.silverline.erp.common.exception.ValidationException("Minimum 100 points required to redeem.");
         }
         if (customer.getLoyaltyPoints() < pointsReq) {
-            throw new RuntimeException("Insufficient loyalty points limit.");
+            throw new com.silverline.erp.common.exception.ValidationException("Insufficient loyalty points limit.");
         }
         if (customer.getEmail() == null || customer.getEmail().isEmpty()) {
-            throw new RuntimeException("Customer email not configured. Please register customer email first.");
+            throw new com.silverline.erp.common.exception.ValidationException("Customer email not configured. Please register customer email first.");
         }
 
         String otp = String.format("%04d", new Random().nextInt(10000));
@@ -126,20 +126,20 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     public BigDecimal verifyLoyaltyRedemption(Long customerId, Integer pointsReq, String otpCode) {
         // Retrieve valid OTP from database
         LoyaltyOtp storedOtp = loyaltyOtpRepository.findTopByCustomerIdAndExpiresAtAfterOrderByCreatedAtDesc(customerId, LocalDateTime.now())
-                .orElseThrow(() -> new RuntimeException("Invalid or expired OTP code"));
+                .orElseThrow(() -> new com.silverline.erp.common.exception.ValidationException("Invalid or expired OTP code"));
 
         if (!storedOtp.getOtpCode().equals(otpCode)) {
-            throw new RuntimeException("Invalid or expired OTP code");
+            throw new com.silverline.erp.common.exception.ValidationException("Invalid or expired OTP code");
         }
 
         // Clean up the OTP once verified
         loyaltyOtpRepository.deleteByCustomerId(customerId);
 
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("Customer not found"));
 
         if (customer.getLoyaltyPoints() == null || customer.getLoyaltyPoints() < pointsReq) {
-            throw new RuntimeException("Customer does not have enough points.");
+            throw new com.silverline.erp.common.exception.ValidationException("Customer does not have enough points.");
         }
 
         customer.setLoyaltyPoints(customer.getLoyaltyPoints() - pointsReq);

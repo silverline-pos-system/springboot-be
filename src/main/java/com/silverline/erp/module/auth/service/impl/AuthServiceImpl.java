@@ -234,13 +234,13 @@ public class AuthServiceImpl implements AuthService {
     public void forgotPassword(String username, String newPassword, String reason) {
         UserProfile user = findByUsername(username);
         if (user == null) {
-            throw new RuntimeException("Username not found. Please check and try again.");
+            throw new com.silverline.erp.common.exception.ResourceNotFoundException("Username not found. Please check and try again.");
         }
 
         List<PasswordResetRequest> existing = passwordResetRequestRepository.findByUserId(user.getUserId());
         boolean hasPending = existing.stream().anyMatch(r -> "PENDING".equals(r.getStatus()) || "VERIFIED".equals(r.getStatus()));
         if (hasPending) {
-            throw new RuntimeException("You already have a pending or verified password reset request. Please wait for admin approval.");
+            throw new com.silverline.erp.common.exception.ValidationException("You already have a pending or verified password reset request. Please wait for admin approval.");
         }
 
         // Generate a 6-digit verification code
@@ -281,18 +281,18 @@ public class AuthServiceImpl implements AuthService {
     public void verifyForgotPasswordToken(String username, String token) {
         UserProfile user = findByUsername(username);
         if (user == null) {
-            throw new RuntimeException("Username not found.");
+            throw new com.silverline.erp.common.exception.ResourceNotFoundException("Username not found.");
         }
 
         List<PasswordResetRequest> requests = passwordResetRequestRepository.findByUserId(user.getUserId());
         PasswordResetRequest pendingRequest = requests.stream()
                 .filter(r -> "PENDING".equals(r.getStatus()))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No pending password reset request found."));
+                .orElseThrow(() -> new com.silverline.erp.common.exception.ValidationException("No pending password reset request found."));
 
         String inputHash = com.silverline.erp.common.security.SecurityUtils.hashToken(token);
         if (!inputHash.equals(pendingRequest.getTokenHash())) {
-            throw new RuntimeException("Invalid verification code. Please try again.");
+            throw new com.silverline.erp.common.exception.ValidationException("Invalid verification code. Please try again.");
         }
 
         pendingRequest.setStatus("VERIFIED");

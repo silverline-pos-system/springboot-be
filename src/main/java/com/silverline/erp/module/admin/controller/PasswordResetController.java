@@ -65,7 +65,7 @@ public class PasswordResetController {
     public ResponseEntity<?> approveRequest(@PathVariable Long id,
                                             @RequestBody(required = false) Map<String, String> body) {
         PasswordResetRequest request = passwordResetRequestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
+                .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("Request not found"));
 
         if (!"VERIFIED".equals(request.getStatus())) {
             return ResponseEntity.badRequest()
@@ -74,7 +74,7 @@ public class PasswordResetController {
 
         // Find the user and apply the new password
         UserProfile user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("User not found"));
 
         // Apply the pre-hashed password
         user.setPassword(request.getNewPasswordHash());
@@ -112,7 +112,7 @@ public class PasswordResetController {
     public ResponseEntity<?> rejectRequest(@PathVariable Long id,
                                            @RequestBody(required = false) Map<String, String> body) {
         PasswordResetRequest request = passwordResetRequestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
+                .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("Request not found"));
 
         if (!"PENDING".equals(request.getStatus()) && !"VERIFIED".equals(request.getStatus())) {
             return ResponseEntity.badRequest()
