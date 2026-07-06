@@ -42,13 +42,6 @@ public class GlobalResponseWrapper implements ResponseBodyAdvice<Object> {
                                   Class<? extends HttpMessageConverter<?>> selectedConverterType,
                                   ServerHttpRequest request, ServerHttpResponse response) {
         
-        String path = request.getURI().getPath();
-        
-        // Skip wrapping for Swagger docs, Actuator, or resource endpoints
-        if (path.contains("/v3/api-docs") || path.contains("/swagger-ui") || path.contains("/actuator")) {
-            return body;
-        }
-
         // If body is already ApiResponse, return as-is
         if (body instanceof ApiResponse) {
             return body;
