@@ -11,6 +11,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 @RestControllerAdvice(basePackages = "com.silverline.erp")
 public class GlobalResponseWrapper implements ResponseBodyAdvice<Object> {
 
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+    private static final com.fasterxml.jackson.databind.ObjectMapper FALLBACK_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
+
+    public GlobalResponseWrapper(@org.springframework.beans.factory.annotation.Autowired(required = false) com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper != null ? objectMapper : FALLBACK_MAPPER;
+    }
+
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
         Class<?> paramType = returnType.getParameterType();
@@ -50,7 +57,7 @@ public class GlobalResponseWrapper implements ResponseBodyAdvice<Object> {
         // Handle raw String returns specially to prevent ClassCastException inside Spring's StringHttpMessageConverter
         if (body instanceof String) {
             try {
-                return new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(
+                return objectMapper.writeValueAsString(
                         ApiResponse.success("Operation completed successfully", body)
                 );
             } catch (Exception e) {
