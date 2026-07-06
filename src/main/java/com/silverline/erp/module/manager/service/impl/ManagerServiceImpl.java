@@ -188,20 +188,16 @@ public class ManagerServiceImpl implements ManagerService {
             try {
                 String assignedRole = user.getRole() != null ? user.getRole().name() : "Staff";
                 String subject = "Welcome to ROCS - Your Account Has Been Approved!";
-                String body = "Dear " + user.getFullName() + ",\n\n" +
-                        "Great news! Your registration request has been approved.\n\n" +
-                        "Account Details:\n" +
-                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-                        "Username: " + user.getUsername() + "\n" +
-                        "Role: " + assignedRole + "\n" +
-                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
-                        "You can now log in using the password you set during registration.\n\n" +
-                        "If you have forgotten your password, please use the 'Forgot Password' option on the login page.\n\n" +
-                        "Best Regards,\n" +
-                        "Management,\n" +
-                        "Silverline (pvt) ltd.";
+                String htmlContent = com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
+                        "registration_approved",
+                        Map.of(
+                                "fullName", user.getFullName(),
+                                "username", user.getUsername(),
+                                "role", assignedRole
+                        )
+                );
 
-                emailService.sendSimpleMessage(user.getEmail(), subject, body);
+                emailService.sendHtmlMessage(user.getEmail(), subject, htmlContent);
                 log.info("Approval confirmation email sent to {}", user.getEmail());
             } catch (Exception e) {
                 log.error("Failed to send approval email to {}: {}", user.getEmail(), e.getMessage());
@@ -216,14 +212,12 @@ public class ManagerServiceImpl implements ManagerService {
 
                 try {
                     String subject = "ROCS - Registration Request Update";
-                    String body = "Dear " + rejectedUser.getFullName() + ",\n\n" +
-                            "We regret to inform you that your registration request has not been approved at this time.\n\n" +
-                            "If you believe this is an error or would like more information, " +
-                            "please contact your branch manager or administrator.\n\n" +
-                            "Management,\n" +
-                            "Silverline (pvt) ltd.";
+                    String htmlContent = com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
+                            "registration_rejected",
+                            Map.of("fullName", rejectedUser.getFullName())
+                    );
 
-                    emailService.sendSimpleMessage(rejectedUser.getEmail(), subject, body);
+                    emailService.sendHtmlMessage(rejectedUser.getEmail(), subject, htmlContent);
                     log.info("Rejection notification email sent to {}", rejectedUser.getEmail());
                 } catch (Exception e) {
                     log.error("Failed to send rejection email to {}: {}", rejectedUser.getEmail(), e.getMessage());

@@ -162,28 +162,16 @@ public class UserServiceImpl implements UserService {
                     user.setMustChangePassword(true);
 
                     String subject = "Your Silverline Account Has Been Activated";
+                    String htmlContent = com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
+                            "user_activation",
+                            java.util.Map.of(
+                                    "fullName", user.getFullName(),
+                                    "username", user.getUsername(),
+                                    "tempPassword", tempPassword
+                            )
+                    );
 
-                    String body = "Dear " + user.getFullName() + ",\n\n"
-                            + "We are pleased to inform you that your account on the "
-                            + "Silverline platform has been "
-                            + "successfully activated by the system administrator.\n"
-                            + "Please find your temporary login credentials below:\n\n"
-                            + "------------------------------------------------------------\n"
-                            + "  Username              : " + user.getUsername() + "\n"
-                            + "  Temporary Password  : " + tempPassword + "\n"
-                            + "------------------------------------------------------------\n\n"
-                            + "For security purposes, you will be required to change your "
-                            + "password upon your first login. Please ensure that your new "
-                            + "password is strong and unique.\n"
-                            + "Important: Do not share your credentials with anyone. If you "
-                            + "did not request this activation or believe this was done in "
-                            + "error, please contact the system administrator immediately.\n"
-                            + "Should you require any technical assistance, feel free to reach "
-                            + "out to our support team.\n\n"
-                            + "Warm regards,\n"
-                            + "Silverline Administration Team\n";
-
-                    emailService.sendSimpleMessage(user.getEmail(), subject, body);
+                    emailService.sendHtmlMessage(user.getEmail(), subject, htmlContent);
                 } catch (Exception e) {
                     log.error("Failed to send activation email to user ID {}: {}", userId, e.getMessage(), e);
                 }

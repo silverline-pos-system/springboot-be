@@ -110,15 +110,15 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         loyaltyOtpRepository.save(new LoyaltyOtp(customerId, otp, LocalDateTime.now().plusMinutes(10)));
 
         String subject = "ROCS POS - Loyalty Points Redemption";
-        String body = String.format(
-                "Hello %s,\n\n" +
-                "You have requested to redeem %d loyalty points at ROCS POS.\n" +
-                "Your authorization code is: %s\n\n" +
-                "If this was not you, please contact support.\n\n" +
-                "Thank you,\nROCS System",
-                customer.getName(), pointsReq, otp
+        String htmlContent = com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
+                "loyalty_otp",
+                Map.of(
+                        "customerName", customer.getName(),
+                        "pointsReq", pointsReq,
+                        "otpCode", otp
+                )
         );
-        emailService.sendSimpleMessage(customer.getEmail(), subject, body);
+        emailService.sendHtmlMessage(customer.getEmail(), subject, htmlContent);
     }
 
     @Override
