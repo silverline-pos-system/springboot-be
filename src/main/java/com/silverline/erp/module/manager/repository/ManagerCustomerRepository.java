@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface ManagerCustomerRepository extends JpaRepository<Customer, Long> {
-    
+
     List<Customer> findByIsActiveTrue();
 
     @Query("SELECT SUM(c.loyaltyPoints) FROM Customer c")
@@ -17,7 +17,7 @@ public interface ManagerCustomerRepository extends JpaRepository<Customer, Long>
 
     @Query("SELECT COUNT(c) FROM Customer c WHERE c.isActive = true")
     Long countActiveCustomers();
-    
+
     @Query("SELECT COUNT(c) FROM Customer c WHERE c.isActive = false")
     Long countInactiveCustomers();
 }

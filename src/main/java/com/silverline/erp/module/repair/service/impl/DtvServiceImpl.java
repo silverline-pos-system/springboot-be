@@ -33,7 +33,7 @@ public class DtvServiceImpl implements DtvService {
         service.setCustomerName(requestDTO.getCustomerName());
         service.setContactNo(requestDTO.getContactNo());
         service.setAddress(requestDTO.getAddress());
-        
+
         StringBuilder combinedNotes = new StringBuilder();
         if (requestDTO.getNotes() != null) combinedNotes.append(requestDTO.getNotes());
         if (requestDTO.getAltContactNo() != null && !requestDTO.getAltContactNo().isEmpty()) {
@@ -50,7 +50,7 @@ public class DtvServiceImpl implements DtvService {
         service.setNotes(combinedNotes.toString());
 
         service.setServiceStatus(ServiceStatus.PENDING);
-        
+
         SaleService savedService = saleServiceRepository.save(service);
 
         SaleServiceStatusHistory history = new SaleServiceStatusHistory();
@@ -82,19 +82,19 @@ public class DtvServiceImpl implements DtvService {
 
         ServiceStatus oldStatus = service.getServiceStatus();
         ServiceStatus nextStatus = ServiceStatus.valueOf(newStatus.toUpperCase());
-        
+
         service.setServiceStatus(nextStatus);
         if (technicianId != null) {
             service.setTechnicianId(technicianId);
         }
-        
+
         if (balanceCollected != null) {
             service.setBalanceCollected(balanceCollected);
         }
         if (additionalItems != null) {
             service.setAdditionalItems(additionalItems);
         }
-        
+
         SaleService savedService = saleServiceRepository.save(service);
 
         SaleServiceStatusHistory history = new SaleServiceStatusHistory();

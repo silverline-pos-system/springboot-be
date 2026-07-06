@@ -33,7 +33,7 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
     @Modifying
     @Transactional
     @Query("UPDATE NotificationRecipient nr SET nr.isRead = true, nr.readAt = :readAt " +
-           "WHERE nr.notification.notificationId = :notificationId AND nr.userId = :userId")
+            "WHERE nr.notification.notificationId = :notificationId AND nr.userId = :userId")
     int markAsRead(@Param("notificationId") Long notificationId, @Param("userId") Long userId, @Param("readAt") LocalDateTime readAt);
 
     List<NotificationRecipient> findByNotification_NotificationId(Long notificationId);

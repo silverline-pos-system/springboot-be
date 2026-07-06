@@ -17,6 +17,7 @@ public final class SecurityUtils {
 
     /**
      * Get the currently authenticated user's ID.
+     *
      * @return userId or null if not authenticated
      */
     public static Long getCurrentUserId() {
@@ -29,6 +30,7 @@ public final class SecurityUtils {
 
     /**
      * Get the currently authenticated user's username.
+     *
      * @return username or null if not authenticated
      */
     public static String getCurrentUsername() {
@@ -41,6 +43,7 @@ public final class SecurityUtils {
 
     /**
      * Get the currently authenticated user's role.
+     *
      * @return role or null if not authenticated
      */
     public static Role getCurrentUserRole() {
@@ -53,6 +56,7 @@ public final class SecurityUtils {
 
     /**
      * Get the full UserProfile of the currently authenticated user.
+     *
      * @return UserProfile or null if not authenticated
      */
     public static UserProfile getCurrentUser() {

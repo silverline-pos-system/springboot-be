@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class SilverlineApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SilverlineApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SilverlineApplication.class, args);
+    }
 }

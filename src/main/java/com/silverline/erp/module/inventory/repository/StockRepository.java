@@ -24,7 +24,7 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
     List<Stock> findByProductId(Long productId);
 
     @Query("SELECT s FROM InventoryStock s JOIN Product p ON s.productId = p.productId " +
-           "WHERE s.branchId = :branchId AND s.availableQty <= p.reorderLevel")
+            "WHERE s.branchId = :branchId AND s.availableQty <= p.reorderLevel")
     List<Stock> findLowStockByBranch(@Param("branchId") Long branchId);
 
     @Query("SELECT COALESCE(SUM(s.quantity), 0) FROM InventoryStock s WHERE s.productId = :productId")
@@ -35,17 +35,17 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 
     @Modifying
     @Query("UPDATE InventoryStock s SET s.quantity = s.quantity - :qty, s.availableQty = s.availableQty - :qty " +
-           "WHERE s.branchId = :branchId AND s.productId = :productId AND s.availableQty >= :qty")
+            "WHERE s.branchId = :branchId AND s.productId = :productId AND s.availableQty >= :qty")
     int decrementQuantityIfAvailable(@Param("branchId") Long branchId,
                                      @Param("productId") Long productId,
                                      @Param("qty") int qty);
 
     @Modifying
     @Query("UPDATE InventoryStock s SET s.quantity = s.quantity + :qty, s.availableQty = s.availableQty + :qty " +
-           "WHERE s.branchId = :branchId AND s.productId = :productId")
+            "WHERE s.branchId = :branchId AND s.productId = :productId")
     void incrementQuantity(@Param("branchId") Long branchId,
-                          @Param("productId") Long productId,
-                          @Param("qty") int qty);
+                           @Param("productId") Long productId,
+                           @Param("qty") int qty);
 
     @Query("SELECT s FROM InventoryStock s WHERE s.branchId = :branchId AND s.quantity <= :threshold")
     List<Stock> findLowStockProducts(@Param("branchId") Long branchId, @Param("threshold") Integer threshold);

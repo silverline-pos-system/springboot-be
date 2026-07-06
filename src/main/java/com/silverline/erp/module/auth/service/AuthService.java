@@ -10,10 +10,16 @@ import java.util.List;
 
 public interface AuthService {
     UserProfile findByEmail(String email);
+
     UserProfile findByUsername(String username);
+
     List<Branch> getAllBranches();
+
     RegisterResponseDTO registerUser(RegisterRequestDTO registerRequestDTO);
+
     LogInResponseDTO logInUser(String username, String password);
+
     boolean verifySupervisor(String username, String password);
+
     void forgotPassword(String username, String newPassword, String reason);
 }

@@ -13,8 +13,11 @@ import java.util.List;
 @Repository
 public interface DispatchItemRepository extends JpaRepository<DispatchItem, Long> {
     List<DispatchItem> findByDispatchId(Long dispatchId);
+
     List<DispatchItem> findByProductId(Long productId);
+
     List<DispatchItem> findByBatchCode(String batchCode);
+
     List<DispatchItem> findByExpiryDateBetween(LocalDate startDate, LocalDate endDate);
 
     @Query("SELECT SUM(gi.qtyDispatched) FROM DispatchItem gi WHERE gi.productId = :productId")

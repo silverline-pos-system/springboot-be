@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface JournalLineRepository extends JpaRepository<JournalLine, Long> {
     List<JournalLine> findByJournalId(Long journalId);
+
     List<JournalLine> findByAccountId(Long accountId);
 
     @Query("SELECT COALESCE(SUM(jl.debit) - SUM(jl.credit), 0) FROM JournalLine jl WHERE jl.accountId = :accountId")

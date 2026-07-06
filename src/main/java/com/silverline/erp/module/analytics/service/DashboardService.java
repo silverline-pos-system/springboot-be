@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface DashboardService {
     List<DashboardStatsDTO> getDashboardStats(Long branchId);
+
     List<PendingDispatchDTO> getPendingDispatches(Long branchId);
 }

@@ -19,7 +19,7 @@ public class ExpenseCategoryController {
     public ResponseEntity<List<ExpenseCategoryDTO>> getAllCategories() {
         return ResponseEntity.ok(expenseService.getAllCategories());
     }
-    
+
     @GetMapping("/active")
     public ResponseEntity<List<ExpenseCategoryDTO>> getActiveCategories() {
         return ResponseEntity.ok(expenseService.getActiveCategories());
@@ -42,7 +42,7 @@ public class ExpenseCategoryController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
+
     @PatchMapping("/{id}/toggle")
     public ResponseEntity<?> toggleCategoryStatus(@PathVariable Long id) {
         try {

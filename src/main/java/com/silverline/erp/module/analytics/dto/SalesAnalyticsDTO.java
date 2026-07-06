@@ -22,7 +22,7 @@ public class SalesAnalyticsDTO {
     private BigDecimal avgTransactionValue;
     private int customersServed;
     private double growthPercentage;
-    
+
     // Breakdown Data
     private List<PaymentBreakdownDTO> paymentBreakdown;
     private List<HourlySalesDTO> hourlySales;

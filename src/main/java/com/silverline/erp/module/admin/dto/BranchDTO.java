@@ -30,7 +30,7 @@ public class BranchDTO {
     // Computed fields for frontend display
     private String managerName;
     private Integer terminalCount;
-    
+
     // Additional computed fields for real metrics
     private Double dailySales;
     private Integer activeTerminals;

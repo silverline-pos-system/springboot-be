@@ -19,7 +19,8 @@ public class OpenShiftRequest {
     private BigDecimal openingCash;
 
     // Default constructor (required for JSON deserialization)
-    public OpenShiftRequest() {}
+    public OpenShiftRequest() {
+    }
 
     // Constructor with parameters
     public OpenShiftRequest(Long branchId, BigDecimal openingCash) {

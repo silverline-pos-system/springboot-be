@@ -40,7 +40,7 @@ public class ManagerCustomerController {
     public ResponseEntity<?> adjustPoints(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         Integer points = (Integer) payload.get("points");
         String reason = (String) payload.get("reason");
-        
+
         customerService.addPoints(id, points, reason);
         return ResponseEntity.ok(Map.of("message", "Points adjusted successfully"));
     }
@@ -61,7 +61,7 @@ public class ManagerCustomerController {
         customerService.updateTierRules(rules);
         return ResponseEntity.ok(Map.of("message", "Tier rules updated"));
     }
-    
+
     @GetMapping("/{id}/sales")
     public ResponseEntity<List<ManagerSaleDTO>> getCustomerSales(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getCustomerSales(id));

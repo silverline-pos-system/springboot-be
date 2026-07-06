@@ -152,7 +152,7 @@ public class DispatchController {
         List<DispatchResponseDTO> result = dispatchService.searchDispatches(filter);
         return ResponseEntity.ok(ApiResponse.success("Pending Dispatches retrieved successfully", result));
     }
-    
+
     @GetMapping("/reports/pdf")
     public ResponseEntity<byte[]> getDispatchListPdf() {
         log.info("Generating Dispatch list PDF");

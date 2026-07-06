@@ -14,7 +14,7 @@ public interface SaleRepository {
 
     /**
      * Save a new Sales
-     * 
+     *
      * @param Sale - Sales entity
      * @return Generated Sales_id
      */
@@ -22,7 +22,7 @@ public interface SaleRepository {
 
     /**
      * Find Sales by ID
-     * 
+     *
      * @param SalesId - Primary key
      * @return Optional<Sales>
      */
@@ -30,7 +30,7 @@ public interface SaleRepository {
 
     /**
      * Find Sales by invoice number
-     * 
+     *
      * @param invoiceNo - Invoice number
      * @return Optional<Sales>
      */
@@ -38,7 +38,7 @@ public interface SaleRepository {
 
     /**
      * Get all Saless for a shift
-     * 
+     *
      * @param shiftId - Shift ID
      * @return List of Saless
      */
@@ -46,7 +46,7 @@ public interface SaleRepository {
 
     /**
      * Get Saless by date range
-     * 
+     *
      * @param branchId  - Branch ID
      * @param startDate - Start date
      * @param endDate   - End date
@@ -56,7 +56,7 @@ public interface SaleRepository {
 
     /**
      * Get total Saless count for a shift
-     * 
+     *
      * @param shiftId - Shift ID
      * @return Count
      */
@@ -64,14 +64,14 @@ public interface SaleRepository {
 
     /**
      * Get all sales
-     * 
+     *
      * @return List of sales
      */
     List<Sale> findAll();
 
     /**
      * Find by payment status
-     * 
+     *
      * @param status - Status (PAID, etc)
      * @return List of sales
      */
@@ -79,7 +79,7 @@ public interface SaleRepository {
 
     /**
      * Get total net sales amount for a shift
-     * 
+     *
      * @param shiftId - Shift ID
      * @return Total net sales
      */
@@ -87,14 +87,14 @@ public interface SaleRepository {
 
     /**
      * Get the last invoice number
-     * 
+     *
      * @return Last invoice number or null if none exists
      */
     String findLastInvoiceNo();
 
     /**
      * Get the last invoice number for today
-     * 
+     *
      * @param datePrefix - Date prefix in format INV-YYYYMMDD
      * @return Last invoice number for today or null if none exists
      */

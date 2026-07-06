@@ -28,7 +28,7 @@ public class RegisterRequestDTO {
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone number format")
     private String phone;
-    
+
     private String employeeId;
 
     private Long branchId;

@@ -10,10 +10,10 @@ import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.dto.BranchDTO;
 import com.silverline.erp.module.admin.repository.BranchRepository;
+import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.auth.dto.LogInResponseDTO;
 import com.silverline.erp.module.auth.dto.RegisterRequestDTO;
 import com.silverline.erp.module.auth.dto.RegisterResponseDTO;
-import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.auth.service.AuthService;
 import com.silverline.erp.module.auth.service.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -89,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
         userProfile.setEmail(registerRequestDTO.getEmail());
         userProfile.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
         userProfile.setPhone(registerRequestDTO.getPhone());
-        
+
         String employeeId = generateSequentialEmployeeId();
         int attempts = 0;
         while (userProfileRepository.findByEmployeeId(employeeId).isPresent() && attempts < 100) {
@@ -196,15 +196,15 @@ public class AuthServiceImpl implements AuthService {
         response.setBranches(branchDtos);
 
         activityLogService.logActivity(
-            allBranches.isEmpty() ? 1L : allBranches.get(0).getBranchId(),
-            user.getUserId(),
-            user.getUsername(),
-            roleName,
-            "LOGIN",
-            "USER",
-            user.getUserId(),
-            "User logged in: " + user.getUsername(),
-            "{}"
+                allBranches.isEmpty() ? 1L : allBranches.get(0).getBranchId(),
+                user.getUserId(),
+                user.getUsername(),
+                roleName,
+                "LOGIN",
+                "USER",
+                user.getUserId(),
+                "User logged in: " + user.getUsername(),
+                "{}"
         );
 
         return response;
@@ -219,9 +219,9 @@ public class AuthServiceImpl implements AuthService {
 
         String roleName = user.getRole().name();
         boolean isSupervisor = roleName.equals("SUPER_ADMIN") ||
-                               roleName.equals("ADMIN") ||
-                               roleName.equals("MANAGER") ||
-                               roleName.equals("SUPERVISOR");
+                roleName.equals("ADMIN") ||
+                roleName.equals("MANAGER") ||
+                roleName.equals("SUPERVISOR");
 
         if (!isSupervisor) return false;
         return passwordEncoder.matches(password, user.getPassword());

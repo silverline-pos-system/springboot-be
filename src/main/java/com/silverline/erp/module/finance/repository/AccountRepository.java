@@ -10,8 +10,11 @@ import java.util.Optional;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByCode(String code);
+
     List<Account> findByType(String type);
+
     List<Account> findByParentId(Long parentId);
+
     List<Account> findByIsActiveTrue();
 }
 

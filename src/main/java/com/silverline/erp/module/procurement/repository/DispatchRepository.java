@@ -13,12 +13,19 @@ import java.util.Optional;
 @Repository("inventoryDispatchRepository")
 public interface DispatchRepository extends JpaRepository<Dispatch, Long> {
     Optional<Dispatch> findByDispatchNo(String dispatchNo);
+
     List<Dispatch> findByBranchId(Long branchId);
+
     List<Dispatch> findBySupplierId(Long supplierId);
+
     List<Dispatch> findByPoId(Long poId);
+
     List<Dispatch> findByStatus(String status);
+
     List<Dispatch> findByBranchIdAndStatus(Long branchId, String status);
+
     List<Dispatch> findByPaymentStatus(String paymentStatus);
+
     List<Dispatch> findByBranchIdAndDispatchDateBetween(Long branchId, LocalDate startDate, LocalDate endDate);
 
     @Query("SELECT g FROM Dispatch g WHERE " +

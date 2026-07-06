@@ -10,8 +10,11 @@ import java.util.Optional;
 @Repository
 public interface SupplierProductRepository extends JpaRepository<SupplierProduct, Long> {
     List<SupplierProduct> findBySupplierId(Long supplierId);
+
     List<SupplierProduct> findByProductId(Long productId);
+
     Optional<SupplierProduct> findBySupplierIdAndProductId(Long supplierId, Long productId);
+
     List<SupplierProduct> findByProductIdAndIsPreferredTrue(Long productId);
 }
 

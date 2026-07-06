@@ -13,6 +13,7 @@ public interface ShiftRepository {
 
     /**
      * Save a new shift to database
+     *
      * @param shift - CashShift entity to save
      * @return Generated shift_id
      */
@@ -20,12 +21,14 @@ public interface ShiftRepository {
 
     /**
      * Update existing shift (used when closing)
+     *
      * @param shift - CashShift entity with updated values
      */
     void update(CashShift shift);
 
     /**
      * Find shift by ID
+     *
      * @param shiftId - Primary key
      * @return Optional<CashShifts> - Present if found, empty if not
      */
@@ -33,6 +36,7 @@ public interface ShiftRepository {
 
     /**
      * Find the currently open shift for a cashier
+     *
      * @param cashierId - User ID of cashier
      * @return Optional<CashShift>
      */
@@ -40,6 +44,7 @@ public interface ShiftRepository {
 
     /**
      * Check if cashier has an open shift
+     *
      * @param cashierId - User ID of cashier
      * @return true if open shift exists, false otherwise
      */
@@ -47,6 +52,7 @@ public interface ShiftRepository {
 
     /**
      * Get shift with transaction statistics
+     *
      * @param shiftId - Primary key
      * @return Optional<CashShift> with transaction stats
      */
@@ -54,22 +60,25 @@ public interface ShiftRepository {
 
     /**
      * Get all shifts for a specific branch
+     *
      * @param branchId - Branch ID
-     * @param limit - Max number of records
+     * @param limit    - Max number of records
      * @return List of shifts
      */
     List<CashShift> findByBranchId(Long branchId, int limit);
 
     /**
      * Get all shifts for a specific cashier
+     *
      * @param cashierId - User ID
-     * @param limit - Max number of records
+     * @param limit     - Max number of records
      * @return List of shifts
      */
     List<CashShift> findByCashierId(Long cashierId, int limit);
 
     /**
      * Find active shift for a cashier
+     *
      * @param cashierId - User ID
      * @return Optional<CashShift>
      */
@@ -79,6 +88,7 @@ public interface ShiftRepository {
 
     /**
      * Find open shift for a specific branch
+     *
      * @param branchId - Branch ID
      * @return Optional<CashShift>
      */

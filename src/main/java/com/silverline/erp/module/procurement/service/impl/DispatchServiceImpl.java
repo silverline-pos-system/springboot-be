@@ -2,7 +2,9 @@ package com.silverline.erp.module.procurement.service.impl;
 
 import com.silverline.erp.common.event.DispatchReceivedEvent;
 import com.silverline.erp.common.exception.DispatchException;
-import com.silverline.erp.domain.inventory.*;
+import com.silverline.erp.domain.inventory.Batch;
+import com.silverline.erp.domain.inventory.ProductSerial;
+import com.silverline.erp.domain.inventory.Stock;
 import com.silverline.erp.domain.procurement.*;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.module.admin.repository.BranchRepository;

@@ -58,7 +58,7 @@ public class DatabaseAutoCreationConfig {
                 if (dbName.startsWith("/")) {
                     dbName = dbName.substring(1);
                 }
-                
+
                 // In case of query params, extract only database name before "?"
                 int paramIdx = dbName.indexOf('?');
                 if (paramIdx != -1) {
@@ -72,12 +72,12 @@ public class DatabaseAutoCreationConfig {
                 }
 
                 String maintenanceDbUrl = "jdbc:postgresql://" + host + ":" + port + "/postgres";
-                
+
                 log.info("Checking database existence for: {} on host {}:{}", dbName, host, port);
-                
+
                 // Load driver class
                 Class.forName(driverClassName);
-                
+
                 // Sanitize database name identifier to prevent SQL injection since identifier names cannot be parameterized in CREATE DATABASE
                 if (!dbName.matches("^[a-zA-Z0-9_]+$")) {
                     throw new IllegalArgumentException("Database name contains invalid characters: " + dbName);
@@ -94,7 +94,7 @@ public class DatabaseAutoCreationConfig {
                             }
                         }
                     }
-                    
+
                     if (!dbExists) {
                         log.info("Database '{}' does not exist. Creating it...", dbName);
                         try (Statement stmt = conn.createStatement()) {
@@ -123,7 +123,7 @@ public class DatabaseAutoCreationConfig {
         config.setIdleTimeout(idleTimeout);
         config.setConnectionTimeout(connectionTimeout);
         config.setMaxLifetime(maxLifetime);
-        
+
         return new HikariDataSource(config);
     }
 }

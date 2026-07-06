@@ -15,20 +15,20 @@ public final class InputSanitizer {
     // Pattern to detect potential XSS attack vectors
     private static final Pattern XSS_PATTERN = Pattern.compile(
             "<script[^>]*?>.*?</script>|" +
-            "<[^>]+on\\w+\\s*=|" +
-            "javascript\\s*:|" +
-            "vbscript\\s*:|" +
-            "data\\s*:",
+                    "<[^>]+on\\w+\\s*=|" +
+                    "javascript\\s*:|" +
+                    "vbscript\\s*:|" +
+                    "data\\s*:",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
 
     // Pattern to detect SQL injection attempts
     private static final Pattern SQL_INJECTION_PATTERN = Pattern.compile(
             "('\\s*(OR|AND)\\s+')|" +
-            "(;\\s*(DROP|ALTER|DELETE|INSERT|UPDATE)\\s+)|" +
-            "(UNION\\s+SELECT)|" +
-            "(--\\s)|" +
-            "(/\\*.*?\\*/)",
+                    "(;\\s*(DROP|ALTER|DELETE|INSERT|UPDATE)\\s+)|" +
+                    "(UNION\\s+SELECT)|" +
+                    "(--\\s)|" +
+                    "(/\\*.*?\\*/)",
             Pattern.CASE_INSENSITIVE
     );
 
@@ -80,9 +80,9 @@ public final class InputSanitizer {
     public static boolean isSafeFilename(String filename) {
         if (filename == null || filename.isEmpty()) return false;
         return !filename.contains("..") &&
-               !filename.contains("/") &&
-               !filename.contains("\\") &&
-               !filename.contains("\0");
+                !filename.contains("/") &&
+                !filename.contains("\\") &&
+                !filename.contains("\0");
     }
 
     /**

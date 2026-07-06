@@ -41,8 +41,8 @@ public class InventoryUtils {
      */
     public static boolean isValidPaymentStatus(String paymentStatus) {
         return paymentStatus != null &&
-               (paymentStatus.equals("PAID") ||
-                paymentStatus.equals("UNPAID") ||
-                paymentStatus.equals("PARTIAL"));
+                (paymentStatus.equals("PAID") ||
+                        paymentStatus.equals("UNPAID") ||
+                        paymentStatus.equals("PARTIAL"));
     }
 }

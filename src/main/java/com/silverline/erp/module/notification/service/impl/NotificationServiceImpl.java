@@ -4,6 +4,7 @@ import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.notification.Notification;
 import com.silverline.erp.domain.notification.NotificationRecipient;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.notification.repository.NotificationRecipientRepository;
 import com.silverline.erp.module.notification.repository.NotificationRepository;
@@ -12,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service

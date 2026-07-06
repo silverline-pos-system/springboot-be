@@ -2,8 +2,8 @@ package com.silverline.erp.module.repair.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.common.dto.PagedResponse;
-import com.silverline.erp.domain.repair.RepairJob;
 import com.silverline.erp.domain.pos.SaleService;
+import com.silverline.erp.domain.repair.RepairJob;
 import com.silverline.erp.module.repair.dto.RepairJobRequestDTO;
 import com.silverline.erp.module.repair.dto.SaleServiceRequestDTO;
 import com.silverline.erp.module.repair.service.DtvService;
@@ -68,23 +68,23 @@ public class RepairController {
         if (payload.containsKey("technicianId") && payload.get("technicianId") != null) {
             technicianId = Long.valueOf(payload.get("technicianId").toString());
         }
-        
+
         BigDecimal balanceCollected = null;
         if (payload.containsKey("balanceCollected") && payload.get("balanceCollected") != null) {
             balanceCollected = new BigDecimal(payload.get("balanceCollected").toString());
         }
-        
+
         String additionalItems = null;
         if (payload.containsKey("additionalItems")) {
             additionalItems = (String) payload.get("additionalItems");
         }
-        
+
         return ResponseEntity.ok(dtvService.updateDtvStatus(id, status, technicianId, balanceCollected, additionalItems));
     }
 
     @PutMapping("/repairs/{id}/status")
     public ResponseEntity<RepairJob> updateRepairStatus(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @RequestBody Map<String, Object> payload) {
         String status = (String) payload.get("status");
         Long technicianId = null;
@@ -97,7 +97,7 @@ public class RepairController {
 
     @PutMapping("/repairs/{id}/request-finalize")
     public ResponseEntity<RepairJob> requestFinalizeCost(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @RequestBody Map<String, Object> payload) {
         Long managerId = Long.valueOf(payload.get("managerId").toString());
         BigDecimal estimatedCost = BigDecimal.ZERO;
@@ -105,13 +105,13 @@ public class RepairController {
             estimatedCost = new BigDecimal(payload.get("estimatedCost").toString());
         }
         String costNote = (String) payload.get("costNote");
-        
+
         return ResponseEntity.ok(repairService.requestFinalizeCost(id, managerId, estimatedCost, costNote));
     }
 
     @PutMapping("/repairs/{id}/finalize")
     public ResponseEntity<RepairJob> finalizeRepairCost(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @RequestBody Map<String, Object> payload) {
         BigDecimal finalCost = payload.get("finalCost") != null
                 ? new BigDecimal(payload.get("finalCost").toString()) : BigDecimal.ZERO;

@@ -1,22 +1,18 @@
 package com.silverline.erp.module.pos.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
-import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.pos.dto.ShiftStartRequest;
 import com.silverline.erp.module.pos.dto.shift.CloseShiftRequest;
 import com.silverline.erp.module.pos.service.CashReconciliationService;
 import com.silverline.erp.module.pos.service.ShiftService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v1/pos")
@@ -58,12 +54,12 @@ public class ShiftController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "No active shift found")
     @GetMapping("/shift/active")
     public ResponseEntity<ApiResponse<com.silverline.erp.module.pos.dto.shift.ShiftResponse>> getActiveShift(
-             @RequestParam(required = false) Long branchId, 
-             @RequestParam(required = false) Long cashierId) {
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) Long cashierId) {
         try {
             com.silverline.erp.module.pos.dto.shift.ShiftResponse activeShift = shiftService.getActiveShift(branchId, cashierId);
             if (activeShift == null) {
-                 return ResponseEntity.status(404).body(ApiResponse.error("No active shift found"));
+                return ResponseEntity.status(404).body(ApiResponse.error("No active shift found"));
             }
             return ResponseEntity.ok(ApiResponse.success("Active shift found", activeShift));
         } catch (Exception e) {

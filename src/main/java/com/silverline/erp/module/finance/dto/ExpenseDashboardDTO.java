@@ -13,7 +13,7 @@ public class ExpenseDashboardDTO {
     private BigDecimal unpaidExpenses;
     private String topCategoryName;
     private BigDecimal topCategoryAmount;
-    
+
     private List<Map<String, Object>> monthlyCategoryBreakdown;
     private List<Map<String, Object>> branchExpenseBreakdown;
 }

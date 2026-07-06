@@ -19,6 +19,7 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
 
     /**
      * Get all payments for a sale
+     *
      * @param saleId - Sale ID
      * @return List of payments
      */
@@ -26,6 +27,7 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
 
     /**
      * Delete payments by sale ID
+     *
      * @param saleId - Sale ID
      */
     @org.springframework.data.jpa.repository.Modifying
@@ -34,6 +36,7 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
 
     /**
      * Get payments by shift ID (via Sale)
+     *
      * @param shiftId - Shift ID
      * @return List of payments
      */
@@ -45,25 +48,25 @@ public interface PaymentRepository extends JpaRepository<@NonNull Payment, @NonN
 
     @Query("SELECT SUM(p.amount) FROM Payment p JOIN Sale s ON p.saleId = s.saleId WHERE s.shiftId = :shiftId AND p.paymentType NOT IN ('CASH', 'CARD')")
     java.math.BigDecimal sumOtherPaymentsByShiftId(Long shiftId);
-    
+
     /**
      * Get payment breakdown by type for a date range
      */
     @Query(value = """
-        SELECT p.payment_type, 
-               COALESCE(SUM(p.amount), 0) as total_amount,
-               COUNT(p.payment_id) as payment_count
-        FROM payments p
-        JOIN sales s ON p.sale_id = s.sale_id
-        WHERE s.sale_date BETWEEN :startDate AND :endDate
-        AND (:branchId IS NULL OR s.branch_id = :branchId)
-        GROUP BY p.payment_type
-        ORDER BY total_amount DESC
-        """, nativeQuery = true)
+            SELECT p.payment_type, 
+                   COALESCE(SUM(p.amount), 0) as total_amount,
+                   COUNT(p.payment_id) as payment_count
+            FROM payments p
+            JOIN sales s ON p.sale_id = s.sale_id
+            WHERE s.sale_date BETWEEN :startDate AND :endDate
+            AND (:branchId IS NULL OR s.branch_id = :branchId)
+            GROUP BY p.payment_type
+            ORDER BY total_amount DESC
+            """, nativeQuery = true)
     List<Object[]> findPaymentBreakdownByDateRange(@Param("startDate") LocalDateTime startDate,
                                                    @Param("endDate") LocalDateTime endDate,
                                                    @Param("branchId") Long branchId);
-    
+
     /**
      * Sum payments by type for date range
      */

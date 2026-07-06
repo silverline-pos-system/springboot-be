@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Entity(name = "InventoryStock")
 @Table(name = "stock", uniqueConstraints = {
-    @UniqueConstraint(name = "unique_branch_product", columnNames = {"branch_id", "product_id"})
+        @UniqueConstraint(name = "unique_branch_product", columnNames = {"branch_id", "product_id"})
 })
 @Data
 @NoArgsConstructor

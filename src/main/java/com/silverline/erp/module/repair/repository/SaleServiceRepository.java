@@ -10,6 +10,7 @@ import java.util.List;
 @Repository
 public interface SaleServiceRepository extends JpaRepository<SaleService, Long> {
     List<SaleService> findByTechnicianId(Long technicianId);
+
     List<SaleService> findByServiceStatus(ServiceStatus status);
 }
 

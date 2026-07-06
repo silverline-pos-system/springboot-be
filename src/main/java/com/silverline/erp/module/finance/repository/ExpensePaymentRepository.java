@@ -12,7 +12,7 @@ import java.util.List;
 public interface ExpensePaymentRepository extends JpaRepository<ExpensePayment, Long> {
 
     List<ExpensePayment> findByExpense_ExpenseId(Long expenseId);
-    
+
     @Query("SELECT COALESCE(SUM(ep.amount), 0) FROM ExpensePayment ep WHERE ep.expense.expenseId = :expenseId")
     Double sumPaymentsByExpenseId(@Param("expenseId") Long expenseId);
 }

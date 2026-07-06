@@ -51,7 +51,7 @@ public class RepairServiceImpl implements RepairService {
                 });
 
         RepairJob job = new RepairJob();
-        job.setRepairNo("REP-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 1000));
+        job.setRepairNo("REP-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1000));
         job.setBranchId(requestDTO.getBranchId() != null ? requestDTO.getBranchId() : 1L);
         job.setCustomerId(customer.getCustomerId());
         job.setDeviceBrand(requestDTO.getDeviceBrand());
@@ -100,7 +100,7 @@ public class RepairServiceImpl implements RepairService {
                 .orElseThrow(() -> new RuntimeException("Repair Job not found"));
 
         RepairStatus oldStatus = job.getStatus();
-        
+
         job.setFinalCost(finalCost);
         job.setStatus(RepairStatus.READY_FOR_PAYMENT);
         job.setApprovedBy(managerId);

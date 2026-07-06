@@ -78,7 +78,7 @@ public class SaleRepositoryImpl implements SaleRepository {
                     "gross_total = ?, discount = ?, tax_amount = ?, net_total = ?, paid_amount = ?, " +
                     "change_amount = ?, payment_status = ?, sale_type = ?, notes = ?, sale_date = ? " +
                     "WHERE sale_id = ?";
-            
+
             jdbcTemplate.update(
                     sql,
                     sale.getInvoiceNo(),
@@ -234,7 +234,7 @@ public class SaleRepositoryImpl implements SaleRepository {
                 "GROUP BY b.branch_id, b.name " +
                 "ORDER BY total DESC " +
                 "LIMIT ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new Object[] {
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new Object[]{
                 rs.getLong("branch_id"),
                 rs.getString("name"),
                 rs.getBigDecimal("total")
@@ -248,7 +248,7 @@ public class SaleRepositoryImpl implements SaleRepository {
                 "WHERE sale_date >= DATE_SUB(NOW(), INTERVAL ? DAY) " +
                 "GROUP BY DATE(sale_date) " +
                 "ORDER BY d ASC";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new Object[] {
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new Object[]{
                 rs.getDate("d").toString(),
                 rs.getBigDecimal("total")
         }, days);

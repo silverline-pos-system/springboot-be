@@ -32,16 +32,16 @@ public class JasperReportService {
 
     @Autowired
     private ManagerService managerService;
-    
+
     @Autowired
     private CustomerService customerService;
 
     @Autowired
     private SalesAnalyticsService salesAnalyticsService;
-    
+
     @Autowired
     private DispatchRepository dispatchRepository;
-    
+
     @Autowired
     private SupplierRepository supplierRepository;
 
@@ -49,7 +49,7 @@ public class JasperReportService {
         List<ApprovalDTO> approvals = managerService.getApprovals(null, branchId);
         return generatePdf("/reports/approval_history.jrxml", approvals, null);
     }
-    
+
     public byte[] generateSalesReportsPdf(String startDate, String endDate, Long branchId) throws Exception {
         List<SalesReportDTO> reports = salesAnalyticsService.getSalesReports(startDate, endDate, branchId);
         Map<String, Object> parameters = new HashMap<>();
@@ -62,12 +62,12 @@ public class JasperReportService {
         List<ActivityLogDTO> activities = managerService.getBranchActivityLog(limit, branchId);
         return generatePdf("/reports/branch_activity_log.jrxml", activities, null);
     }
-    
+
     public byte[] generateLoyaltyCustomersPdf() throws Exception {
         List<ManagerCustomerDTO> customers = customerService.getAllCustomers(org.springframework.data.domain.Pageable.unpaged()).getContent();
         return generatePdf("/reports/loyalty_customers.jrxml", customers, null);
     }
-    
+
     public byte[] generateDispatchListPdf() throws Exception {
         List<Dispatch> dispatches = dispatchRepository.findAll();
         Map<Long, String> supplierNames = supplierRepository.findAll().stream()
@@ -94,17 +94,17 @@ public class JasperReportService {
 
         JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
         JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(data);
-        
+
         if (parameters == null) {
             parameters = new HashMap<>();
         }
         parameters.put("createdBy", "ROCS System");
 
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
-        
+
         return JasperExportManager.exportReportToPdf(jasperPrint);
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor

@@ -26,11 +26,11 @@ public class ExpenseDTO {
     private Long approvedBy;
     private LocalDateTime createdAt;
     private LocalDateTime approvedAt;
-    
+
     // Derived fields for payments
     private BigDecimal totalPaid;
     private BigDecimal balance;
-    
+
     private List<ExpensePaymentDTO> payments;
 }
 

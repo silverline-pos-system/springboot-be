@@ -73,7 +73,7 @@ public class AdjustmentServiceImpl implements AdjustmentService {
                 BigDecimal removeQty = adjustmentQty.abs();
                 if (stock.getQuantity().compareTo(removeQty) < 0) {
                     throw new InsufficientStockException(
-                        "Insufficient stock. Available: " + stock.getQuantity() + ", Required: " + removeQty
+                            "Insufficient stock. Available: " + stock.getQuantity() + ", Required: " + removeQty
                     );
                 }
                 stock.setQuantity(stock.getQuantity().subtract(removeQty));

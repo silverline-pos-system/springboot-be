@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface CashShiftDenominationRepository extends JpaRepository<CashShiftDenomination, Long> {
     List<CashShiftDenomination> findByShiftId(Long shiftId);
+
     List<CashShiftDenomination> findByShiftIdAndType(Long shiftId, CashShiftDenomination.DenominationType type);
 }
 

@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface SaleItemRepositoryCustom {
     void saveBatch(List<SaleItem> saleItems);
+
     List<SaleItemResponse> findBySaleIdWithProductDetails(Long saleId);
 }
 

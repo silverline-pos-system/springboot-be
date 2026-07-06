@@ -4,7 +4,6 @@ import com.silverline.erp.module.admin.dto.SaasFeatureDTO;
 import com.silverline.erp.module.admin.service.SaasFeatureService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

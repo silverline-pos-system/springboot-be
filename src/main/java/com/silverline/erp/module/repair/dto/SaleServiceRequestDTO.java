@@ -28,7 +28,7 @@ public class SaleServiceRequestDTO {
     private String notes;
     private Long technicianId;
     private Long createdBy;
-    
+
     // For standalone creation without a completed sale yet:
     private Long customerId;
     private String customerName;

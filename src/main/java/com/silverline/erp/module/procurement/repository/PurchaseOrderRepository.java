@@ -11,8 +11,11 @@ import java.util.Optional;
 public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Long> {
 
     Optional<PurchaseOrder> findByPoNo(String poNo);
+
     List<PurchaseOrder> findByBranchId(Long branchId);
+
     List<PurchaseOrder> findByStatus(String status);
+
     List<PurchaseOrder> findBySupplierId(Long supplierId);
 }
 

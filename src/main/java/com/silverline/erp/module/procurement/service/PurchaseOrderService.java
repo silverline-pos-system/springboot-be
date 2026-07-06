@@ -54,16 +54,16 @@ public class PurchaseOrderService {
     @Transactional
     public PurchaseOrder createPurchaseOrder(PurchaseOrderDTO dto) {
         PurchaseOrder po = new PurchaseOrder();
-        
+
         // Generate a random PO No if not provided, or a formatted one.
         po.setPoNo(dto.getPoNo() != null && !dto.getPoNo().isEmpty() ? dto.getPoNo() : "PO-" + System.currentTimeMillis());
-        
+
         po.setBranchId(dto.getBranchId() != null ? dto.getBranchId() : 1L);
         po.setSupplierId(dto.getSupplierId());
         po.setPoDate(dto.getPoDate() != null ? dto.getPoDate() : LocalDate.now());
         po.setExpectedDeliveryDate(dto.getExpectedDeliveryDate());
         po.setPaymentTerms(dto.getPaymentTerms());
-        
+
         BigDecimal totalAmount = BigDecimal.ZERO;
         BigDecimal discountAmount = BigDecimal.ZERO;
         BigDecimal netAmount = BigDecimal.ZERO;
@@ -82,7 +82,7 @@ public class PurchaseOrderService {
             item.setSellingPrice(itemDto.getSellingPrice());
             item.setMrp(itemDto.getMrp());
             item.setDiscount(itemDto.getDiscount() != null ? itemDto.getDiscount() : BigDecimal.ZERO);
-            
+
             // Calc Total
             BigDecimal lineTotal = item.getQtyOrdered().multiply(item.getUnitPrice());
             BigDecimal itemTotal = lineTotal.subtract(item.getDiscount());
@@ -111,7 +111,7 @@ public class PurchaseOrderService {
         List<PurchaseOrderResponse> content = start < all.size() ? all.subList(start, end) : List.of();
         return new PageImpl<>(content, capped, all.size());
     }
-    
+
     public List<PurchaseOrderResponse> getManagerApprovals() {
         return poRepository.findByStatus("PENDING_APPROVAL").stream()
                 .map(this::toResponse)
@@ -147,7 +147,7 @@ public class PurchaseOrderService {
             po.setPaymentStatus("PAID");
             po.setPaidAmount(payment.getAmountPaid());
             po.setPaidAt(payment.getPaidAt());
-        } else if ("APPROVED".equals(status) || "REJECTED".equals(status) 
+        } else if ("APPROVED".equals(status) || "REJECTED".equals(status)
                 || "TRANSFERRED_TO_CASHIER".equals(status)
                 || "PARTIALLY_RECEIVED".equals(status)
                 || "FULLY_RECEIVED".equals(status)) {
@@ -159,45 +159,45 @@ public class PurchaseOrderService {
 
     public List<PurchaseOrderItemResponse> getPurchaseOrderItems(Long poId) {
         return poItemRepository.findByPoId(poId).stream()
-            .map(item -> {
-                PurchaseOrderItemResponse res = new PurchaseOrderItemResponse();
-                res.setPoItemId(item.getPoItemId());
-                res.setPoId(item.getPoId());
-                res.setProductId(item.getProductId());
+                .map(item -> {
+                    PurchaseOrderItemResponse res = new PurchaseOrderItemResponse();
+                    res.setPoItemId(item.getPoItemId());
+                    res.setPoId(item.getPoId());
+                    res.setProductId(item.getProductId());
 
-                // Fetch product name
-                String productName = productRepository.findById(item.getProductId())
-                        .map(p -> p.getName())
-                        .orElse("Unknown Product");
-                res.setProductName(productName);
+                    // Fetch product name
+                    String productName = productRepository.findById(item.getProductId())
+                            .map(p -> p.getName())
+                            .orElse("Unknown Product");
+                    res.setProductName(productName);
 
-                res.setQtyOrdered(item.getQtyOrdered());
-                res.setQtyDispatched(item.getQtyDispatched());
-                res.setUnitPrice(item.getUnitPrice());
-                res.setSellingPrice(item.getSellingPrice());
-                res.setMrp(item.getMrp());
-                res.setDiscount(item.getDiscount());
-                res.setTotal(item.getTotal());
-                return res;
-            })
-            .collect(Collectors.toList());
+                    res.setQtyOrdered(item.getQtyOrdered());
+                    res.setQtyDispatched(item.getQtyDispatched());
+                    res.setUnitPrice(item.getUnitPrice());
+                    res.setSellingPrice(item.getSellingPrice());
+                    res.setMrp(item.getMrp());
+                    res.setDiscount(item.getDiscount());
+                    res.setTotal(item.getTotal());
+                    return res;
+                })
+                .collect(Collectors.toList());
     }
 
     public List<PurchaseOrderPaymentResponse> getPurchaseOrderPayments(Long poId) {
         return poPaymentRepository.findByPoIdOrderByPaidAtDesc(poId).stream()
-            .map(payment -> {
-                PurchaseOrderPaymentResponse res = new PurchaseOrderPaymentResponse();
-                res.setPoPaymentId(payment.getPoPaymentId());
-                res.setPoId(payment.getPoId());
-                res.setPaymentMethod(payment.getPaymentMethod());
-                res.setPaymentReference(payment.getPaymentReference());
-                res.setAmountPaid(payment.getAmountPaid());
-                res.setPaidAt(payment.getPaidAt());
-                res.setPaidBy(payment.getPaidBy());
-                res.setNotes(payment.getNotes());
-                return res;
-            })
-            .collect(Collectors.toList());
+                .map(payment -> {
+                    PurchaseOrderPaymentResponse res = new PurchaseOrderPaymentResponse();
+                    res.setPoPaymentId(payment.getPoPaymentId());
+                    res.setPoId(payment.getPoId());
+                    res.setPaymentMethod(payment.getPaymentMethod());
+                    res.setPaymentReference(payment.getPaymentReference());
+                    res.setAmountPaid(payment.getAmountPaid());
+                    res.setPaidAt(payment.getPaidAt());
+                    res.setPaidBy(payment.getPaidBy());
+                    res.setNotes(payment.getNotes());
+                    return res;
+                })
+                .collect(Collectors.toList());
     }
 
     private PurchaseOrderResponse toResponse(PurchaseOrder po) {
@@ -222,9 +222,9 @@ public class PurchaseOrderService {
         response.setStatus(po.getStatus());
         response.setCreatedBy(po.getCreatedBy());
         response.setRequestedBy(po.getCreatedBy() != null ?
-            userRepository.findById(po.getCreatedBy())
-                .map(u -> (u.getUsername() != null && !u.getUsername().trim().isEmpty()) ? u.getUsername() : u.getFullName())
-                .orElse("ID: " + po.getCreatedBy()) : "System");
+                userRepository.findById(po.getCreatedBy())
+                        .map(u -> (u.getUsername() != null && !u.getUsername().trim().isEmpty()) ? u.getUsername() : u.getFullName())
+                        .orElse("ID: " + po.getCreatedBy()) : "System");
         response.setCreatedAt(po.getCreatedAt());
 
         // Payment fields

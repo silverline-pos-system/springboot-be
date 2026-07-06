@@ -60,8 +60,8 @@ public interface BatchRepository extends JpaRepository<Batch, Long> {
     List<Batch> findExpiringSoonByBranchAndProduct(@Param("branchId") Long branchId, @Param("productId") Long productId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     @Query("SELECT b.productId, SUM(b.qty) FROM InventoryBatch b " +
-           "WHERE (:branchId IS NULL OR b.branchId = :branchId) " +
-           "GROUP BY b.productId")
+            "WHERE (:branchId IS NULL OR b.branchId = :branchId) " +
+            "GROUP BY b.productId")
     List<Object[]> sumQtyByProductIdAndBranchId(@Param("branchId") Long branchId);
 }
 

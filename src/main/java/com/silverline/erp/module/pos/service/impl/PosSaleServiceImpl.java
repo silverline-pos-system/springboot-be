@@ -6,8 +6,8 @@ import com.silverline.erp.domain.pos.Sale;
 import com.silverline.erp.domain.pos.SaleItem;
 import com.silverline.erp.domain.product.Product;
 import com.silverline.erp.domain.user.UserProfile;
-import com.silverline.erp.module.admin.service.SaasFeatureService;
 import com.silverline.erp.module.admin.repository.UserProfileRepository;
+import com.silverline.erp.module.admin.service.SaasFeatureService;
 import com.silverline.erp.module.inventory.service.BatchService;
 import com.silverline.erp.module.inventory.service.ProductSerialService;
 import com.silverline.erp.module.inventory.service.ProductService;
@@ -65,25 +65,25 @@ public class PosSaleServiceImpl implements PosSaleService {
             if (!allowOutOfStock) {
                 for (SaleItemRequest itemReq : request.getItems()) {
                     BigDecimal requiredQty = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ONE;
-                    
+
                     Product product = productService.findById(itemReq.getProductId());
                     String productName = product != null ? product.getName() : "Product #" + itemReq.getProductId();
-                    
+
                     if (itemReq.getProductId() == 332L || productName.toLowerCase().contains("service") || productName.toLowerCase().contains("dialog tv") || productName.toLowerCase().contains("dtv")) {
                         continue;
                     }
 
                     BigDecimal availableQty = BigDecimal.valueOf(stockService.getCurrentStock(branchId, itemReq.getProductId()));
-                    
+
                     if (availableQty.compareTo(BigDecimal.ZERO) <= 0) {
                         log.warn("Out of stock business rule violation: product='{}', branchId={}", productName, branchId);
                         throw new RuntimeException("Cannot sell '" + productName + "' — item is out of stock (Available: 0)");
                     }
-                    
+
                     if (availableQty.compareTo(requiredQty) < 0) {
                         log.warn("Insufficient stock business rule violation: product='{}', branchId={}, requested={}, available={}",
                                 productName, branchId, requiredQty, availableQty);
-                        throw new RuntimeException("Insufficient stock for '" + productName 
+                        throw new RuntimeException("Insufficient stock for '" + productName
                                 + "'. Requested: " + requiredQty + ", Available: " + availableQty);
                     }
                 }
@@ -237,10 +237,10 @@ public class PosSaleServiceImpl implements PosSaleService {
                 try {
                     Product product = productService.findById(soldItem.getProductId());
                     String productName = product != null ? product.getName() : "";
-                    
+
                     if (!(soldItem.getProductId() == 332L || productName.toLowerCase().contains("service") || productName.toLowerCase().contains("dialog tv") || productName.toLowerCase().contains("dtv"))) {
                         BigDecimal soldQty = soldItem.getQty() != null ? soldItem.getQty() : BigDecimal.ONE;
-                        
+
                         // Reduce stock via StockService
                         stockService.reduceStock(branchId, soldItem.getProductId(), soldQty.intValue());
                         log.info("Stock deducted for product {} in branch {}: -{}", soldItem.getProductId(), branchId, soldQty);

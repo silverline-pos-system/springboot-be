@@ -116,20 +116,67 @@ public class ShiftResponse {
     }
 
     // All getters (no setters - response is immutable)
-    public Long getShiftId() { return shiftId; }
-    public Long getCashierId() { return cashierId; }
-    public String getCashierName() { return cashierName; }
-    public Long getBranchId() { return branchId; }
-    public String getBranchName() { return branchName; }
-    public BigDecimal getOpeningCash() { return openingCash; }
-    public BigDecimal getClosingCash() { return closingCash; }
-    public BigDecimal getExpectedCash() { return expectedCash; }
-    public BigDecimal getCashDifference() { return cashDifference; }
-    public BigDecimal getTotalSales() { return totalSales; }
-    public BigDecimal getTotalReturns() { return totalReturns; }
-    public Integer getTransactionCount() { return transactionCount; }
-    public LocalDateTime getOpenedAt() { return openedAt; }
-    public LocalDateTime getClosedAt() { return closedAt; }
-    public String getStatus() { return status; }
-    public String getNotes() { return notes; }
+    public Long getShiftId() {
+        return shiftId;
+    }
+
+    public Long getCashierId() {
+        return cashierId;
+    }
+
+    public String getCashierName() {
+        return cashierName;
+    }
+
+    public Long getBranchId() {
+        return branchId;
+    }
+
+    public String getBranchName() {
+        return branchName;
+    }
+
+    public BigDecimal getOpeningCash() {
+        return openingCash;
+    }
+
+    public BigDecimal getClosingCash() {
+        return closingCash;
+    }
+
+    public BigDecimal getExpectedCash() {
+        return expectedCash;
+    }
+
+    public BigDecimal getCashDifference() {
+        return cashDifference;
+    }
+
+    public BigDecimal getTotalSales() {
+        return totalSales;
+    }
+
+    public BigDecimal getTotalReturns() {
+        return totalReturns;
+    }
+
+    public Integer getTransactionCount() {
+        return transactionCount;
+    }
+
+    public LocalDateTime getOpenedAt() {
+        return openedAt;
+    }
+
+    public LocalDateTime getClosedAt() {
+        return closedAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
 }
