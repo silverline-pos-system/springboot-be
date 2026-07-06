@@ -16,4 +16,6 @@ public interface ManagerService {
     ApprovalDTO updateApprovalStatus(Long approvalId, String status, String notes, String role);
 
     List<ActivityLogDTO> getBranchActivityLog(int limit, Long branchId);
+
+    org.springframework.data.domain.Page<ActivityLogDTO> getBranchActivityLog(org.springframework.data.domain.Pageable pageable, Long branchId);
 }

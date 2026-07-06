@@ -44,10 +44,11 @@ public class ProductSerialServiceImpl implements ProductSerialService {
     private final BranchRepository branchRepository;
 
     @Override
-    public List<ProductSerialDTO> getAllSerials() {
-        return productSerialRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public org.springframework.data.domain.Page<ProductSerialDTO> getAllSerials(org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Pageable capped = org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), Math.min(pageable.getPageSize(), 100),
+                pageable.getSort().isSorted() ? pageable.getSort() : org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        return productSerialRepository.findAll(capped)
+                .map(this::convertToDTO);
     }
 
     @Override

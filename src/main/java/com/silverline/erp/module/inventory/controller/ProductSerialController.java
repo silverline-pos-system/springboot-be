@@ -25,9 +25,10 @@ public class ProductSerialController {
     private final ProductSerialService productSerialService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<?>> getAllSerials() {
-        List<ProductSerialDTO> serials = productSerialService.getAllSerials();
-        return ResponseEntity.ok(ApiResponse.success("Serials retrieved successfully", serials));
+    public ResponseEntity<ApiResponse<com.silverline.erp.common.dto.PagedResponse<ProductSerialDTO>>> getAllSerials(
+            @org.springframework.data.web.PageableDefault(size = 20) org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Page<ProductSerialDTO> pageInfo = productSerialService.getAllSerials(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Serials retrieved successfully", com.silverline.erp.common.dto.PagedResponse.from(pageInfo)));
     }
 
     @GetMapping("/product/{productId}")

@@ -71,11 +71,11 @@ public class ManagerController {
     // ===== BRANCH ACTIVITY LOG =====
 
     @GetMapping("/activity-log")
-    public ResponseEntity<ApiResponse<List<ActivityLogDTO>>> getBranchActivityLog(
-            @RequestParam(defaultValue = "20") int limit,
+    public ResponseEntity<ApiResponse<com.silverline.erp.common.dto.PagedResponse<ActivityLogDTO>>> getBranchActivityLog(
+            @org.springframework.data.web.PageableDefault(size = 20) org.springframework.data.domain.Pageable pageable,
             @RequestHeader(value = "X-Branch-ID", required = false) Long branchId) {
-        log.info("Fetching branch activity log with limit: {}, branchId: {}", limit, branchId);
-        List<ActivityLogDTO> activities = managerService.getBranchActivityLog(limit, branchId);
-        return ResponseEntity.ok(ApiResponse.success("Activity log fetched successfully", activities));
+        log.info("Fetching branch activity log with pageable: {}, branchId: {}", pageable, branchId);
+        org.springframework.data.domain.Page<ActivityLogDTO> pageInfo = managerService.getBranchActivityLog(pageable, branchId);
+        return ResponseEntity.ok(ApiResponse.success("Activity log fetched successfully", com.silverline.erp.common.dto.PagedResponse.from(pageInfo)));
     }
 }

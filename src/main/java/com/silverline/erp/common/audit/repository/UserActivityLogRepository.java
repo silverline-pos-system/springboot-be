@@ -13,6 +13,8 @@ public interface UserActivityLogRepository extends JpaRepository<UserActivityLog
 
     List<UserActivityLog> findByBranchId(Long branchId);
 
+    org.springframework.data.domain.Page<UserActivityLog> findByBranchId(Long branchId, org.springframework.data.domain.Pageable pageable);
+
     List<UserActivityLog> findByActivityType(String activityType);
 
     List<UserActivityLog> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);

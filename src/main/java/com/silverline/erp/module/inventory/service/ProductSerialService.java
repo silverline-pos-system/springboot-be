@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface ProductSerialService {
-    List<ProductSerialDTO> getAllSerials();
+    org.springframework.data.domain.Page<ProductSerialDTO> getAllSerials(org.springframework.data.domain.Pageable pageable);
 
     List<ProductSerialDTO> getSerialsByProduct(Long productId);
 

@@ -300,21 +300,25 @@ public class ManagerServiceImpl implements ManagerService {
         List<UserActivityLog> activities;
 
         if (branchId != null) {
-            activities = activityLogRepository.findByBranchId(branchId).stream()
-                    .sorted((a, b) -> {
-                        if (a.getCreatedAt() == null || b.getCreatedAt() == null) return 0;
-                        return b.getCreatedAt().compareTo(a.getCreatedAt());
-                    })
-                    .limit(limit)
-                    .collect(Collectors.toList());
+            activities = activityLogRepository.findByBranchId(
+                    branchId,
+                    PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"))
+            ).getContent();
         } else {
             activities = activityLogRepository.findAll(
                     PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"))
             ).getContent();
         }
 
-        Map<Long, String> userNames = userRepository.findAll().stream()
-                .collect(Collectors.toMap(UserProfile::getUserId, UserProfile::getFullName, (a, b) -> a));
+        List<Long> userIds = activities.stream()
+                .map(UserActivityLog::getUserId)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, String> userNames = userIds.isEmpty() ? Map.of() :
+                userRepository.findAllById(userIds).stream()
+                        .collect(Collectors.toMap(UserProfile::getUserId, UserProfile::getFullName, (a, b) -> a));
 
         return activities.stream()
                 .map(activity -> {
@@ -336,6 +340,48 @@ public class ManagerServiceImpl implements ManagerService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public org.springframework.data.domain.Page<ActivityLogDTO> getBranchActivityLog(org.springframework.data.domain.Pageable pageable, Long branchId) {
+        org.springframework.data.domain.Pageable capped = PageRequest.of(pageable.getPageNumber(), Math.min(pageable.getPageSize(), 100),
+                pageable.getSort().isSorted() ? pageable.getSort() : Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        org.springframework.data.domain.Page<UserActivityLog> activitiesPage;
+        if (branchId != null) {
+            activitiesPage = activityLogRepository.findByBranchId(branchId, capped);
+        } else {
+            activitiesPage = activityLogRepository.findAll(capped);
+        }
+
+        List<Long> userIds = activitiesPage.getContent().stream()
+                .map(UserActivityLog::getUserId)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, String> userNames = userIds.isEmpty() ? Map.of() :
+                userRepository.findAllById(userIds).stream()
+                        .collect(Collectors.toMap(UserProfile::getUserId, UserProfile::getFullName, (a, b) -> a));
+
+        return activitiesPage.map(activity -> {
+            String userName = userNames.getOrDefault(activity.getUserId(), "System");
+            return ActivityLogDTO.builder()
+                    .activityId(activity.getActivityId())
+                    .time(formatDateTime(activity.getCreatedAt()))
+                    .user(userName)
+                    .action(activity.getActivityType())
+                    .details(activity.getDescription())
+                    .severity(determineSeverity(activity.getActivityType()))
+                    .actionType(activity.getActivityType())
+                    .username(userName)
+                    .description(activity.getDescription())
+                    .createdAt(activity.getCreatedAt() != null ? activity.getCreatedAt().toString() : null)
+                    .status("SUCCESS")
+                    .branchId(activity.getBranchId())
+                    .userId(activity.getUserId())
+                    .build();
+        });
     }
 
     // ===== HELPER METHODS =====

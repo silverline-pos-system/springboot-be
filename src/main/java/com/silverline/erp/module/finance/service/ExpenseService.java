@@ -106,14 +106,10 @@ public class ExpenseService {
 
     public Page<ExpenseDTO> getAllExpenses(Pageable pageable) {
         Pageable capped = capPageable(pageable);
-        List<ExpenseDTO> all = expenseRepository.findAll().stream()
-                .sorted(Comparator.comparing(Expense::getExpenseDate).reversed())
-                .map(this::mapToExpenseDTO)
-                .collect(Collectors.toList());
-        int start = (int) capped.getOffset();
-        int end = Math.min((start + capped.getPageSize()), all.size());
-        List<ExpenseDTO> content = start < all.size() ? all.subList(start, end) : List.of();
-        return new PageImpl<>(content, capped, all.size());
+        org.springframework.data.domain.Sort sort = capped.getSort().isSorted() ? capped.getSort() : org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "expenseDate");
+        Pageable sorted = PageRequest.of(capped.getPageNumber(), capped.getPageSize(), sort);
+        return expenseRepository.findAll(sorted)
+                .map(this::mapToExpenseDTO);
     }
 
     public List<ExpenseDTO> getExpensesByBranch(Long branchId) {
