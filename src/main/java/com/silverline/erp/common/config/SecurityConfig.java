@@ -90,6 +90,8 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        // Allow Spring Security to pass-through async/error dispatches (essential for SSE / error handling)
+                        .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ASYNC, jakarta.servlet.DispatcherType.ERROR).permitAll()
                         // Public endpoints - no authentication required
                         .requestMatchers(
                                 "/api/v1/auth/**",
