@@ -5,12 +5,14 @@ import com.silverline.erp.common.security.SecurityUtils;
 import com.silverline.erp.domain.audit.PasswordResetRequest;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.infrastructure.email.EmailService;
+import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import com.silverline.erp.module.admin.dto.PasswordResetResponseDTO;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +28,7 @@ public class PasswordResetController {
     private final PasswordResetRequestRepository passwordResetRequestRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final SseEmitterRegistry sseEmitterRegistry;
 
     /**
      * GET /api/v1/admin/password-requests
@@ -145,6 +148,32 @@ public class PasswordResetController {
         }
 
         return ResponseEntity.ok(Map.of("message", "Password reset request rejected."));
+    }
+
+    /**
+     * GET /api/v1/admin/password-requests/stream
+     * SSE endpoint for real-time password reset request updates.
+     * Managers subscribe here to receive live notifications when new requests arrive.
+     */
+    @GetMapping("/stream")
+    public SseEmitter streamPasswordRequests() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new com.silverline.erp.common.exception.UnauthorizedException("Not authenticated");
+        }
+        SseEmitter emitter = new SseEmitter(180_000L); // 3-minute timeout
+        sseEmitterRegistry.register(userId, emitter);
+
+        // Send initial connection event
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("connection")
+                    .data("connected"));
+        } catch (Exception e) {
+            // registry's onError callback handles cleanup
+        }
+
+        return emitter;
     }
 
     private PasswordResetResponseDTO toDTO(PasswordResetRequest request) {

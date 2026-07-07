@@ -99,6 +99,23 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        log.warn("Resource not found: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("The requested resource was not found."));
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<String> handleMediaTypeNotAcceptable(org.springframework.web.HttpMediaTypeNotAcceptableException ex) {
+        log.warn("Media type not acceptable: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_ACCEPTABLE)
+                .contentType(org.springframework.http.MediaType.TEXT_PLAIN)
+                .body("Not Acceptable: the server cannot produce a response matching the Accept header.");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
         log.error("Unhandled exception: ", ex);
