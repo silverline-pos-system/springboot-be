@@ -352,13 +352,21 @@ public class ManagerServiceImpl implements ManagerService {
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<Long, String> userNames = userIds.isEmpty() ? Map.of() :
+        Map<Long, UserProfile> userProfileMap = userIds.isEmpty() ? Map.of() :
                 userRepository.findAllById(userIds).stream()
-                        .collect(Collectors.toMap(u -> u.getUserId(), u -> u.getFullName(), (a, b) -> a));
+                        .collect(Collectors.toMap(u -> u.getUserId(), u -> u, (a, b) -> a));
 
         return activities.stream()
+                .filter(activity -> {
+                    if (activity.getUserId() != null) {
+                        UserProfile profile = userProfileMap.get(activity.getUserId());
+                        return profile == null || profile.getRole() != com.silverline.erp.domain.enums.Role.SUPER_ADMIN;
+                    }
+                    return true;
+                })
                 .map(activity -> {
-                    String userName = userNames.getOrDefault(activity.getUserId(), "System");
+                    UserProfile profile = activity.getUserId() != null ? userProfileMap.get(activity.getUserId()) : null;
+                    String userName = profile != null ? profile.getFullName() : "System";
                     return ActivityLogDTO.builder()
                             .activityId(activity.getActivityId())
                             .time(formatDateTime(activity.getCreatedAt()))
@@ -396,28 +404,40 @@ public class ManagerServiceImpl implements ManagerService {
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<Long, String> userNames = userIds.isEmpty() ? Map.of() :
+        Map<Long, UserProfile> userProfileMap = userIds.isEmpty() ? Map.of() :
                 userRepository.findAllById(userIds).stream()
-                        .collect(Collectors.toMap(u -> u.getUserId(), u -> u.getFullName(), (a, b) -> a));
+                        .collect(Collectors.toMap(u -> u.getUserId(), u -> u, (a, b) -> a));
 
-        return activitiesPage.map(activity -> {
-            String userName = userNames.getOrDefault(activity.getUserId(), "System");
-            return ActivityLogDTO.builder()
-                    .activityId(activity.getActivityId())
-                    .time(formatDateTime(activity.getCreatedAt()))
-                    .user(userName)
-                    .action(activity.getActivityType())
-                    .details(activity.getDescription())
-                    .severity(determineSeverity(activity.getActivityType()))
-                    .actionType(activity.getActivityType())
-                    .username(userName)
-                    .description(activity.getDescription())
-                    .createdAt(activity.getCreatedAt() != null ? activity.getCreatedAt().toString() : null)
-                    .status("SUCCESS")
-                    .branchId(activity.getBranchId())
-                    .userId(activity.getUserId())
-                    .build();
-        });
+        List<ActivityLogDTO> filteredList = activitiesPage.getContent().stream()
+                .filter(activity -> {
+                    if (activity.getUserId() != null) {
+                        UserProfile profile = userProfileMap.get(activity.getUserId());
+                        return profile == null || profile.getRole() != com.silverline.erp.domain.enums.Role.SUPER_ADMIN;
+                    }
+                    return true;
+                })
+                .map(activity -> {
+                    UserProfile profile = activity.getUserId() != null ? userProfileMap.get(activity.getUserId()) : null;
+                    String userName = profile != null ? profile.getFullName() : "System";
+                    return ActivityLogDTO.builder()
+                            .activityId(activity.getActivityId())
+                            .time(formatDateTime(activity.getCreatedAt()))
+                            .user(userName)
+                            .action(activity.getActivityType())
+                            .details(activity.getDescription())
+                            .severity(determineSeverity(activity.getActivityType()))
+                            .actionType(activity.getActivityType())
+                            .username(userName)
+                            .description(activity.getDescription())
+                            .createdAt(activity.getCreatedAt() != null ? activity.getCreatedAt().toString() : null)
+                            .status("SUCCESS")
+                            .branchId(activity.getBranchId())
+                            .userId(activity.getUserId())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return new org.springframework.data.domain.PageImpl<>(filteredList, capped, activitiesPage.getTotalElements());
     }
 
     // ===== HELPER METHODS =====

@@ -106,11 +106,17 @@ public class AuditLogService {
     }
 
     public List<BranchActivity> getRecentActivities(Long branchId) {
-        return enrichActivitiesWithUserInfo(activityRepository.findTop20ByBranchIdOrderByTimestampDesc(branchId));
+        return enrichActivitiesWithUserInfo(activityRepository.findTop20ByBranchIdOrderByTimestampDesc(branchId))
+                .stream()
+                .filter(activity -> !"SUPER_ADMIN".equals(activity.getUserRole()))
+                .collect(Collectors.toList());
     }
 
     public List<BranchActivity> getActivitiesByDateRange(Long branchId, LocalDateTime start, LocalDateTime end) {
-        return enrichActivitiesWithUserInfo(activityRepository.findByBranchIdAndTimestampBetweenOrderByTimestampDesc(branchId, start, end));
+        return enrichActivitiesWithUserInfo(activityRepository.findByBranchIdAndTimestampBetweenOrderByTimestampDesc(branchId, start, end))
+                .stream()
+                .filter(activity -> !"SUPER_ADMIN".equals(activity.getUserRole()))
+                .collect(Collectors.toList());
     }
 
     private List<BranchActivity> enrichActivitiesWithUserInfo(List<BranchActivity> activities) {
