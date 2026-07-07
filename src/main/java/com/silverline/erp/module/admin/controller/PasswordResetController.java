@@ -10,6 +10,9 @@ import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import com.silverline.erp.module.admin.dto.PasswordResetResponseDTO;
 import com.silverline.erp.module.admin.event.PasswordResetCountChangedEvent;
 import com.silverline.erp.module.auth.repository.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,6 +29,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/admin/password-requests")
 @RequiredArgsConstructor
+@Tag(name = "Password Reset Requests", description = "APIs for administrators and managers to audit, approve, or reject user password reset requests")
 public class PasswordResetController {
 
     private final PasswordResetRequestRepository passwordResetRequestRepository;
@@ -34,16 +38,12 @@ public class PasswordResetController {
     private final SseEmitterRegistry sseEmitterRegistry;
     private final ApplicationEventPublisher eventPublisher;
 
-    /**
-     * GET /api/v1/admin/password-requests
-     * Get all password reset requests (sorted newest first)
-     * All managers see all requests â€” no branch filtering
-     */
+    @Operation(summary = "Get all password reset requests", description = "Lists all password reset requests in the system, sorted by creation date (newest first). Can filter by status.")
+    @ApiResponse(responseCode = "200", description = "Requests list fetched successfully")
     @GetMapping("")
     public ResponseEntity<List<PasswordResetResponseDTO>> getAllRequests(
             @RequestParam(required = false) String status) {
 
-        // NOTE: No branch filtering â€” all managers/admins see all requests
         List<PasswordResetRequest> requests;
         if (status != null && !status.isEmpty()) {
             requests = passwordResetRequestRepository.findByStatusOrderByCreatedAtDesc(status);
@@ -53,21 +53,18 @@ public class PasswordResetController {
         return ResponseEntity.ok(requests.stream().map(this::toDTO).collect(Collectors.toList()));
     }
 
-    /**
-     * GET /api/v1/admin/password-requests/count
-     * Get count of pending password reset requests
-     */
+    @Operation(summary = "Get pending requests count", description = "Retrieves the total count of pending password reset requests awaiting verification/approval")
+    @ApiResponse(responseCode = "200", description = "Pending count retrieved successfully")
     @GetMapping("/count")
     public ResponseEntity<Map<String, Long>> getPendingCount() {
-        // NOTE: No branch filtering â€” all managers see all pending counts
         long count = passwordResetRequestRepository.countByStatus("PENDING");
         return ResponseEntity.ok(Map.of("pendingCount", count));
     }
 
-    /**
-     * PATCH /api/v1/admin/password-requests/{id}/approve
-     * Approve a password reset request - applies the new password
-     */
+    @Operation(summary = "Approve password reset request", description = "Approve a verified request, applying the pre-hashed new password to the user profile and notifying the user via email")
+    @ApiResponse(responseCode = "200", description = "Password reset request approved successfully")
+    @ApiResponse(responseCode = "400", description = "Request is not in VERIFIED status and cannot be approved")
+    @ApiResponse(responseCode = "404", description = "Request or User profile not found")
     @PatchMapping("/{id}/approve")
     public ResponseEntity<?> approveRequest(@PathVariable Long id,
                                             @RequestBody(required = false) Map<String, String> body) {
@@ -79,15 +76,12 @@ public class PasswordResetController {
                     .body(Map.of("message", "Only verified password reset requests can be approved. Current status: " + request.getStatus()));
         }
 
-        // Find the user and apply the new password
         UserProfile user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("User not found"));
 
-        // Apply the pre-hashed password
         user.setPassword(request.getNewPasswordHash());
         userRepository.save(user);
 
-        // Update request status
         request.setStatus("APPROVED");
         request.setReviewedBy(SecurityUtils.getCurrentUserId());
         request.setReviewedAt(LocalDateTime.now());
@@ -96,10 +90,8 @@ public class PasswordResetController {
         }
         passwordResetRequestRepository.save(request);
 
-        // Publish event to broadcast the updated pending count asynchronously
         eventPublisher.publishEvent(new PasswordResetCountChangedEvent(this));
 
-        // Send email notification to user
         try {
             String subject = "Password Reset Approved - Silverline";
             String htmlContent = com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
@@ -114,10 +106,10 @@ public class PasswordResetController {
         return ResponseEntity.ok(Map.of("message", "Password reset approved successfully. User has been notified."));
     }
 
-    /**
-     * PATCH /api/v1/admin/password-requests/{id}/reject
-     * Reject a password reset request
-     */
+    @Operation(summary = "Reject password reset request", description = "Rejects a pending or verified password reset request, logging the rejection reason and notifying the user via email")
+    @ApiResponse(responseCode = "200", description = "Password reset request rejected successfully")
+    @ApiResponse(responseCode = "400", description = "Request is not in PENDING or VERIFIED status")
+    @ApiResponse(responseCode = "404", description = "Request not found")
     @PatchMapping("/{id}/reject")
     public ResponseEntity<?> rejectRequest(@PathVariable Long id,
                                            @RequestBody(required = false) Map<String, String> body) {
@@ -129,7 +121,6 @@ public class PasswordResetController {
                     .body(Map.of("message", "Only pending or verified requests can be rejected. Current status: " + request.getStatus()));
         }
 
-        // Update request status
         request.setStatus("REJECTED");
         request.setReviewedBy(SecurityUtils.getCurrentUserId());
         request.setReviewedAt(LocalDateTime.now());
@@ -138,10 +129,8 @@ public class PasswordResetController {
         }
         passwordResetRequestRepository.save(request);
 
-        // Publish event to broadcast the updated pending count asynchronously
         eventPublisher.publishEvent(new PasswordResetCountChangedEvent(this));
 
-        // Send email notification to user
         try {
             String reason = (body != null && body.containsKey("adminNotes")) ? body.get("adminNotes") : "No reason provided";
             String subject = "Password Reset Request Rejected - Silverline";
@@ -160,21 +149,17 @@ public class PasswordResetController {
         return ResponseEntity.ok(Map.of("message", "Password reset request rejected."));
     }
 
-    /**
-     * GET /api/v1/admin/password-requests/stream
-     * SSE endpoint for real-time password reset request updates.
-     * Managers subscribe here to receive live notifications when new requests arrive.
-     */
+    @Operation(summary = "Subscribe to pending count stream", description = "Establishes a real-time Server-Sent Events (SSE) stream to receive live pending request count updates")
+    @ApiResponse(responseCode = "200", description = "SSE stream connection established")
     @GetMapping("/stream")
     public SseEmitter streamPasswordRequests() {
         Long userId = SecurityUtils.getCurrentUserId();
         if (userId == null) {
             throw new com.silverline.erp.common.exception.UnauthorizedException("Not authenticated");
         }
-        SseEmitter emitter = new SseEmitter(180_000L); // 3-minute timeout
+        SseEmitter emitter = new SseEmitter(180_000L);
         sseEmitterRegistry.register(SseChannel.PASSWORD_RESETS, userId, emitter);
 
-        // Send initial connection event and current count
         try {
             emitter.send(SseEmitter.event()
                     .name("connection")
@@ -210,5 +195,3 @@ public class PasswordResetController {
         return dto;
     }
 }
-
-

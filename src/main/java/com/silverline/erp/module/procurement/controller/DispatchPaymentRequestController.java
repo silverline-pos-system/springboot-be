@@ -5,6 +5,8 @@ import com.silverline.erp.module.inventory.dto.ProcessPaymentRequest;
 import com.silverline.erp.module.inventory.dto.TransferToManagerRequest;
 import com.silverline.erp.module.procurement.dto.DispatchPaymentRequestDTO;
 import com.silverline.erp.module.procurement.service.DispatchPaymentRequestService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/dispatch-payments")
 @RequiredArgsConstructor
+@Tag(name = "Dispatch Payment Requests", description = "APIs for cashiers to request dispatch cash payouts from POS registers, and managers to verify or override payouts")
 public class DispatchPaymentRequestController {
 
     private final DispatchPaymentRequestService paymentRequestService;
@@ -28,7 +31,6 @@ public class DispatchPaymentRequestController {
         return userId;
     }
 
-    // NOTE: branchId now from request params — users are NOT tied to branches
     private Long getBranchIdFromParam(Long branchId) {
         if (branchId == null) {
             throw new IllegalArgumentException("Branch ID is required");
@@ -36,9 +38,8 @@ public class DispatchPaymentRequestController {
         return branchId;
     }
 
-    /**
-     * Get payment requests for current branch (for POS display)
-     */
+    @Operation(summary = "Get payment requests by branch", description = "Retrieves a list of dispatch payment requests for the specified branch location")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Payment requests list retrieved successfully")
     @GetMapping("/branch")
     public ResponseEntity<ApiResponse<List<DispatchPaymentRequestDTO>>> getPaymentRequestsByBranch(
             @RequestParam(required = true) Long branchId) {
@@ -47,9 +48,8 @@ public class DispatchPaymentRequestController {
         return ResponseEntity.ok(ApiResponse.success("Payment requests fetched", requests));
     }
 
-    /**
-     * Get pending payment requests count for POS notification badge
-     */
+    @Operation(summary = "Get pending count by branch", description = "Retrieves the pending payment requests count (used for frontend navigation alerts)")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Count retrieved successfully")
     @GetMapping("/branch/pending-count")
     public ResponseEntity<ApiResponse<Map<String, Long>>> getPendingCount(
             @RequestParam(required = true) Long branchId) {
@@ -58,9 +58,8 @@ public class DispatchPaymentRequestController {
         return ResponseEntity.ok(ApiResponse.success("Count fetched", Map.of("count", count)));
     }
 
-    /**
-     * Get payment requests by status
-     */
+    @Operation(summary = "Get payment requests by status", description = "Retrieves requests matching a specific status code (e.g. PENDING, APPROVED, TRANSFERRED)")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Payment requests list retrieved successfully")
     @GetMapping("/status/{status}")
     public ResponseEntity<ApiResponse<List<DispatchPaymentRequestDTO>>> getPaymentRequestsByStatus(
             @PathVariable String status) {
@@ -68,27 +67,25 @@ public class DispatchPaymentRequestController {
         return ResponseEntity.ok(ApiResponse.success("Payment requests fetched", requests));
     }
 
-    /**
-     * Get payment requests for manager (transferred ones)
-     */
+    @Operation(summary = "Get manager payment requests list", description = "Retrieves all payment requests transferred to the manager dashboard")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Manager requests list retrieved successfully")
     @GetMapping("/manager")
     public ResponseEntity<ApiResponse<List<DispatchPaymentRequestDTO>>> getManagerPaymentRequests() {
         List<DispatchPaymentRequestDTO> requests = paymentRequestService.getManagerPaymentRequests();
         return ResponseEntity.ok(ApiResponse.success("Manager payment requests fetched", requests));
     }
 
-    /**
-     * Get manager pending count for notification
-     */
+    @Operation(summary = "Get manager pending count", description = "Retrieves the count of pending payment requests waiting on the manager dashboard")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Count retrieved successfully")
     @GetMapping("/manager/pending-count")
     public ResponseEntity<ApiResponse<Map<String, Long>>> getManagerPendingCount() {
         Long count = paymentRequestService.getManagerPendingCount();
         return ResponseEntity.ok(ApiResponse.success("Count fetched", Map.of("count", count)));
     }
 
-    /**
-     * Get single payment request by ID
-     */
+    @Operation(summary = "Get payment request by ID", description = "Retrieves a single dispatch payment request by database ID")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Payment request details retrieved successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Request not found")
     @GetMapping("/{requestId}")
     public ResponseEntity<ApiResponse<DispatchPaymentRequestDTO>> getPaymentRequestById(
             @PathVariable Long requestId) {
@@ -96,9 +93,9 @@ public class DispatchPaymentRequestController {
         return ResponseEntity.ok(ApiResponse.success("Payment request fetched", request));
     }
 
-    /**
-     * Transfer payment request to manager (requires supervisor approval)
-     */
+    @Operation(summary = "Transfer payment request to manager", description = "Escalates a payment request to the manager override dashboard (requires supervisor credential authorization)")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Request escalated successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Authorization failure or invalid request state")
     @PostMapping("/{requestId}/transfer-to-manager")
     public ResponseEntity<ApiResponse<DispatchPaymentRequestDTO>> transferToManager(
             @PathVariable Long requestId,
@@ -112,9 +109,9 @@ public class DispatchPaymentRequestController {
         }
     }
 
-    /**
-     * Manager processes the payment
-     */
+    @Operation(summary = "Process and approve payment request", description = "Manager processes and pays out the dispatch request, updating cash flow registers and ledger logs")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Payment processed and paid successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Insufficient register cash flow or invalid request state")
     @PostMapping("/{requestId}/process-payment")
     public ResponseEntity<ApiResponse<DispatchPaymentRequestDTO>> processPayment(
             @PathVariable Long requestId,
@@ -128,9 +125,9 @@ public class DispatchPaymentRequestController {
         }
     }
 
-    /**
-     * Reject a payment request
-     */
+    @Operation(summary = "Reject payment request", description = "Rejects a cashier's dispatch payment request, logging rejection reason")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Payment request rejected successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request state or rejection validation failure")
     @PostMapping("/{requestId}/reject")
     public ResponseEntity<ApiResponse<DispatchPaymentRequestDTO>> rejectRequest(
             @PathVariable Long requestId,
@@ -145,3 +142,4 @@ public class DispatchPaymentRequestController {
         }
     }
 }
+
