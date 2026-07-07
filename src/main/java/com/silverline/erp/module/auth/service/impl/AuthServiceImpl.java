@@ -82,6 +82,9 @@ public class AuthServiceImpl implements AuthService {
         UserProfile user = userProfileRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        user.setLastLogin(java.time.LocalDateTime.now());
+        userProfileRepository.save(user);
+
         List<Branch> allBranches = branchRepository.findAll().stream()
                 .filter(b -> Boolean.TRUE.equals(b.getIsActive()))
                 .collect(Collectors.toList());

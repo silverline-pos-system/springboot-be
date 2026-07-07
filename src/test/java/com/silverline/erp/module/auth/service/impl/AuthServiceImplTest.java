@@ -80,6 +80,8 @@ class AuthServiceImplTest {
         assertNotNull(response);
         assertEquals("Login successful", response.getMessage());
         assertEquals("mockJwtToken", response.getToken());
+        assertNotNull(userProfile.getLastLogin());
+        verify(userProfileRepository, times(1)).save(userProfile);
     }
 
     @Test
