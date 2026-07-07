@@ -1,10 +1,6 @@
 package com.silverline.erp.module.auth.service.impl;
 
 import com.silverline.erp.common.audit.AuditLogService;
-import com.silverline.erp.common.audit.repository.ApprovalRepository;
-import com.silverline.erp.common.audit.repository.PasswordResetRequestRepository;
-import com.silverline.erp.domain.audit.Approval;
-import com.silverline.erp.domain.audit.PasswordResetRequest;
 import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.domain.enums.AccountStatus;
 import com.silverline.erp.domain.user.UserProfile;
@@ -12,20 +8,15 @@ import com.silverline.erp.module.admin.dto.BranchDTO;
 import com.silverline.erp.module.admin.repository.BranchRepository;
 import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.auth.dto.LogInResponseDTO;
-import com.silverline.erp.module.auth.dto.RegisterRequestDTO;
-import com.silverline.erp.module.auth.dto.RegisterResponseDTO;
 import com.silverline.erp.module.auth.service.AuthService;
 import com.silverline.erp.module.auth.service.JwtService;
-import com.silverline.erp.module.admin.event.PasswordResetCountChangedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,14 +30,11 @@ import java.util.stream.Collectors;
 public class AuthServiceImpl implements AuthService {
 
     private final UserProfileRepository userProfileRepository;
-    private final ApprovalRepository approvalRepository;
     private final BranchRepository branchRepository;
-    private final PasswordResetRequestRepository passwordResetRequestRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final AuditLogService activityLogService;
     private final PasswordEncoder passwordEncoder;
-    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public UserProfile findByEmail(String email) {
@@ -58,80 +46,6 @@ public class AuthServiceImpl implements AuthService {
     public UserProfile findByUsername(String username) {
         Optional<UserProfile> userProfile = userProfileRepository.findByUsername(username);
         return userProfile.orElse(null);
-    }
-
-    @Override
-    public List<Branch> getAllBranches() {
-        return branchRepository.findAll();
-    }
-
-    @Override
-    @Transactional
-    public RegisterResponseDTO registerUser(RegisterRequestDTO registerRequestDTO) {
-        log.info("Registering user: username={}, email={}", registerRequestDTO.getUsername(), registerRequestDTO.getEmail());
-        UserProfile existUserByEmail = findByEmail(registerRequestDTO.getEmail());
-        if (existUserByEmail != null) {
-            log.warn("Business rule violation: registration failed because email '{}' already exists", registerRequestDTO.getEmail());
-            return new RegisterResponseDTO("EMAIL: User with this email already exists");
-        }
-        UserProfile existUserByUsername = findByUsername(registerRequestDTO.getUsername());
-        if (existUserByUsername != null) {
-            log.warn("Business rule violation: registration failed because username '{}' already exists", registerRequestDTO.getUsername());
-            return new RegisterResponseDTO("USERNAME: User with this username already exists");
-        }
-
-        Optional<UserProfile> existUserByPhone = userProfileRepository.findByPhone(registerRequestDTO.getPhone());
-        if (existUserByPhone.isPresent()) {
-            log.warn("Business rule violation: registration failed because phone '{}' already exists", registerRequestDTO.getPhone());
-            return new RegisterResponseDTO("PHONE: User with this phone number already exists");
-        }
-
-        UserProfile userProfile = new UserProfile();
-        userProfile.setFullName(registerRequestDTO.getFullName());
-        userProfile.setUsername(registerRequestDTO.getUsername());
-        userProfile.setEmail(registerRequestDTO.getEmail());
-        userProfile.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
-        userProfile.setPhone(registerRequestDTO.getPhone());
-
-        String employeeId = generateSequentialEmployeeId();
-        int attempts = 0;
-        while (userProfileRepository.findByEmployeeId(employeeId).isPresent() && attempts < 100) {
-            attempts++;
-            Long maxNumber = userProfileRepository.findMaxEmployeeIdSequence();
-            long nextNumber = (maxNumber != null ? maxNumber : 0) + 1 + attempts;
-            employeeId = String.format("EMP-%03d", nextNumber);
-        }
-        userProfile.setEmployeeId(employeeId);
-        userProfile.setRole(null);
-        userProfile.setAccountStatus(AccountStatus.PENDING);
-
-        UserProfile registerUser = userProfileRepository.save(userProfile);
-
-        Approval approval = new Approval();
-        List<Branch> activeBranches = branchRepository.findAll().stream()
-                .filter(b -> Boolean.TRUE.equals(b.getIsActive()))
-                .collect(Collectors.toList());
-        if (!activeBranches.isEmpty()) {
-            approval.setBranchId(activeBranches.get(0).getBranchId());
-        } else {
-            approval.setBranchId(1L);
-        }
-        approval.setType("USER_REGISTRATION");
-        approval.setReferenceId(registerUser.getUserId());
-        approval.setReferenceNo("USER-" + registerUser.getUsername());
-        approval.setStatus("PENDING");
-        approval.setRequestedBy(registerUser.getUserId());
-        approval.setRequestNotes("User registration for " + registerUser.getFullName());
-        approvalRepository.save(approval);
-
-        return new RegisterResponseDTO(
-                registerUser.getUserId(),
-                registerUser.getEmail(),
-                registerUser.getFullName(),
-                registerUser.getRole(),
-                registerUser.getAccountStatus(),
-                "User registered successfully. Pending Manager approval."
-        );
     }
 
     @Override
@@ -228,89 +142,5 @@ public class AuthServiceImpl implements AuthService {
 
         if (!isSupervisor) return false;
         return passwordEncoder.matches(password, user.getPassword());
-    }
-
-    private final com.silverline.erp.infrastructure.email.EmailService emailService;
-
-    @Override
-    @Transactional
-    public void forgotPassword(String username, String newPassword, String reason) {
-        UserProfile user = findByUsername(username);
-        if (user == null) {
-            throw new com.silverline.erp.common.exception.ResourceNotFoundException("Username not found. Please check and try again.");
-        }
-
-        List<PasswordResetRequest> existing = passwordResetRequestRepository.findByUserId(user.getUserId());
-        boolean hasPending = existing.stream().anyMatch(r -> "PENDING".equals(r.getStatus()) || "VERIFIED".equals(r.getStatus()));
-        if (hasPending) {
-            throw new com.silverline.erp.common.exception.ValidationException("You already have a pending or verified password reset request. Please wait for admin approval.");
-        }
-
-        // Generate a 6-digit verification code
-        String token = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
-        String tokenHash = com.silverline.erp.common.security.SecurityUtils.hashToken(token);
-
-        PasswordResetRequest resetRequest = new PasswordResetRequest();
-        resetRequest.setUserId(user.getUserId());
-        resetRequest.setUsername(user.getUsername());
-        resetRequest.setFullName(user.getFullName());
-        resetRequest.setEmail(user.getEmail());
-        resetRequest.setNewPasswordHash(passwordEncoder.encode(newPassword));
-        resetRequest.setTokenHash(tokenHash);
-        resetRequest.setStatus("PENDING");
-        resetRequest.setRequestNotes(reason != null ? reason : "Password reset requested");
-
-        passwordResetRequestRepository.save(resetRequest);
-
-        // Publish event to broadcast the updated pending count asynchronously
-        eventPublisher.publishEvent(new PasswordResetCountChangedEvent(this));
-
-        // Send email with verification code
-        try {
-            String subject = "Password Reset Verification - Silverline";
-            String htmlContent = com.silverline.erp.infrastructure.email.TemplateEngine.loadAndResolve(
-                    "password_reset_request",
-                    Map.of(
-                            "fullName", user.getFullName(),
-                            "username", user.getUsername(),
-                            "verificationCode", token
-                    )
-            );
-            emailService.sendHtmlMessage(user.getEmail(), subject, htmlContent);
-        } catch (Exception e) {
-            log.error("Failed to send password reset verification email: {}", e.getMessage(), e);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void verifyForgotPasswordToken(String username, String token) {
-        UserProfile user = findByUsername(username);
-        if (user == null) {
-            throw new com.silverline.erp.common.exception.ResourceNotFoundException("Username not found.");
-        }
-
-        List<PasswordResetRequest> requests = passwordResetRequestRepository.findByUserId(user.getUserId());
-        PasswordResetRequest pendingRequest = requests.stream()
-                .filter(r -> "PENDING".equals(r.getStatus()))
-                .findFirst()
-                .orElseThrow(() -> new com.silverline.erp.common.exception.ValidationException("No pending password reset request found."));
-
-        String inputHash = com.silverline.erp.common.security.SecurityUtils.hashToken(token);
-        if (!inputHash.equals(pendingRequest.getTokenHash())) {
-            throw new com.silverline.erp.common.exception.ValidationException("Invalid verification code. Please try again.");
-        }
-
-        pendingRequest.setStatus("VERIFIED");
-        passwordResetRequestRepository.save(pendingRequest);
-
-        // Publish event to broadcast the updated pending count asynchronously
-        eventPublisher.publishEvent(new PasswordResetCountChangedEvent(this));
-    }
-
-    private String generateSequentialEmployeeId() {
-        Long maxNumber = userProfileRepository.findMaxEmployeeIdSequence();
-        long nextNumber = (maxNumber != null ? maxNumber : 0) + 1;
-        return String.format("EMP-%03d", nextNumber);
     }
 }

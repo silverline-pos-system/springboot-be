@@ -10,6 +10,7 @@ import com.silverline.erp.module.auth.dto.LogInResponseDTO;
 import com.silverline.erp.module.auth.dto.RegisterRequestDTO;
 import com.silverline.erp.module.auth.dto.RegisterResponseDTO;
 import com.silverline.erp.module.auth.service.AuthService;
+import com.silverline.erp.module.auth.service.RegistrationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +24,9 @@ public class AuthFlowIntegrationTest {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private RegistrationService registrationService;
 
     @Autowired
     private UserProfileRepository userProfileRepository;
@@ -50,7 +54,7 @@ public class AuthFlowIntegrationTest {
         registerRequest.setBranchId(branch.getBranchId());
 
         // 3. Register user
-        RegisterResponseDTO registerResponse = authService.registerUser(registerRequest);
+        RegisterResponseDTO registerResponse = registrationService.registerUser(registerRequest);
         assertNotNull(registerResponse);
         assertNotNull(registerResponse.getUserId());
         assertEquals("authUserTest@example.com", registerResponse.getEmail());
