@@ -16,6 +16,7 @@ import com.silverline.erp.module.auth.dto.RegisterRequestDTO;
 import com.silverline.erp.module.auth.dto.RegisterResponseDTO;
 import com.silverline.erp.module.auth.service.AuthService;
 import com.silverline.erp.module.auth.service.JwtService;
+import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -44,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuditLogService activityLogService;
     private final PasswordEncoder passwordEncoder;
+    private final SseEmitterRegistry sseEmitterRegistry;
 
     @Override
     public UserProfile findByEmail(String email) {
@@ -259,6 +261,9 @@ public class AuthServiceImpl implements AuthService {
 
         passwordResetRequestRepository.save(resetRequest);
 
+        // Broadcast updated count to active managers
+        broadcastPendingCount();
+
         // Send email with verification code
         try {
             String subject = "Password Reset Verification - Silverline";
@@ -297,6 +302,18 @@ public class AuthServiceImpl implements AuthService {
 
         pendingRequest.setStatus("VERIFIED");
         passwordResetRequestRepository.save(pendingRequest);
+
+        // Broadcast updated count to active managers
+        broadcastPendingCount();
+    }
+
+    private void broadcastPendingCount() {
+        try {
+            long count = passwordResetRequestRepository.countByStatus("PENDING");
+            sseEmitterRegistry.broadcast(Map.of("pendingCount", count));
+        } catch (Exception e) {
+            log.error("Failed to broadcast updated pending count: {}", e.getMessage());
+        }
     }
 
     private String generateSequentialEmployeeId() {

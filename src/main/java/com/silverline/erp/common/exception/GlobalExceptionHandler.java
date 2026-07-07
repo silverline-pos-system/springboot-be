@@ -116,6 +116,14 @@ public class GlobalExceptionHandler {
                 .body("Not Acceptable: the server cannot produce a response matching the Accept header.");
     }
 
+    @ExceptionHandler({
+            org.springframework.web.context.request.async.AsyncRequestNotUsableException.class,
+            org.apache.catalina.connector.ClientAbortException.class
+    })
+    public void handleAsyncRequestAborted(Exception ex) {
+        log.debug("Async SSE connection closed by client: {}", ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
         log.error("Unhandled exception: ", ex);

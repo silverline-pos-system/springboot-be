@@ -92,6 +92,9 @@ public class PasswordResetController {
         }
         passwordResetRequestRepository.save(request);
 
+        // Broadcast updated count to active managers
+        broadcastPendingCount();
+
         // Send email notification to user
         try {
             String subject = "Password Reset Approved - Silverline";
@@ -131,6 +134,9 @@ public class PasswordResetController {
         }
         passwordResetRequestRepository.save(request);
 
+        // Broadcast updated count to active managers
+        broadcastPendingCount();
+
         // Send email notification to user
         try {
             String reason = (body != null && body.containsKey("adminNotes")) ? body.get("adminNotes") : "No reason provided";
@@ -164,16 +170,29 @@ public class PasswordResetController {
         SseEmitter emitter = new SseEmitter(180_000L); // 3-minute timeout
         sseEmitterRegistry.register(userId, emitter);
 
-        // Send initial connection event
+        // Send initial connection event and current count
         try {
             emitter.send(SseEmitter.event()
                     .name("connection")
                     .data("connected"));
+            
+            long initialCount = passwordResetRequestRepository.countByStatus("PENDING");
+            emitter.send(SseEmitter.event()
+                    .data(Map.of("pendingCount", initialCount)));
         } catch (Exception e) {
             // registry's onError callback handles cleanup
         }
 
         return emitter;
+    }
+
+    private void broadcastPendingCount() {
+        try {
+            long count = passwordResetRequestRepository.countByStatus("PENDING");
+            sseEmitterRegistry.broadcast(Map.of("pendingCount", count));
+        } catch (Exception e) {
+            log.error("Failed to broadcast updated pending count: {}", e.getMessage());
+        }
     }
 
     private PasswordResetResponseDTO toDTO(PasswordResetRequest request) {
