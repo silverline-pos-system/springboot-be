@@ -110,7 +110,7 @@ public class ReturnServiceImpl implements ReturnService {
         salesReturnRepository.save(ret);
 
         String supervisorUsername = userProfileRepository.findById(supervisorId)
-                .map(UserProfile::getUsername)
+                .map(u -> u.getUsername())
                 .orElse("Supervisor #" + supervisorId);
 
         activityLogService.logActivity(

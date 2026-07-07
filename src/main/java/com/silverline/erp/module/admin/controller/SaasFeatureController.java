@@ -2,7 +2,6 @@ package com.silverline.erp.module.admin.controller;
 
 import com.silverline.erp.module.admin.dto.*;
 import com.silverline.erp.module.admin.service.SaasFeatureService;
-import com.silverline.erp.module.auth.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,7 +19,6 @@ import java.util.Map;
 public class SaasFeatureController {
 
     private final SaasFeatureService saasFeatureService;
-    private final UserRepository userRepository;
 
     // ============================
     // FEATURE MANAGEMENT

@@ -213,7 +213,7 @@ public class ProductSerialController {
         }
 
         return Arrays.stream(csv.split(","))
-                .map(String::trim)
+                .map(token -> token.trim())
                 .filter(token -> !token.isEmpty())
                 .map(Long::valueOf)
                 .collect(Collectors.toList());

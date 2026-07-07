@@ -73,9 +73,9 @@ public class BatchServiceImpl implements BatchService {
         Batch batch = candidates.stream()
                 .filter(b -> b.getQty() != null && b.getQty().compareTo(BigDecimal.ZERO) > 0)
                 .min(Comparator.comparing((Batch b) -> b.getExpiryDate() == null)
-                        .thenComparing(Batch::getExpiryDate, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(Batch::getManufacturingDate, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(Batch::getBatchId))
+                        .thenComparing(b -> b.getExpiryDate(), Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(b -> b.getManufacturingDate(), Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(b -> b.getBatchId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Batch not found with code: " + batchCode));
         return convertToDTO(batch);
     }

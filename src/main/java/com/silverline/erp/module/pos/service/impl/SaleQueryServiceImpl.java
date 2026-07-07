@@ -162,7 +162,7 @@ public class SaleQueryServiceImpl implements SaleQueryService {
         }
 
         List<Long> saleIds = salesPage.getContent().stream()
-                .map(Sale::getSaleId)
+                .map(s -> s.getSaleId())
                 .collect(Collectors.toList());
 
         // Bulk count sale items
@@ -176,7 +176,7 @@ public class SaleQueryServiceImpl implements SaleQueryService {
 
         // Bulk load customers
         Set<Long> customerIds = salesPage.getContent().stream()
-                .map(Sale::getCustomerId)
+                .map(s -> s.getCustomerId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -184,8 +184,8 @@ public class SaleQueryServiceImpl implements SaleQueryService {
         if (!customerIds.isEmpty()) {
             customerNamesMap = customerRepository.findAllById(customerIds).stream()
                     .collect(Collectors.toMap(
-                            com.silverline.erp.domain.pos.Customer::getCustomerId,
-                            com.silverline.erp.domain.pos.Customer::getName,
+                            c -> c.getCustomerId(),
+                            c -> c.getName(),
                             (a, b) -> a
                     ));
         }
@@ -275,9 +275,9 @@ public class SaleQueryServiceImpl implements SaleQueryService {
                     });
         }
 
-        List<Long> productIds = items.stream().map(SaleItem::getProductId).collect(Collectors.toList());
+        List<Long> productIds = items.stream().map(item -> item.getProductId()).collect(Collectors.toList());
         Map<Long, Product> productMap = productService.findProductsByIds(productIds).stream()
-                .collect(Collectors.toMap(Product::getProductId, Function.identity()));
+                .collect(Collectors.toMap(p -> p.getProductId(), Function.identity()));
 
         List<SaleItemResponse> itemResponses = items.stream().map(item -> {
             SaleItemResponse res = new SaleItemResponse();

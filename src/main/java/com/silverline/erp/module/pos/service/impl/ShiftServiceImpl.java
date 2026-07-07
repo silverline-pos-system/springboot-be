@@ -114,7 +114,7 @@ public class ShiftServiceImpl implements ShiftService {
         shift.setShiftId(savedShiftId);
 
         String cashierUsername = userProfileRepository.findById(request.getCashierId())
-                .map(UserProfile::getUsername)
+                .map(u -> u.getUsername())
                 .orElse("Cashier #" + request.getCashierId());
 
         activityLogService.logActivity(
@@ -137,7 +137,7 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     public Long getActiveShiftId(Long cashierId) {
         return shiftRepository.findOpenShiftByCashierId(cashierId)
-                .map(CashShift::getShiftId)
+                .map(s -> s.getShiftId())
                 .orElseThrow(() -> new IllegalStateException("No active shift found for this cashier. Please open a shift."));
     }
 
@@ -190,7 +190,7 @@ public class ShiftServiceImpl implements ShiftService {
         shiftRepository.update(shift);
 
         String cashierUsername = userProfileRepository.findById(shift.getCashierId())
-                .map(UserProfile::getUsername)
+                .map(u -> u.getUsername())
                 .orElse("Cashier #" + shift.getCashierId());
 
         // Publish ShiftClosedEvent to log activity asynchronously
@@ -227,9 +227,9 @@ public class ShiftServiceImpl implements ShiftService {
         if (shift == null) return null;
 
         String cashierName = userProfileRepository.findById(shift.getCashierId())
-                .map(UserProfile::getFullName)
+                .map(u -> u.getFullName())
                 .orElse(userProfileRepository.findById(shift.getCashierId())
-                        .map(UserProfile::getUsername)
+                        .map(u -> u.getUsername())
                         .orElse("Unknown Cashier"));
 
         return new ShiftResponse.Builder()

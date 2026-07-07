@@ -93,12 +93,10 @@ public class PosSaleServiceImpl implements PosSaleService {
         }
 
         Sale sale = null;
-        boolean isUpdate = false;
 
         if (request.getSaleId() != null) {
             sale = saleRepository.findById(request.getSaleId()).orElse(null);
             if (sale != null && ("HELD".equalsIgnoreCase(sale.getPaymentStatus()) || "PENDING".equalsIgnoreCase(sale.getPaymentStatus()))) {
-                isUpdate = true;
                 saleItemRepository.deleteBySaleId(sale.getSaleId());
                 paymentRepository.deleteBySaleId(sale.getSaleId());
             } else {

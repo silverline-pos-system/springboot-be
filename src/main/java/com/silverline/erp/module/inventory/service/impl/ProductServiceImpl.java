@@ -204,8 +204,8 @@ public class ProductServiceImpl implements ProductService {
 
         List<Batch> batches = batchRepository.findByProductId(productId);
         BigDecimal totalStock = batches.stream()
-                .map(Batch::getQty)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(b -> b.getQty())
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
         List<ProductDetailsDTO.BatchSummaryDTO> batchDTOs = batches.stream()
                 .map(b -> ProductDetailsDTO.BatchSummaryDTO.builder()
@@ -270,7 +270,7 @@ public class ProductServiceImpl implements ProductService {
             return Page.empty(products.getPageable());
         }
         List<Long> productIds = products.getContent().stream()
-                .map(Product::getProductId)
+                .map(p -> p.getProductId())
                 .collect(Collectors.toList());
 
         List<Object[]> stockData = stockRepository.getTotalStockByProductIds(productIds);

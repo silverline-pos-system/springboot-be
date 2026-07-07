@@ -139,8 +139,9 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     public Map<String, Object> getBranchRealTimeSales(Long id) {
-        Branch branch = branchRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
+        if (!branchRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Branch not found");
+        }
 
         Map<String, Object> response = new HashMap<>();
 

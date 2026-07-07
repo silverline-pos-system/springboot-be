@@ -75,11 +75,11 @@ public class AlertServiceImpl implements AlertService {
         Map<Long, String> productNames = new HashMap<>();
         if (!expiringBatches.isEmpty()) {
             java.util.Set<Long> productIds = expiringBatches.stream()
-                    .map(Batch::getProductId)
+                    .map(b -> b.getProductId())
                     .collect(Collectors.toSet());
             List<ProductNameProjection> nameProjections = productRepository.findByProductIdIn(productIds);
             productNames = nameProjections.stream()
-                    .collect(Collectors.toMap(ProductNameProjection::getProductId, ProductNameProjection::getName));
+                    .collect(Collectors.toMap(p -> p.getProductId(), p -> p.getName()));
         }
 
         final Map<Long, String> finalProductNames = productNames;

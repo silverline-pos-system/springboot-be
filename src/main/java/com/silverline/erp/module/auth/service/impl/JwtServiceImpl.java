@@ -60,7 +60,7 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return extractClaim(token, c -> c.getSubject());
     }
 
     @Override
@@ -72,7 +72,7 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public boolean isTokenExpired(String token) {
         try {
-            return extractClaim(token, Claims::getExpiration).before(new Date());
+            return extractClaim(token, c -> c.getExpiration()).before(new Date());
         } catch (ExpiredJwtException e) {
             return true;
         }
@@ -81,7 +81,7 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public boolean validateToken(String token, UserDetails userDetails) {
         try {
-            final String username = extractClaim(token, Claims::getSubject);
+            final String username = extractClaim(token, c -> c.getSubject());
             return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
         } catch (JwtException | IllegalArgumentException e) {
             log.warn("JWT token validation failed: {}", e.getMessage());

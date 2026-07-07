@@ -284,7 +284,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
     @Override
     public String getSystemName() {
         return settingRepository.findBySettingKey("SYSTEM_NAME")
-                .map(SystemSetting::getSettingValue)
+                .map(s -> s.getSettingValue())
                 .orElse("SmartRetail Pro");
     }
 
@@ -365,7 +365,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
 
         List<SaasFeature> features = featureCodes.stream()
                 .filter(Objects::nonNull)
-                .map(String::trim)
+                .map(code -> code.trim())
                 .filter(code -> !code.isEmpty())
                 .distinct()
                 .map(code -> featureRepository.findByFeatureCode(code)
@@ -417,7 +417,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
     @Override
     public boolean isFeatureEnabled(String featureCode) {
         return featureRepository.findByFeatureCode(featureCode)
-                .map(SaasFeature::getIsActive)
+                .map(f -> f.getIsActive())
                 .orElse(false);
     }
 }

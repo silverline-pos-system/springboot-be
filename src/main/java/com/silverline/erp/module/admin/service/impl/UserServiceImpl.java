@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final BranchRepository branchRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final ApprovalRepository approvalRepository;
@@ -212,7 +211,7 @@ public class UserServiceImpl implements UserService {
                     .findByReferenceIdAndType(user.getUserId(), "USER_REGISTRATION")
                     .stream()
                     .filter(a -> "APPROVED".equalsIgnoreCase(a.getStatus()) && a.getApprovedBy() != null)
-                    .max(Comparator.comparing(Approval::getApprovedAt, Comparator.nullsLast(Comparator.naturalOrder())));
+                    .max(Comparator.comparing(a -> a.getApprovedAt(), Comparator.nullsLast(Comparator.naturalOrder())));
 
             latestApprovedRegistration.ifPresent(a -> {
                 dto.setApprovedById(a.getApprovedBy());

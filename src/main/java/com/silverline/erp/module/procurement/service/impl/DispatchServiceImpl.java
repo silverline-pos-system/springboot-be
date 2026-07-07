@@ -124,7 +124,7 @@ public class DispatchServiceImpl implements DispatchService {
             dispatchQtyByProduct.merge(
                     itemDto.getProductId(),
                     itemDto.getQtyDispatched(),
-                    BigDecimal::add);
+                    (a, b) -> a.add(b));
         }
 
         // Collect all serial numbers from ALL items for cross-item duplicate check
@@ -302,7 +302,7 @@ public class DispatchServiceImpl implements DispatchService {
             dispatchedByProduct.merge(
                     line.getProductId(),
                     line.getQtyDispatched(),
-                    BigDecimal::add);
+                    (a, b) -> a.add(b));
         }
 
         // Update each PO item's qty_dispatched
@@ -526,8 +526,8 @@ public class DispatchServiceImpl implements DispatchService {
 
         BigDecimal totalValue = dispatches.stream()
                 .filter(g -> "APPROVED".equals(g.getStatus()))
-                .map(Dispatch::getTotalAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(d -> d.getTotalAmount())
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
         stats.setTotalValue(totalValue);
 
         return stats;
@@ -572,7 +572,7 @@ public class DispatchServiceImpl implements DispatchService {
         String poRef = "GEN";
         if (poId != null) {
             poRef = purchaseOrderRepository.findById(poId)
-                    .map(PurchaseOrder::getPoNo)
+                    .map(p -> p.getPoNo())
                     .map(poNo -> normalizeToken(poNo, 10, "PO" + poId))
                     .orElse("PO" + poId);
         }

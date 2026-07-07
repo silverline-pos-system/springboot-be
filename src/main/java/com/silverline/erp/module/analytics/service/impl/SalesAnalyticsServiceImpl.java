@@ -107,7 +107,6 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
             case "monthly" -> 30;
             default -> 7;
         };
-        LocalDateTime periodStart = LocalDate.now().minusDays(days - 1).atStartOfDay();
 
         BigDecimal todaySales;
         BigDecimal yesterdaySales;
@@ -258,7 +257,7 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
         List<Object[]> results = saleQueryService.findPaymentBreakdownByDateRange(startDate, endDate, branchId);
         BigDecimal total = results.stream()
                 .map(row -> (BigDecimal) row[1])
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
         return results.stream()
                 .map(row -> {
@@ -319,7 +318,7 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
         }
 
         Map<Long, String> userNames = userService.getAllUsers().stream()
-                .collect(Collectors.toMap(UserDTO::getUserId, UserDTO::getFullName, (a, b) -> a));
+                .collect(Collectors.toMap(u -> u.getUserId(), u -> u.getFullName(), (a, b) -> a));
 
         return recentSales.stream()
                 .map(sale -> {

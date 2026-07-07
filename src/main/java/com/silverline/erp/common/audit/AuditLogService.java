@@ -115,7 +115,7 @@ public class AuditLogService {
 
     private List<BranchActivity> enrichActivitiesWithUserInfo(List<BranchActivity> activities) {
         Set<Long> userIds = activities.stream()
-                .map(BranchActivity::getUserId)
+                .map(activity -> activity.getUserId())
                 .filter(id -> id != null)
                 .collect(Collectors.toSet());
 
@@ -124,7 +124,7 @@ public class AuditLogService {
         }
 
         Map<Long, UserProfile> userMap = userRepository.findAllById(userIds).stream()
-                .collect(Collectors.toMap(UserProfile::getUserId, u -> u));
+                .collect(Collectors.toMap(u -> u.getUserId(), u -> u));
 
         activities.forEach(activity -> {
             Long userId = activity.getUserId();

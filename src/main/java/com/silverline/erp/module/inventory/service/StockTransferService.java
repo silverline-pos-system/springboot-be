@@ -2,7 +2,6 @@ package com.silverline.erp.module.inventory.service;
 
 import com.silverline.erp.module.inventory.dto.StockTransferRequestDTO;
 import com.silverline.erp.module.inventory.dto.StockTransferResponseDTO;
-import com.silverline.erp.module.inventory.repository.StockTransferRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,11 +9,7 @@ import java.util.List;
 @Service
 public class StockTransferService {
 
-    private final StockTransferRepository stockTransferRepository;
 
-    public StockTransferService(StockTransferRepository stockTransferRepository) {
-        this.stockTransferRepository = stockTransferRepository;
-    }
 
     public StockTransferResponseDTO createTransfer(StockTransferRequestDTO request) {
         return null;

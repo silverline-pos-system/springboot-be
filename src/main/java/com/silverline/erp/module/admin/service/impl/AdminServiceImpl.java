@@ -39,7 +39,7 @@ public class AdminServiceImpl implements AdminService {
         // Group users by role and count
         Map<Role, Long> roleCounts = allUsers.stream()
                 .filter(u -> u.getRole() != null)
-                .collect(Collectors.groupingBy(UserProfile::getRole, Collectors.counting()));
+                .collect(Collectors.groupingBy(u -> u.getRole(), Collectors.counting()));
 
         // Convert to string keys for JSON response
         for (Role role : Role.values()) {

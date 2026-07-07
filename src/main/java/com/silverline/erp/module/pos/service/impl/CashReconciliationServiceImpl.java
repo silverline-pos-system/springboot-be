@@ -142,7 +142,7 @@ public class CashReconciliationServiceImpl implements CashReconciliationService 
         }
 
         String cashierUsername = userProfileRepository.findById(cashierId)
-                .map(UserProfile::getUsername)
+                .map(u -> u.getUsername())
                 .orElse("Cashier #" + cashierId);
 
         activityLogService.logActivity(

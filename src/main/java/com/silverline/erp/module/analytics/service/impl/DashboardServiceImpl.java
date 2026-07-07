@@ -134,7 +134,7 @@ public class DashboardServiceImpl implements DashboardService {
     private String getSupplierName(Long supplierId) {
         if (supplierId == null) return "Unknown";
         return supplierRepository.findById(supplierId)
-                .map(Supplier::getName)
+                .map(s -> s.getName())
                 .orElse("Unknown Supplier");
     }
 

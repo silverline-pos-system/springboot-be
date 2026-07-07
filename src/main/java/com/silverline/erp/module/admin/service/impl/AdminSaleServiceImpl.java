@@ -40,9 +40,9 @@ public class AdminSaleServiceImpl implements AdminSaleService {
         }
 
         return sales.stream()
-                .map(Sale::getNetTotal)
+                .map(s -> s.getNetTotal())
                 .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
     }
 
     /**

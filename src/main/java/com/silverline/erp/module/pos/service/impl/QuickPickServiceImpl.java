@@ -23,7 +23,7 @@ public class QuickPickServiceImpl implements QuickPickService {
     public List<Product> getQuickPickProducts(Long branchId) {
         List<QuickPickItem> items = quickPickRepository.findByBranchId(branchId);
         List<Long> productIds = items.stream()
-                .map(QuickPickItem::getProductId)
+                .map(item -> item.getProductId())
                 .collect(Collectors.toList());
 
         return productService.findProductsByIds(productIds);

@@ -14,7 +14,6 @@ import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.repository.StockRepository;
 import com.silverline.erp.module.pos.dto.returns.ReturnRequest;
-import com.silverline.erp.module.pos.repository.CustomerRepository;
 import com.silverline.erp.module.pos.repository.SaleRepository;
 import com.silverline.erp.module.pos.repository.SalesReturnItemRepository;
 import com.silverline.erp.module.pos.repository.SalesReturnRepository;
@@ -53,9 +52,6 @@ public class ReturnFlowIntegrationTest {
 
     @Autowired
     private UserProfileRepository userProfileRepository;
-
-    @Autowired
-    private CustomerRepository customerRepository;
 
     @Autowired
     private SaleRepository saleRepository;

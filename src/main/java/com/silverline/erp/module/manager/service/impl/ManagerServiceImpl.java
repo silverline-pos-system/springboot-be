@@ -93,7 +93,7 @@ public class ManagerServiceImpl implements ManagerService {
         Map<Long, UserProfile> userMap = new java.util.HashMap<>();
         if (!userIds.isEmpty()) {
             userMap = userRepository.findAllById(userIds).stream()
-                    .collect(Collectors.toMap(UserProfile::getUserId, u -> u));
+                    .collect(Collectors.toMap(u -> u.getUserId(), u -> u));
         }
 
         final Map<Long, UserProfile> finalUserMap = userMap;
@@ -136,7 +136,7 @@ public class ManagerServiceImpl implements ManagerService {
         Map<Long, UserProfile> userMap = new java.util.HashMap<>();
         if (!userIds.isEmpty()) {
             userMap = userRepository.findAllById(userIds).stream()
-                    .collect(Collectors.toMap(UserProfile::getUserId, u -> u));
+                    .collect(Collectors.toMap(u -> u.getUserId(), u -> u));
         }
 
         final Map<Long, UserProfile> finalUserMap = userMap;
@@ -311,14 +311,14 @@ public class ManagerServiceImpl implements ManagerService {
         }
 
         List<Long> userIds = activities.stream()
-                .map(UserActivityLog::getUserId)
+                .map(a -> a.getUserId())
                 .filter(java.util.Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toList());
 
         Map<Long, String> userNames = userIds.isEmpty() ? Map.of() :
                 userRepository.findAllById(userIds).stream()
-                        .collect(Collectors.toMap(UserProfile::getUserId, UserProfile::getFullName, (a, b) -> a));
+                        .collect(Collectors.toMap(u -> u.getUserId(), u -> u.getFullName(), (a, b) -> a));
 
         return activities.stream()
                 .map(activity -> {
@@ -355,14 +355,14 @@ public class ManagerServiceImpl implements ManagerService {
         }
 
         List<Long> userIds = activitiesPage.getContent().stream()
-                .map(UserActivityLog::getUserId)
+                .map(a -> a.getUserId())
                 .filter(java.util.Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toList());
 
         Map<Long, String> userNames = userIds.isEmpty() ? Map.of() :
                 userRepository.findAllById(userIds).stream()
-                        .collect(Collectors.toMap(UserProfile::getUserId, UserProfile::getFullName, (a, b) -> a));
+                        .collect(Collectors.toMap(u -> u.getUserId(), u -> u.getFullName(), (a, b) -> a));
 
         return activitiesPage.map(activity -> {
             String userName = userNames.getOrDefault(activity.getUserId(), "System");

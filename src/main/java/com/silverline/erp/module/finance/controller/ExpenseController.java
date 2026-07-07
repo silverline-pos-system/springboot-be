@@ -2,7 +2,6 @@ package com.silverline.erp.module.finance.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.common.dto.PagedResponse;
-import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.finance.dto.ExpenseDTO;
 import com.silverline.erp.module.finance.dto.ExpenseDashboardDTO;
 import com.silverline.erp.module.finance.dto.ExpensePaymentDTO;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 public class ExpenseController {
 
     private final ExpenseService expenseService;
-    private final UserRepository userRepository;
 
     // --- Expenses ---
 

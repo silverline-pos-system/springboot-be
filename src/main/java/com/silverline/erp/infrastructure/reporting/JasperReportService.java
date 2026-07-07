@@ -71,14 +71,14 @@ public class JasperReportService {
     public byte[] generateDispatchListPdf() throws Exception {
         List<Dispatch> dispatches = dispatchRepository.findAll();
         List<Long> supplierIds = dispatches.stream()
-                .map(Dispatch::getSupplierId)
+                .map(d -> d.getSupplierId())
                 .filter(java.util.Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toList());
 
         Map<Long, String> supplierNames = supplierIds.isEmpty() ? Map.of() :
                 supplierRepository.findAllById(supplierIds).stream()
-                        .collect(Collectors.toMap(Supplier::getSupplierId, Supplier::getName));
+                        .collect(Collectors.toMap(s -> s.getSupplierId(), s -> s.getName()));
 
         List<DispatchReportDTO> reportData = dispatches.stream()
                 .map(dispatch -> DispatchReportDTO.builder()

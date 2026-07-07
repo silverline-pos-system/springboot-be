@@ -186,7 +186,7 @@ public class RepairServiceImpl implements RepairService {
         List<Customer> customersByPhone = customerRepository.findByPhoneContaining(q);
         if (!customersByPhone.isEmpty()) {
             List<Long> customerIds = customersByPhone.stream()
-                    .map(Customer::getCustomerId)
+                    .map(c -> c.getCustomerId())
                     .collect(Collectors.toList());
             List<RepairJob> byCustomer = repairJobRepository.findByCustomerIdIn(customerIds);
             for (RepairJob rj : byCustomer) {
@@ -213,22 +213,22 @@ public class RepairServiceImpl implements RepairService {
             repairMap.put(rj.getRepairId(), rj);
         }
 
-        List<Map<String, Object>> results = new ArrayList<>();
         Set<Long> allCustomerIds = repairMap.values().stream()
-                .map(RepairJob::getCustomerId)
+                .map(rj -> rj.getCustomerId())
                 .collect(Collectors.toSet());
         Map<Long, Customer> customerMap = new HashMap<>();
         for (Long custId : allCustomerIds) {
             customerRepository.findById(custId).ifPresent(c -> customerMap.put(custId, c));
         }
 
+        List<Map<String, Object>> results = new ArrayList<>();
         for (Long repairId : foundRepairIds) {
             RepairJob job = repairMap.get(repairId);
             Customer cust = customerMap.get(job.getCustomerId());
             List<RepairPayment> payments = paymentRepository.findByRepairId(repairId);
             BigDecimal totalPaid = payments.stream()
-                    .map(RepairPayment::getAmount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .map(p -> p.getAmount())
+                    .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("repairId", job.getRepairId());

@@ -192,8 +192,8 @@ public class AccountingService {
         expenses.add(ProfitLossDTO.ExpenseDTO.builder().name("Other Expenses").amount(new BigDecimal("10000")).build());
 
         BigDecimal totalExpenses = expenses.stream()
-                .map(ProfitLossDTO.ExpenseDTO::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(e -> e.getAmount())
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
         BigDecimal netProfit = grossProfit.subtract(totalExpenses);
 
@@ -228,9 +228,9 @@ public class AccountingService {
 
             if (!sales.isEmpty()) {
                 BigDecimal revenue = sales.stream()
-                        .map(Sale::getNetTotal)
+                        .map(s -> s.getNetTotal())
                         .filter(val -> val != null)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                        .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
                 // Estimate profit as ~40% of revenue (after COGS)
                 BigDecimal profit = revenue.multiply(new BigDecimal("0.40"));
