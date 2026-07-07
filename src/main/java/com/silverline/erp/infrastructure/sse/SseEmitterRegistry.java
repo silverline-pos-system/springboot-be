@@ -70,7 +70,12 @@ public class SseEmitterRegistry {
                         .name(eventName)
                         .data(payload));
             } catch (IOException | IllegalStateException e) {
-                log.warn("Failed to send event on channel {} to user ID {}, removing emitter: {}", channel, userId, e.getMessage());
+                log.warn("Failed to send event on channel {} to user ID {}, completing with error and removing emitter: {}", channel, userId, e.getMessage());
+                try {
+                    emitter.completeWithError(e);
+                } catch (Exception ex) {
+                    // Ignore failure to complete a broken emitter
+                }
                 deadEmitters.add(emitter);
             }
         }
@@ -126,6 +131,11 @@ public class SseEmitterRegistry {
                                 .name("ping")
                                 .data("heartbeat"));
                     } catch (IOException | IllegalStateException e) {
+                        try {
+                            emitter.completeWithError(e);
+                        } catch (Exception ex) {
+                            // Ignore failure to complete a broken emitter
+                        }
                         deadEmitters.add(emitter);
                     }
                 }

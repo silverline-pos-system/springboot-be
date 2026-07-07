@@ -103,7 +103,11 @@ public class NotificationController {
                     .name("connection")
                     .data("connected"));
         } catch (Exception e) {
-            // registry's onError will handle cleaning up the emitter
+            try {
+                emitter.completeWithError(e);
+            } catch (Exception ex) {
+                // Ignore
+            }
         }
 
         return emitter;

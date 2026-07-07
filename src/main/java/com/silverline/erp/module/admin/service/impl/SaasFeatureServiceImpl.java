@@ -2,6 +2,7 @@ package com.silverline.erp.module.admin.service.impl;
 
 import com.silverline.erp.common.exception.ResourceNotFoundException;
 import com.silverline.erp.common.exception.ValidationException;
+import com.silverline.erp.domain.enums.FeatureAction;
 import com.silverline.erp.domain.system.FeatureVerificationCode;
 import com.silverline.erp.domain.system.SaasFeature;
 import com.silverline.erp.domain.system.SystemSetting;
@@ -73,11 +74,11 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
                 .orElseThrow(() -> new ResourceNotFoundException("Feature not found"));
 
         // 2. Validate action makes sense
-        String action = request.getAction().toUpperCase();
-        if ("ACTIVATE".equals(action) && Boolean.TRUE.equals(feature.getIsActive())) {
+        FeatureAction action = normalizeAction(request.getAction());
+        if (action == FeatureAction.ACTIVATE && Boolean.TRUE.equals(feature.getIsActive())) {
             throw new ValidationException("Feature is already active");
         }
-        if ("DEACTIVATE".equals(action) && !Boolean.TRUE.equals(feature.getIsActive())) {
+        if (action == FeatureAction.DEACTIVATE && !Boolean.TRUE.equals(feature.getIsActive())) {
             throw new ValidationException("Feature is already inactive");
         }
 
@@ -91,7 +92,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         // 5. Save verification code
         FeatureVerificationCode verificationCode = new FeatureVerificationCode();
         verificationCode.setFeatureCode(request.getFeatureCode());
-        verificationCode.setAction(action);
+        verificationCode.setAction(action.name());
         verificationCode.setVerificationCode(code);
         verificationCode.setHashedCode(hashedCode);
         verificationCode.setIsUsed(false);
@@ -111,8 +112,8 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         String systemName = getSystemName();
 
         // 8. Send email
-        String subject = systemName + " â€” Feature " + action + " Verification";
-        String body = buildVerificationEmail(systemName, feature.getFeatureName(), action, code, admin.getFullName());
+        String subject = systemName + " — Feature " + action.name() + " Verification";
+        String body = buildVerificationEmail(systemName, feature.getFeatureName(), action.name(), code, admin.getFullName());
 
         try {
             emailService.sendHtmlMessage(adminEmail, subject, body);
@@ -124,14 +125,14 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         Map<String, String> response = new HashMap<>();
         response.put("message", "Verification code sent to " + maskEmail(adminEmail));
         response.put("featureCode", request.getFeatureCode());
-        response.put("action", action);
+        response.put("action", action.name());
         return response;
     }
 
     @Override
     @org.springframework.transaction.annotation.Transactional
     public Map<String, String> requestBulkFeatureToggle(BulkFeatureToggleRequest request, Long adminUserId) {
-        String action = normalizeAction(request.getAction());
+        FeatureAction action = normalizeAction(request.getAction());
         List<SaasFeature> targetFeatures = resolveTargetFeatures(request.getFeatureCodes(), action);
 
         if (targetFeatures.isEmpty()) {
@@ -143,7 +144,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
 
         FeatureVerificationCode verificationCode = new FeatureVerificationCode();
         verificationCode.setFeatureCode(BULK_FEATURE_CODE);
-        verificationCode.setAction(action);
+        verificationCode.setAction(action.name());
         verificationCode.setVerificationCode(code);
         verificationCode.setHashedCode(hashedCode);
         verificationCode.setIsUsed(false);
@@ -159,9 +160,9 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         }
 
         String systemName = getSystemName();
-        String subject = systemName + " â€” Feature " + action + " Verification";
+        String subject = systemName + " — Feature " + action.name() + " Verification";
         String featureLabel = targetFeatures.size() + " premium feature" + (targetFeatures.size() > 1 ? "s" : "");
-        String body = buildVerificationEmail(systemName, featureLabel, action, code, admin.getFullName());
+        String body = buildVerificationEmail(systemName, featureLabel, action.name(), code, admin.getFullName());
 
         try {
             emailService.sendHtmlMessage(adminEmail, subject, body);
@@ -171,7 +172,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Verification code sent to " + maskEmail(adminEmail));
-        response.put("action", action);
+        response.put("action", action.name());
         response.put("count", String.valueOf(targetFeatures.size()));
         return response;
     }
@@ -187,12 +188,12 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         SaasFeature feature = featureRepository.findByFeatureCode(request.getFeatureCode())
                 .orElseThrow(() -> new ResourceNotFoundException("Feature not found"));
 
-        String action = request.getAction().toUpperCase();
+        FeatureAction action = normalizeAction(request.getAction());
 
         // 2. Find the latest unused verification code
         FeatureVerificationCode storedCode = verificationCodeRepository
                 .findTopByFeatureCodeAndActionAndIsUsedFalseOrderByCreatedAtDesc(
-                        request.getFeatureCode(), action)
+                        request.getFeatureCode(), action.name())
                 .orElseThrow(() -> new ValidationException(
                         "No pending verification found. Please request a new code."));
 
@@ -214,7 +215,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         verificationCodeRepository.save(storedCode);
 
         // 6. Toggle feature
-        if ("ACTIVATE".equals(action)) {
+        if (action == FeatureAction.ACTIVATE) {
             feature.setIsActive(true);
             feature.setActivatedAt(LocalDateTime.now());
             feature.setDeactivatedAt(null);
@@ -231,7 +232,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
     @Override
     @org.springframework.transaction.annotation.Transactional
     public List<SaasFeatureDTO> verifyAndToggleFeatures(BulkFeatureVerifyRequest request, Long adminUserId) {
-        String action = normalizeAction(request.getAction());
+        FeatureAction action = normalizeAction(request.getAction());
         List<SaasFeature> targetFeatures = resolveTargetFeatures(request.getFeatureCodes(), action);
 
         if (targetFeatures.isEmpty()) {
@@ -239,7 +240,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         }
 
         FeatureVerificationCode storedCode = verificationCodeRepository
-                .findTopByFeatureCodeAndActionAndIsUsedFalseOrderByCreatedAtDesc(BULK_FEATURE_CODE, action)
+                .findTopByFeatureCodeAndActionAndIsUsedFalseOrderByCreatedAtDesc(BULK_FEATURE_CODE, action.name())
                 .orElseThrow(() -> new ValidationException(
                         "No pending verification found. Please request a new code."));
 
@@ -260,7 +261,7 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         LocalDateTime now = LocalDateTime.now();
         List<SaasFeatureDTO> updated = new ArrayList<>();
         for (SaasFeature feature : targetFeatures) {
-            if ("ACTIVATE".equals(action)) {
+            if (action == FeatureAction.ACTIVATE) {
                 feature.setIsActive(true);
                 feature.setActivatedAt(now);
                 feature.setDeactivatedAt(null);
@@ -346,18 +347,18 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
         return 1000 + random.nextInt(9000);
     }
 
-    private String normalizeAction(String rawAction) {
+    private FeatureAction normalizeAction(String rawAction) {
         if (rawAction == null) {
             throw new ValidationException("Action is required");
         }
-        String action = rawAction.toUpperCase(Locale.ROOT);
-        if (!"ACTIVATE".equals(action) && !"DEACTIVATE".equals(action)) {
+        try {
+            return FeatureAction.valueOf(rawAction.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
             throw new ValidationException("Action must be ACTIVATE or DEACTIVATE");
         }
-        return action;
     }
 
-    private List<SaasFeature> resolveTargetFeatures(List<String> featureCodes, String action) {
+    private List<SaasFeature> resolveTargetFeatures(List<String> featureCodes, FeatureAction action) {
         if (featureCodes == null || featureCodes.isEmpty()) {
             throw new ValidationException("Feature list cannot be empty");
         }
@@ -377,10 +378,10 @@ public class SaasFeatureServiceImpl implements SaasFeatureService {
             }
 
             boolean isActive = Boolean.TRUE.equals(feature.getIsActive());
-            if ("ACTIVATE".equals(action) && isActive) {
+            if (action == FeatureAction.ACTIVATE && isActive) {
                 throw new ValidationException("Feature is already active: " + feature.getFeatureCode());
             }
-            if ("DEACTIVATE".equals(action) && !isActive) {
+            if (action == FeatureAction.DEACTIVATE && !isActive) {
                 throw new ValidationException("Feature is already inactive: " + feature.getFeatureCode());
             }
         }

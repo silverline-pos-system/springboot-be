@@ -4,6 +4,8 @@ import com.silverline.erp.common.dto.ApiResponse;
 import com.silverline.erp.domain.branch.Branch;
 import com.silverline.erp.module.auth.dto.*;
 import com.silverline.erp.module.auth.service.AuthService;
+import com.silverline.erp.module.auth.service.PasswordResetRequestService;
+import com.silverline.erp.module.auth.service.RegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,6 +28,8 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final RegistrationService registrationService;
+    private final PasswordResetRequestService passwordResetRequestService;
 
     @Operation(summary = "Register a new user", description = "Creates a new user profile in PENDING status, awaiting admin approval")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Registration successful")
@@ -33,7 +37,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegisterResponseDTO>> registerUser(@Valid @RequestBody RegisterRequestDTO userDetails) {
         log.info("Processing registration for user: {}", userDetails.getUsername());
-        RegisterResponseDTO response = authService.registerUser(userDetails);
+        RegisterResponseDTO response = registrationService.registerUser(userDetails);
 
         if (response.getUserId() == null && response.getMessage() != null) {
             return ResponseEntity
@@ -50,7 +54,7 @@ public class AuthController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Branches fetched successfully")
     @GetMapping("/branches")
     public ResponseEntity<ApiResponse<List<Branch>>> getBranches() {
-        List<Branch> branches = authService.getAllBranches();
+        List<Branch> branches = registrationService.getAllBranches();
         return ResponseEntity.ok(ApiResponse.success("Branches fetched successfully", branches));
     }
 
@@ -96,7 +100,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody PasswordResetRequestDTO request) {
         log.info("Processing password reset request for: {}", request.getUsername());
         try {
-            authService.forgotPassword(request.getUsername(), request.getNewPassword(), request.getReason());
+            passwordResetRequestService.forgotPassword(request.getUsername(), request.getNewPassword(), request.getReason());
             return ResponseEntity.ok(ApiResponse.success("Password reset request submitted successfully. Please check your email for the verification code."));
         } catch (RuntimeException e) {
             log.warn("Password reset request failed: {}", e.getMessage());
@@ -113,7 +117,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> verifyForgotPassword(@Valid @RequestBody ForgotPasswordVerifyDTO request) {
         log.info("Verifying password reset request for: {}", request.getUsername());
         try {
-            authService.verifyForgotPasswordToken(request.getUsername(), request.getToken());
+            passwordResetRequestService.verifyForgotPasswordToken(request.getUsername(), request.getToken());
             return ResponseEntity.ok(ApiResponse.success("Password reset request verified successfully. A system administrator will review and approve your request shortly."));
         } catch (RuntimeException e) {
             log.warn("Password reset verification failed: {}", e.getMessage());

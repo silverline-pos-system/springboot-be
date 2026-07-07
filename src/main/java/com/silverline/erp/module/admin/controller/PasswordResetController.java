@@ -184,7 +184,11 @@ public class PasswordResetController {
             emitter.send(SseEmitter.event()
                     .data(Map.of("pendingCount", initialCount)));
         } catch (Exception e) {
-            // registry's onError callback handles cleanup
+            try {
+                emitter.completeWithError(e);
+            } catch (Exception ex) {
+                // Ignore
+            }
         }
 
         return emitter;

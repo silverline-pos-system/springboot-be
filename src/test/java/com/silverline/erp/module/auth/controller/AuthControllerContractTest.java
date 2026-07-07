@@ -9,6 +9,8 @@ import com.silverline.erp.module.auth.dto.RegisterRequestDTO;
 import com.silverline.erp.module.auth.dto.RegisterResponseDTO;
 import com.silverline.erp.module.auth.service.AuthService;
 import com.silverline.erp.module.auth.service.MyUserDetailsService;
+import com.silverline.erp.module.auth.service.PasswordResetRequestService;
+import com.silverline.erp.module.auth.service.RegistrationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -36,6 +38,12 @@ public class AuthControllerContractTest {
     private AuthService authService;
 
     @MockitoBean
+    private RegistrationService registrationService;
+
+    @MockitoBean
+    private PasswordResetRequestService passwordResetRequestService;
+
+    @MockitoBean
     private JwtFilter jwtFilter;
 
     @MockitoBean
@@ -59,7 +67,7 @@ public class AuthControllerContractTest {
                 "User registered successfully"
         );
 
-        when(authService.registerUser(any(RegisterRequestDTO.class))).thenReturn(response);
+        when(registrationService.registerUser(any(RegisterRequestDTO.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
