@@ -1,6 +1,7 @@
 package com.silverline.erp.module.admin.service.impl;
 
-import com.silverline.erp.common.audit.repository.UserActivityLogRepository;
+import com.silverline.erp.common.audit.repository.BranchActivityRepository;
+import com.silverline.erp.domain.audit.BranchActivity;
 import com.silverline.erp.domain.audit.UserActivityLog;
 import com.silverline.erp.module.admin.service.ActivityLogService;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +16,31 @@ import java.util.List;
 @org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class ActivityLogServiceImpl implements ActivityLogService {
 
-    private final UserActivityLogRepository logRepository;
+    private final BranchActivityRepository logRepository;
+
+    private UserActivityLog mapToUserActivityLog(BranchActivity activity) {
+        if (activity == null) {
+            return null;
+        }
+        UserActivityLog log = new UserActivityLog();
+        log.setActivityId(activity.getId());
+        log.setBranchId(activity.getBranchId());
+        log.setUserId(activity.getUserId());
+        log.setPerformedBy(activity.getUserId());
+        log.setActivityType(activity.getActionType());
+        log.setDescription(activity.getDetails());
+        log.setIpAddress(activity.getIpAddress());
+        log.setUserAgent(activity.getUserAgent());
+        log.setCreatedAt(activity.getTimestamp());
+        return log;
+    }
 
     @Override
     public List<UserActivityLog> getAllLogs() {
-        return logRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        return logRepository.findAll(Sort.by(Sort.Direction.DESC, "timestamp"))
+                .stream()
+                .map(this::mapToUserActivityLog)
+                .toList();
     }
 
     @Override
@@ -28,23 +49,34 @@ public class ActivityLogServiceImpl implements ActivityLogService {
         boolean hasDates = startDate != null && endDate != null;
         boolean hasBranch = branchId != null;
 
+        List<BranchActivity> activities;
+
         if (hasBranch && hasType && hasDates) {
-            return logRepository.findByBranchIdAndActivityTypeAndCreatedAtBetween(branchId, type, startDate, endDate);
+            activities = logRepository.findByBranchIdAndActionTypeAndTimestampBetween(branchId, type, startDate, endDate);
         } else if (hasBranch && hasType) {
-            return logRepository.findByBranchIdAndActivityType(branchId, type);
+            activities = logRepository.findByBranchIdAndActionType(branchId, type);
         } else if (hasBranch && hasDates) {
-            return logRepository.findByBranchIdAndCreatedAtBetween(branchId, startDate, endDate);
+            activities = logRepository.findByBranchIdAndTimestampBetween(branchId, startDate, endDate);
         } else if (hasBranch) {
-            return logRepository.findByBranchId(branchId);
+            activities = logRepository.findByBranchId(branchId);
         } else if (hasType && hasDates) {
-            return logRepository.findByActivityTypeAndCreatedAtBetween(type, startDate, endDate);
+            activities = logRepository.findByActionTypeAndTimestampBetween(type, startDate, endDate);
         } else if (hasType) {
-            return logRepository.findByActivityType(type);
+            activities = logRepository.findByActionType(type);
         } else if (hasDates) {
-            return logRepository.findByCreatedAtBetween(startDate, endDate);
+            activities = logRepository.findByTimestampBetween(startDate, endDate);
         } else {
             return getAllLogs();
         }
+
+        return activities.stream()
+                .map(this::mapToUserActivityLog)
+                .sorted((a, b) -> {
+                    if (a.getCreatedAt() == null) return 1;
+                    if (b.getCreatedAt() == null) return -1;
+                    return b.getCreatedAt().compareTo(a.getCreatedAt());
+                })
+                .toList();
     }
 
     @Override
@@ -61,4 +93,5 @@ public class ActivityLogServiceImpl implements ActivityLogService {
                 .toList();
     }
 }
+
 

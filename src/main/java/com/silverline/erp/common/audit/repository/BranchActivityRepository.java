@@ -22,4 +22,19 @@ public interface BranchActivityRepository extends JpaRepository<BranchActivity, 
 
     // Find recent activities for dashboard
     List<BranchActivity> findTop20ByBranchIdOrderByTimestampDesc(Long branchId);
+
+    List<BranchActivity> findByActionType(String actionType);
+
+    List<BranchActivity> findByTimestampBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<BranchActivity> findByActionTypeAndTimestampBetween(String actionType, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<BranchActivity> findByBranchId(Long branchId);
+
+    List<BranchActivity> findByBranchIdAndActionType(Long branchId, String actionType);
+
+    List<BranchActivity> findByBranchIdAndTimestampBetween(Long branchId, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<BranchActivity> findByBranchIdAndActionTypeAndTimestampBetween(Long branchId, String actionType,
+                                                                        LocalDateTime startDate, LocalDateTime endDate);
 }
