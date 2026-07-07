@@ -61,8 +61,9 @@ public class ManagerServiceImpl implements ManagerService {
                         .name(user.getFullName())
                         .role(user.getRole() != null ? user.getRole().name() : "N/A")
                         .lastLogin(formatLastLogin(user.getLastLogin()))
-                        .status(determineUserStatus(user.getLastLogin()))
+                        .status(determineUserStatus(user))
                         .approvedBy(user.getApprovedBy() != null ? user.getApprovedBy().getFullName() : "System")
+                        .approvedAt(user.getApprovedAt() != null ? user.getApprovedAt().format(DATE_TIME_FORMATTER) : null)
                         .email(user.getEmail())
                         .phone(user.getPhone())
                         .employeeId(user.getEmployeeId())
@@ -208,6 +209,8 @@ public class ManagerServiceImpl implements ManagerService {
             UserProfile rejectedUser = userRepository.findById(approval.getReferenceId()).orElse(null);
             if (rejectedUser != null) {
                 rejectedUser.setAccountStatus(AccountStatus.REJECTED);
+                userRepository.findById(approverId).ifPresent(rejectedUser::setApprovedBy);
+                rejectedUser.setApprovedAt(LocalDateTime.now());
                 userRepository.save(rejectedUser);
 
                 try {
@@ -391,7 +394,11 @@ public class ManagerServiceImpl implements ManagerService {
         return lastLogin.format(DATE_TIME_FORMATTER);
     }
 
-    private String determineUserStatus(LocalDateTime lastLogin) {
+    private String determineUserStatus(UserProfile user) {
+        if (user.getAccountStatus() == AccountStatus.REJECTED) {
+            return "Rejected";
+        }
+        LocalDateTime lastLogin = user.getLastLogin();
         if (lastLogin == null) return "Inactive";
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(30);
         return lastLogin.isAfter(threshold) ? "Active" : "Offline";
