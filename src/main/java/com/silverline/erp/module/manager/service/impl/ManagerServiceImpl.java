@@ -15,6 +15,8 @@ import com.silverline.erp.module.manager.dto.ApprovalDTO;
 import com.silverline.erp.module.manager.repository.ManagerUserRepository;
 import com.silverline.erp.module.manager.service.ManagerService;
 import com.silverline.erp.module.pos.service.CashReconciliationService;
+import com.silverline.erp.module.admin.repository.BranchRepository;
+import com.silverline.erp.domain.branch.Branch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -40,6 +42,7 @@ public class ManagerServiceImpl implements ManagerService {
     private final UserActivityLogRepository activityLogRepository;
     private final CashReconciliationService cashReconciliationService;
     private final EmailService emailService;
+    private final BranchRepository branchRepository;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -80,29 +83,39 @@ public class ManagerServiceImpl implements ManagerService {
 
         List<Approval> approvals;
         if (branchId != null) {
-            approvals = approvalRepository.findByBranchIdAndStatus(branchId, "PENDING");
+            approvals = approvalRepository.findByBranchId(branchId);
         } else {
-            approvals = approvalRepository.findByStatus("PENDING");
+            approvals = approvalRepository.findAll();
         }
 
         java.util.Set<Long> userIds = new java.util.HashSet<>();
+        java.util.Set<Long> branchIds = new java.util.HashSet<>();
         approvals.forEach(a -> {
             if (a.getRequestedBy() != null) userIds.add(a.getRequestedBy());
             if (a.getApprovedBy() != null) userIds.add(a.getApprovedBy());
+            if (a.getBranchId() != null) branchIds.add(a.getBranchId());
         });
 
         Map<Long, UserProfile> userMap = new java.util.HashMap<>();
         if (!userIds.isEmpty()) {
             userMap = userRepository.findAllById(userIds).stream()
-                    .collect(Collectors.toMap(u -> u.getUserId(), u -> u));
+                    .collect(Collectors.toMap(UserProfile::getUserId, u -> u));
+        }
+
+        Map<Long, String> branchMap = new java.util.HashMap<>();
+        if (!branchIds.isEmpty()) {
+            branchMap = branchRepository.findAllById(branchIds).stream()
+                    .collect(Collectors.toMap(Branch::getBranchId, Branch::getName));
         }
 
         final Map<Long, UserProfile> finalUserMap = userMap;
+        final Map<Long, String> finalBranchMap = branchMap;
         return approvals.stream()
                 .map(approval -> mapToApprovalDTO(
                         approval,
                         finalUserMap.get(approval.getRequestedBy()),
-                        finalUserMap.get(approval.getApprovedBy())
+                        finalUserMap.get(approval.getApprovedBy()),
+                        finalBranchMap.getOrDefault(approval.getBranchId(), "-")
                 ))
                 .sorted((a, b) -> b.getId().compareTo(a.getId()))
                 .collect(Collectors.toList());
@@ -129,23 +142,33 @@ public class ManagerServiceImpl implements ManagerService {
         }
 
         java.util.Set<Long> userIds = new java.util.HashSet<>();
+        java.util.Set<Long> branchIds = new java.util.HashSet<>();
         approvals.forEach(a -> {
             if (a.getRequestedBy() != null) userIds.add(a.getRequestedBy());
             if (a.getApprovedBy() != null) userIds.add(a.getApprovedBy());
+            if (a.getBranchId() != null) branchIds.add(a.getBranchId());
         });
 
         Map<Long, UserProfile> userMap = new java.util.HashMap<>();
         if (!userIds.isEmpty()) {
             userMap = userRepository.findAllById(userIds).stream()
-                    .collect(Collectors.toMap(u -> u.getUserId(), u -> u));
+                    .collect(Collectors.toMap(UserProfile::getUserId, u -> u));
+        }
+
+        Map<Long, String> branchMap = new java.util.HashMap<>();
+        if (!branchIds.isEmpty()) {
+            branchMap = branchRepository.findAllById(branchIds).stream()
+                    .collect(Collectors.toMap(Branch::getBranchId, Branch::getName));
         }
 
         final Map<Long, UserProfile> finalUserMap = userMap;
+        final Map<Long, String> finalBranchMap = branchMap;
         return approvals.stream()
                 .map(approval -> mapToApprovalDTO(
                         approval,
                         finalUserMap.get(approval.getRequestedBy()),
-                        finalUserMap.get(approval.getApprovedBy())
+                        finalUserMap.get(approval.getApprovedBy()),
+                        finalBranchMap.getOrDefault(approval.getBranchId(), "-")
                 ))
                 .collect(Collectors.toList());
     }
@@ -250,10 +273,17 @@ public class ManagerServiceImpl implements ManagerService {
             requester = userRepository.findById(approval.getRequestedBy()).orElse(null);
         }
 
-        return mapToApprovalDTO(approval, requester, approver);
+        String branchName = "-";
+        if (approval.getBranchId() != null) {
+            branchName = branchRepository.findById(approval.getBranchId())
+                    .map(Branch::getName)
+                    .orElse("-");
+        }
+
+        return mapToApprovalDTO(approval, requester, approver, branchName);
     }
 
-    private ApprovalDTO mapToApprovalDTO(Approval approval, UserProfile requester, UserProfile approver) {
+    private ApprovalDTO mapToApprovalDTO(Approval approval, UserProfile requester, UserProfile approver, String branchName) {
         String name = requester != null ? requester.getFullName() : "Unknown";
         String username = requester != null ? requester.getUsername() : "-";
         String email = requester != null ? requester.getEmail() : "-";
@@ -282,6 +312,7 @@ public class ManagerServiceImpl implements ManagerService {
                 .category(approval.getType())
                 .reference(referenceNo != null ? referenceNo : "REF-" + approval.getReferenceId())
                 .requestedBy(name)
+                .branchName(branchName)
                 .username(username)
                 .email(email)
                 .phone(phone)
