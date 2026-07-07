@@ -4,6 +4,7 @@ import com.silverline.erp.domain.enums.Role;
 import com.silverline.erp.domain.notification.Notification;
 import com.silverline.erp.domain.notification.NotificationRecipient;
 import com.silverline.erp.domain.user.UserProfile;
+import com.silverline.erp.infrastructure.sse.SseChannel;
 import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import com.silverline.erp.module.notification.repository.NotificationRecipientRepository;
@@ -74,7 +75,7 @@ public class NotificationServiceImpl implements NotificationService {
         payload.put("createdAt", notification.getCreatedAt());
 
         for (UserProfile recipient : recipients) {
-            sseEmitterRegistry.sendToUser(recipient.getUserId(), payload);
+            sseEmitterRegistry.sendToUser(SseChannel.NOTIFICATIONS, recipient.getUserId(), payload);
         }
         log.info("Broadcast SSE notification '{}' to {} managers/admins", title, recipients.size());
     }
@@ -109,7 +110,7 @@ public class NotificationServiceImpl implements NotificationService {
         payload.put("data", data);
         payload.put("timestamp", LocalDateTime.now());
 
-        sseEmitterRegistry.broadcast("dashboard-update", payload);
+        sseEmitterRegistry.broadcast(SseChannel.NOTIFICATIONS, "dashboard-update", payload);
         log.info("Broadcast SSE dashboard update: {}", eventType);
     }
 }
