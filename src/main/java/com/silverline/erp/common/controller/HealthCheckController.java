@@ -1,6 +1,8 @@
 package com.silverline.erp.common.controller;
 
 import com.silverline.erp.common.dto.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +16,10 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Health check endpoint for monitoring and deployment verification.
- * Accessible without authentication.
- */
 @RestController
 @RequestMapping("/api/v1/health")
 @RequiredArgsConstructor
+@Tag(name = "Server Health Checks", description = "Public diagnostics endpoints for load balancers, monitoring tools, and uptime verifications")
 public class HealthCheckController {
 
     private final DataSource dataSource;
@@ -28,6 +27,9 @@ public class HealthCheckController {
     @Value("${spring.application.name:rocs}")
     private String appName;
 
+    @Operation(summary = "Get database & server status", description = "Checks connection to PostgreSQL database, loads JVM memory statistics, and returns status UP/DOWN")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "System is healthy and UP")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Database or key service is DOWN")
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> healthCheck() {
         Map<String, Object> health = new LinkedHashMap<>();
@@ -39,6 +41,8 @@ public class HealthCheckController {
         return ResponseEntity.ok(ApiResponse.success("System is healthy", health));
     }
 
+    @Operation(summary = "Simple ping endpoint", description = "Returns simple 'pong' for basic service existence/routing check")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Ping successful, service responsive")
     @GetMapping("/ping")
     public ResponseEntity<ApiResponse<String>> ping() {
         return ResponseEntity.ok(ApiResponse.success("pong", "OK"));
@@ -67,3 +71,4 @@ public class HealthCheckController {
         return memory;
     }
 }
+

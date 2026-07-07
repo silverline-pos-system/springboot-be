@@ -4,6 +4,9 @@ import com.silverline.erp.module.admin.service.SecondaryRoleService;
 import com.silverline.erp.module.manager.dto.AssignSecondaryRoleRequest;
 import com.silverline.erp.module.manager.dto.MySecondaryRoleResponse;
 import com.silverline.erp.module.manager.dto.SecondaryRoleAssignmentDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +25,13 @@ import java.util.Map;
 @RequestMapping("/api/v1/manager/secondary-roles")
 @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN', 'SUPER_ADMIN')")
 @RequiredArgsConstructor
+@Tag(name = "Secondary Roles Overrides", description = "APIs for managers to temporarily assign or revoke secondary roles (e.g. Technician, Supervisor override permissions) to branch users")
 public class SecondaryRoleController {
 
     private final SecondaryRoleService secondaryRoleService;
 
-    // GET /api/v1/manager/secondary-roles?branchId=1
+    @Operation(summary = "Get secondary role assignments", description = "Retrieves all active secondary role assignments in a branch (with optional branch filter)")
+    @ApiResponse(responseCode = "200", description = "Secondary role assignments list fetched successfully")
     @GetMapping
     public ResponseEntity<List<SecondaryRoleAssignmentDTO>> getAssignments(
             @RequestParam(required = false) Long branchId) {
@@ -35,7 +40,9 @@ public class SecondaryRoleController {
         return ResponseEntity.ok(assignments);
     }
 
-    // POST /api/v1/manager/secondary-roles
+    @Operation(summary = "Assign a secondary role", description = "Assigns a secondary role override (e.g. supervisor privileges) to a user for override validation tasks")
+    @ApiResponse(responseCode = "201", description = "Secondary role assigned successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid role string or validation error")
     @PostMapping
     public ResponseEntity<SecondaryRoleAssignmentDTO> assignRole(
             @Valid @RequestBody AssignSecondaryRoleRequest request) {
@@ -44,7 +51,9 @@ public class SecondaryRoleController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    // DELETE /api/v1/manager/secondary-roles/{id}
+    @Operation(summary = "Revoke secondary role", description = "Revokes a secondary role assignment ID, resetting the user to default role permissions")
+    @ApiResponse(responseCode = "200", description = "Secondary role assignment revoked successfully")
+    @ApiResponse(responseCode = "404", description = "Assignment ID not found")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> revokeRole(@PathVariable Long id) {
         log.info("Revoking secondary role assignment id: {}", id);
@@ -52,8 +61,8 @@ public class SecondaryRoleController {
         return ResponseEntity.ok(Map.of("message", "Secondary role revoked successfully"));
     }
 
-    // GET /api/v1/manager/secondary-roles/me
-    // Override class-level auth — any logged-in user can call this
+    @Operation(summary = "Get my secondary role", description = "Retrieves active secondary roles configured for the current authenticated user context")
+    @ApiResponse(responseCode = "200", description = "My secondary roles retrieved successfully")
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MySecondaryRoleResponse> getMySecondaryRole(@AuthenticationPrincipal UserDetails userDetails) {

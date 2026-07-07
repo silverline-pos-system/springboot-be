@@ -1,6 +1,9 @@
 package com.silverline.erp.module.admin.controller;
 
 import com.silverline.erp.module.admin.service.AdminSaleService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,19 +17,13 @@ import java.time.format.DateTimeFormatter;
 @RestController
 @RequestMapping("/api/v1/admin/sales")
 @RequiredArgsConstructor
+@Tag(name = "Sales Override & Status Sync", description = "APIs for administrators and managers to query global sales totals, branch-specific net totals, and historical financial aggregates")
 public class SaleController {
 
     private final AdminSaleService saleService;
 
-    /**
-     * GET /api/v1/admin/sales/sum
-     * Optional query params:
-     * branchId - Long
-     * startDate - ISO-8601 LocalDateTime string (e.g. 2026-02-01T00:00:00)
-     * endDate   - ISO-8601 LocalDateTime string
-     * <p>
-     * Returns the sum of netTotal as a JSON number.
-     */
+    @Operation(summary = "Get sum of sales net total", description = "Queries total net sales value. Can filter results to a specific branch location and narrow by startDate/endDate ISO-8601 timestamps.")
+    @ApiResponse(responseCode = "200", description = "Sales net total sum calculated successfully")
     @GetMapping("/sum")
     public BigDecimal getSumNetTotal(
             @RequestParam(required = false) Long branchId,
@@ -45,20 +42,16 @@ public class SaleController {
                 end = LocalDateTime.parse(endDate, fmt);
             }
         } catch (Exception ex) {
-            // For simplicity return zero on parse error; you may replace with BadRequest handling.
             return BigDecimal.ZERO;
         }
 
         return saleService.getSumNetTotal(branchId, start, end);
     }
 
-    /**
-     * GET /api/v1/admin/sales/sum/all-time
-     * Returns the total sum of netTotal across all branches for all time.
-     */
+    @Operation(summary = "Get all-time sales sum", description = "Retrieves the sum total of net sales recorded across all branches for all time")
+    @ApiResponse(responseCode = "200", description = "All-time sales total retrieved successfully")
     @GetMapping("/sum/all-time")
     public BigDecimal getSumNetTotalAllTime() {
         return saleService.getTotalNetAllTime();
     }
 }
-

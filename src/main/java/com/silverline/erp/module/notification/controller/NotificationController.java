@@ -4,6 +4,9 @@ import com.silverline.erp.domain.notification.NotificationRecipient;
 import com.silverline.erp.infrastructure.sse.SseChannel;
 import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import com.silverline.erp.module.notification.service.NotificationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,15 +21,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
+@Tag(name = "Real-Time Notification Subscriptions", description = "APIs for users to retrieve, mark read, and subscribe to real-time notification events (SSE)")
 public class NotificationController {
 
     private final NotificationService notificationService;
     private final SseEmitterRegistry sseEmitterRegistry;
 
-    /**
-     * GET /api/v1/notifications
-     * Paginated list of notifications for the current user
-     */
+    @Operation(summary = "Get user notifications list", description = "Retrieves a paginated list of notifications for the current authenticated user")
+    @ApiResponse(responseCode = "200", description = "Notifications list retrieved successfully")
     @GetMapping
     public ResponseEntity<Page<Map<String, Object>>> getNotifications(
             @RequestParam(defaultValue = "0") int page,
@@ -55,9 +57,8 @@ public class NotificationController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * GET /api/v1/notifications/unread-count
-     */
+    @Operation(summary = "Get unread notifications count", description = "Retrieves total count of unread notifications for the current user")
+    @ApiResponse(responseCode = "200", description = "Count retrieved successfully")
     @GetMapping("/unread-count")
     public ResponseEntity<Map<String, Long>> getUnreadCount() {
         Long userId = getCurrentUserId();
@@ -65,10 +66,9 @@ public class NotificationController {
         return ResponseEntity.ok(Map.of("unreadCount", count));
     }
 
-    /**
-     * PUT /api/v1/notifications/{notificationId}/read
-     * Mark a specific notification as read
-     */
+    @Operation(summary = "Mark notification as read", description = "Updates a notification status to read for a specific notification ID")
+    @ApiResponse(responseCode = "200", description = "Notification marked as read successfully")
+    @ApiResponse(responseCode = "404", description = "Notification not found for this user")
     @PutMapping("/{notificationId}/read")
     public ResponseEntity<Map<String, String>> markAsRead(@PathVariable Long notificationId) {
         Long userId = getCurrentUserId();
@@ -76,10 +76,8 @@ public class NotificationController {
         return ResponseEntity.ok(Map.of("message", "Notification marked as read"));
     }
 
-    /**
-     * PUT /api/v1/notifications/read-all
-     * Mark all notifications as read for current user
-     */
+    @Operation(summary = "Mark all notifications as read", description = "Updates all unread notifications to read for the current user context")
+    @ApiResponse(responseCode = "200", description = "All notifications marked as read successfully")
     @PutMapping("/read-all")
     public ResponseEntity<Map<String, String>> markAllAsRead() {
         Long userId = getCurrentUserId();
@@ -87,17 +85,14 @@ public class NotificationController {
         return ResponseEntity.ok(Map.of("message", "All notifications marked as read"));
     }
 
-    /**
-     * GET /api/v1/notifications/stream
-     * Establish a Server-Sent Events stream for the current authenticated user.
-     */
+    @Operation(summary = "Subscribe to live notification stream", description = "Establishes a Server-Sent Events (SSE) connection to receive real-time alerts (e.g. transfer requests)")
+    @ApiResponse(responseCode = "200", description = "SSE connection established successfully")
     @GetMapping("/stream")
     public SseEmitter streamNotifications() {
         Long userId = getCurrentUserId();
-        SseEmitter emitter = new SseEmitter(180_000L); // 3 minutes timeout
+        SseEmitter emitter = new SseEmitter(180_000L);
         sseEmitterRegistry.register(SseChannel.NOTIFICATIONS, userId, emitter);
 
-        // Send connection initialization event
         try {
             emitter.send(SseEmitter.event()
                     .name("connection")
@@ -121,5 +116,3 @@ public class NotificationController {
         return userId;
     }
 }
-
-
