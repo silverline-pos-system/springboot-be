@@ -5,11 +5,14 @@ import com.silverline.erp.common.security.SecurityUtils;
 import com.silverline.erp.domain.audit.PasswordResetRequest;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.infrastructure.email.EmailService;
+import com.silverline.erp.infrastructure.sse.SseChannel;
 import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import com.silverline.erp.module.admin.dto.PasswordResetResponseDTO;
+import com.silverline.erp.module.admin.event.PasswordResetCountChangedEvent;
 import com.silverline.erp.module.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -29,6 +32,7 @@ public class PasswordResetController {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final SseEmitterRegistry sseEmitterRegistry;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * GET /api/v1/admin/password-requests
@@ -92,8 +96,8 @@ public class PasswordResetController {
         }
         passwordResetRequestRepository.save(request);
 
-        // Broadcast updated count to active managers
-        broadcastPendingCount();
+        // Publish event to broadcast the updated pending count asynchronously
+        eventPublisher.publishEvent(new PasswordResetCountChangedEvent(this));
 
         // Send email notification to user
         try {
@@ -134,8 +138,8 @@ public class PasswordResetController {
         }
         passwordResetRequestRepository.save(request);
 
-        // Broadcast updated count to active managers
-        broadcastPendingCount();
+        // Publish event to broadcast the updated pending count asynchronously
+        eventPublisher.publishEvent(new PasswordResetCountChangedEvent(this));
 
         // Send email notification to user
         try {
@@ -168,7 +172,7 @@ public class PasswordResetController {
             throw new com.silverline.erp.common.exception.UnauthorizedException("Not authenticated");
         }
         SseEmitter emitter = new SseEmitter(180_000L); // 3-minute timeout
-        sseEmitterRegistry.register(userId, emitter);
+        sseEmitterRegistry.register(SseChannel.PASSWORD_RESETS, userId, emitter);
 
         // Send initial connection event and current count
         try {
@@ -184,15 +188,6 @@ public class PasswordResetController {
         }
 
         return emitter;
-    }
-
-    private void broadcastPendingCount() {
-        try {
-            long count = passwordResetRequestRepository.countByStatus("PENDING");
-            sseEmitterRegistry.broadcast(Map.of("pendingCount", count));
-        } catch (Exception e) {
-            log.error("Failed to broadcast updated pending count: {}", e.getMessage());
-        }
     }
 
     private PasswordResetResponseDTO toDTO(PasswordResetRequest request) {

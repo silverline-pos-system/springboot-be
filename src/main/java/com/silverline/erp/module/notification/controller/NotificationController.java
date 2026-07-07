@@ -1,6 +1,7 @@
 package com.silverline.erp.module.notification.controller;
 
 import com.silverline.erp.domain.notification.NotificationRecipient;
+import com.silverline.erp.infrastructure.sse.SseChannel;
 import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
 import com.silverline.erp.module.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -94,7 +95,7 @@ public class NotificationController {
     public SseEmitter streamNotifications() {
         Long userId = getCurrentUserId();
         SseEmitter emitter = new SseEmitter(180_000L); // 3 minutes timeout
-        sseEmitterRegistry.register(userId, emitter);
+        sseEmitterRegistry.register(SseChannel.NOTIFICATIONS, userId, emitter);
 
         // Send connection initialization event
         try {

@@ -16,9 +16,10 @@ import com.silverline.erp.module.auth.dto.RegisterRequestDTO;
 import com.silverline.erp.module.auth.dto.RegisterResponseDTO;
 import com.silverline.erp.module.auth.service.AuthService;
 import com.silverline.erp.module.auth.service.JwtService;
-import com.silverline.erp.infrastructure.sse.SseEmitterRegistry;
+import com.silverline.erp.module.admin.event.PasswordResetCountChangedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -45,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuditLogService activityLogService;
     private final PasswordEncoder passwordEncoder;
-    private final SseEmitterRegistry sseEmitterRegistry;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public UserProfile findByEmail(String email) {
@@ -261,8 +262,8 @@ public class AuthServiceImpl implements AuthService {
 
         passwordResetRequestRepository.save(resetRequest);
 
-        // Broadcast updated count to active managers
-        broadcastPendingCount();
+        // Publish event to broadcast the updated pending count asynchronously
+        eventPublisher.publishEvent(new PasswordResetCountChangedEvent(this));
 
         // Send email with verification code
         try {
@@ -303,17 +304,8 @@ public class AuthServiceImpl implements AuthService {
         pendingRequest.setStatus("VERIFIED");
         passwordResetRequestRepository.save(pendingRequest);
 
-        // Broadcast updated count to active managers
-        broadcastPendingCount();
-    }
-
-    private void broadcastPendingCount() {
-        try {
-            long count = passwordResetRequestRepository.countByStatus("PENDING");
-            sseEmitterRegistry.broadcast(Map.of("pendingCount", count));
-        } catch (Exception e) {
-            log.error("Failed to broadcast updated pending count: {}", e.getMessage());
-        }
+        // Publish event to broadcast the updated pending count asynchronously
+        eventPublisher.publishEvent(new PasswordResetCountChangedEvent(this));
     }
 
     private String generateSequentialEmployeeId() {
