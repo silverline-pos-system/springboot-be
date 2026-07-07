@@ -16,6 +16,7 @@ public class StaffSummaryDTO {
     private String lastLogin;
     private String status;
     private String approvedBy;
+    private String approvedAt;
     private String email;
     private String phone;
     private String employeeId;
