@@ -14,6 +14,7 @@ public class ApprovalDTO {
     private String category;
     private String reference;
     private String requestedBy;
+    private String branchName;
     private String username;
     private String email;
     private String phone;
