@@ -257,6 +257,7 @@ public class ManagerServiceImpl implements ManagerService {
         String name = requester != null ? requester.getFullName() : "Unknown";
         String username = requester != null ? requester.getUsername() : "-";
         String email = requester != null ? requester.getEmail() : "-";
+        String phone = requester != null ? requester.getPhone() : "-";
         String approvedByName = approver != null ? approver.getFullName() : "-";
 
         BigDecimal amount = null;
@@ -283,6 +284,7 @@ public class ManagerServiceImpl implements ManagerService {
                 .requestedBy(name)
                 .username(username)
                 .email(email)
+                .phone(phone)
                 .approvedBy(approvedByName)
                 .time(formatDateTime(approval.getCreatedAt()))
                 .approvedAt(formatDateTime(approval.getApprovedAt()))
