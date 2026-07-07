@@ -16,6 +16,7 @@ public class ApprovalDTO {
     private String requestedBy;
     private String username;
     private String email;
+    private String phone;
     private String time;
     private String approvedAt;
     private String status;
