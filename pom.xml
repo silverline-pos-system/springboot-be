@@ -21,7 +21,7 @@
     <properties>
         <java.version>25</java.version>
 
-        <jasperreports.version>7.0.3</jasperreports.version>
+        <jasperreports.version>6.21.3</jasperreports.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
 
         <!-- important for Maven consistency -->

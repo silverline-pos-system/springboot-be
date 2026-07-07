@@ -33,6 +33,12 @@ public class GlobalResponseWrapper implements ResponseBodyAdvice<Object> {
             org.springframework.core.io.Resource.class.isAssignableFrom(paramType)) {
             return false;
         }
+
+        // Skip wrapping if the message converter writes raw byte arrays or resources directly
+        if (org.springframework.http.converter.ByteArrayHttpMessageConverter.class.isAssignableFrom(converterType) ||
+            org.springframework.http.converter.ResourceHttpMessageConverter.class.isAssignableFrom(converterType)) {
+            return false;
+        }
         
         return true;
     }
