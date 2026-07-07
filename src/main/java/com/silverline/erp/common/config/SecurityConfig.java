@@ -95,6 +95,7 @@ public class SecurityConfig {
                         // Public endpoints - no authentication required
                         .requestMatchers(
                                 "/api/v1/auth/**",
+                                "/api/v1/auth/branches",
                                 "/api/v1/system/**",
                                 "/public/**",
                                 "/api/docs",
