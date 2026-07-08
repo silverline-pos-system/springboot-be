@@ -46,6 +46,7 @@ public class ProductDTO {
     private BigDecimal maxStockLevel;
 
     private Boolean isSerialized;
+    private String trackingType;
     private Integer warrantyMonths;
     private Boolean isActive;
 

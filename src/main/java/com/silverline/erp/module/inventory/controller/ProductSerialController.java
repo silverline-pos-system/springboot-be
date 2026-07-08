@@ -72,6 +72,16 @@ public class ProductSerialController {
         return ResponseEntity.ok(ApiResponse.success("Available serials retrieved successfully", serials));
     }
 
+    @Operation(summary = "Get available transfer serials", description = "Lists available serial numbers for a specific product and branch that are not currently reserved or in another transfer")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Available transfer serials list retrieved successfully")
+    @GetMapping("/available-transfer")
+    public ResponseEntity<ApiResponse<?>> getAvailableTransferSerials(
+            @RequestParam Long branchId,
+            @RequestParam Long productId) {
+        List<ProductSerialDTO> serials = productSerialService.getAvailableTransferSerials(branchId, productId);
+        return ResponseEntity.ok(ApiResponse.success("Available transfer serials retrieved successfully", serials));
+    }
+
     @Operation(summary = "Lookup serial numbers", description = "Performs dynamic searches and filters on serial numbers list with paging")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lookup search completed successfully")
     @GetMapping("/lookup")
@@ -124,7 +134,11 @@ public class ProductSerialController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Serial number string not found")
     @GetMapping("/serial/{serialNo}")
     public ResponseEntity<ApiResponse<?>> getSerialBySerialNo(@PathVariable String serialNo) {
-        ProductSerialDTO serial = productSerialService.getSerialBySerialNo(serialNo);
+        ProductSerialDTO serial = productSerialService.findSerialByScan(serialNo);
+        if (serial == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Serial not found with search query: " + serialNo));
+        }
         return ResponseEntity.ok(ApiResponse.success("Serial retrieved successfully", serial));
     }
 

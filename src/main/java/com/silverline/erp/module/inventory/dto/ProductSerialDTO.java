@@ -19,12 +19,14 @@ public class ProductSerialDTO {
     private Long branchId;
     private String branchName;
     private String serialNo;
+    private String serialNoSuffix;
     private String barcode;
     private Long batchId;
     private String batchCode;
     private String status;
     private Long dispatchId;
     private Long saleId;
+    private Long transferId;
     private String invoiceNo;
     private String customerName;
     private String cashierName;

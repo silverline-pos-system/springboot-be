@@ -7,7 +7,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/silverline?currentSchema=public}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:2007}
+    password: ${DB_PASSWORD:24588}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: ${HIKARI_MAX_POOL:20}
@@ -21,13 +21,13 @@ spring:
     baseline-version: 1
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: ${JPA_SHOW_SQL:false}
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:smartretailpro.info@gmail.com}
-    password: ${MAIL_PASSWORD:ttpc ulel iqqo ndji}
+    username: ${MAIL_USERNAME:chathurabasnayake2007@gmail.com}
+    password: ${MAIL_PASSWORD:ndih ahpi jcgb iyfy}
     properties:
       mail:
         smtp:
@@ -74,6 +74,8 @@ rocs:
   rate-limit:
     requests-per-minute: ${RATE_LIMIT_RPM:60}
     login-attempts-per-minute: ${RATE_LIMIT_LOGIN_RPM:5}
+  imei:
+    suffix-length: ${ROCS_IMEI_SUFFIX_LENGTH:9}
 
 springdoc:
   swagger-ui:

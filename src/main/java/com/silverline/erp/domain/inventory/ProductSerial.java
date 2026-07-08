@@ -29,6 +29,24 @@ public class ProductSerial {
     @Column(name = "serial_no", unique = true, nullable = false, length = 100)
     private String serialNo;
 
+    @Column(name = "serial_no_suffix", length = 100)
+    private String serialNoSuffix;
+
+    public static int suffixLength = 9;
+
+    @PrePersist
+    @PreUpdate
+    public void populateSuffix() {
+        if (this.serialNo != null) {
+            int len = this.serialNo.length();
+            if (len <= suffixLength) {
+                this.serialNoSuffix = this.serialNo;
+            } else {
+                this.serialNoSuffix = this.serialNo.substring(len - suffixLength);
+            }
+        }
+    }
+
     @Column(name = "barcode", unique = true, length = 60)
     private String barcode;
 
@@ -43,6 +61,9 @@ public class ProductSerial {
 
     @Column(name = "sale_id")
     private Long saleId;
+
+    @Column(name = "transfer_id")
+    private Long transferId;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

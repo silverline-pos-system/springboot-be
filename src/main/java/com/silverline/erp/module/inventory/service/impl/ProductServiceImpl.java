@@ -2,10 +2,12 @@ package com.silverline.erp.module.inventory.service.impl;
 
 import com.silverline.erp.common.exception.DuplicateResourceException;
 import com.silverline.erp.common.exception.ResourceNotFoundException;
+import com.silverline.erp.common.exception.ValidationException;
 import com.silverline.erp.domain.inventory.Batch;
 import com.silverline.erp.domain.procurement.Supplier;
 import com.silverline.erp.domain.procurement.SupplierProduct;
 import com.silverline.erp.domain.product.Product;
+import com.silverline.erp.domain.product.TrackingType;
 import com.silverline.erp.module.inventory.dto.ProductDTO;
 import com.silverline.erp.module.inventory.dto.ProductDetailsDTO;
 import com.silverline.erp.module.inventory.repository.*;
@@ -117,6 +119,14 @@ public class ProductServiceImpl implements ProductService {
     @CacheEvict(value = "products", allEntries = true)
     @Override
     public ProductDTO createProduct(ProductDTO productDTO) {
+        if (productDTO.getTrackingType() == null || productDTO.getTrackingType().trim().isEmpty()) {
+            throw new ValidationException("Inventory Tracking Type is a mandatory field");
+        }
+        String tt = productDTO.getTrackingType().trim().toUpperCase();
+        if (!tt.equals("NORMAL") && !tt.equals("IMEI") && !tt.equals("EXPIRY")) {
+            throw new ValidationException("Inventory Tracking Type must be one of: NORMAL, IMEI, EXPIRY");
+        }
+
         if (productRepository.findBySku(productDTO.getSku()).isPresent()) {
             throw new DuplicateResourceException("Product with SKU " + productDTO.getSku() + " already exists");
         }
@@ -135,6 +145,24 @@ public class ProductServiceImpl implements ProductService {
     public ProductDTO updateProduct(Long id, ProductDTO productDTO) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+
+        if (productDTO.getTrackingType() == null || productDTO.getTrackingType().trim().isEmpty()) {
+            throw new ValidationException("Inventory Tracking Type is a mandatory field");
+        }
+        String tt = productDTO.getTrackingType().trim().toUpperCase();
+        if (!tt.equals("NORMAL") && !tt.equals("IMEI") && !tt.equals("EXPIRY")) {
+            throw new ValidationException("Inventory Tracking Type must be one of: NORMAL, IMEI, EXPIRY");
+        }
+
+        // Check if user tries to change the tracking type
+        if (product.getTrackingType() != null && !product.getTrackingType().name().equalsIgnoreCase(tt)) {
+            boolean isUsed = productRepository.isUsedInPurchaseOrders(id) || 
+                             productRepository.isUsedInDispatches(id) || 
+                             productRepository.isUsedInSales(id);
+            if (isUsed) {
+                throw new ValidationException("Cannot change inventory tracking type once the product has been used in transactions.");
+            }
+        }
 
         if (!product.getSku().equals(productDTO.getSku())) {
             if (productRepository.findBySku(productDTO.getSku()).isPresent()) {
@@ -163,7 +191,16 @@ public class ProductServiceImpl implements ProductService {
         product.setMrp(productDTO.getMrp());
         product.setReorderLevel(productDTO.getReorderLevel());
         product.setMaxStockLevel(productDTO.getMaxStockLevel());
-        product.setIsSerialized(productDTO.getIsSerialized());
+        
+        try {
+            TrackingType enumTt = TrackingType.valueOf(tt);
+            product.setTrackingType(enumTt);
+            product.setIsSerialized(enumTt == TrackingType.IMEI);
+        } catch (IllegalArgumentException e) {
+            product.setTrackingType(TrackingType.NORMAL);
+            product.setIsSerialized(false);
+        }
+
         product.setWarrantyMonths(productDTO.getWarrantyMonths());
         product.setIsActive(productDTO.getIsActive());
 
@@ -301,6 +338,7 @@ public class ProductServiceImpl implements ProductService {
         dto.setReorderLevel(product.getReorderLevel());
         dto.setMaxStockLevel(product.getMaxStockLevel());
         dto.setIsSerialized(product.getIsSerialized());
+        dto.setTrackingType(product.getTrackingType() != null ? product.getTrackingType().name() : "NORMAL");
         dto.setWarrantyMonths(product.getWarrantyMonths());
         dto.setIsActive(product.getIsActive());
 
@@ -350,7 +388,21 @@ public class ProductServiceImpl implements ProductService {
         product.setMrp(dto.getMrp());
         product.setReorderLevel(dto.getReorderLevel());
         product.setMaxStockLevel(dto.getMaxStockLevel());
-        product.setIsSerialized(dto.getIsSerialized());
+        
+        if (dto.getTrackingType() != null) {
+            try {
+                TrackingType tt = TrackingType.valueOf(dto.getTrackingType().trim().toUpperCase());
+                product.setTrackingType(tt);
+                product.setIsSerialized(tt == TrackingType.IMEI);
+            } catch (IllegalArgumentException e) {
+                product.setTrackingType(TrackingType.NORMAL);
+                product.setIsSerialized(false);
+            }
+        } else {
+            product.setTrackingType(TrackingType.NORMAL);
+            product.setIsSerialized(false);
+        }
+
         product.setWarrantyMonths(dto.getWarrantyMonths());
         product.setIsActive(dto.getIsActive());
         return product;

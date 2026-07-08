@@ -30,6 +30,7 @@ public class StockTransferResponseDTO {
     private LocalDateTime requestedTime;
     private Long approvedBy;
     private LocalDateTime approvedTime;
+    private java.util.List<String> imeis;
 
 }
 
