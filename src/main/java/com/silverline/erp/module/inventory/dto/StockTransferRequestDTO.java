@@ -31,6 +31,8 @@ public class StockTransferRequestDTO {
     // Add the missing getter method
     private Long requestedBy; // Assuming requestedBy is of type Long, add this line
 
+    private java.util.List<String> imeis;
+
     @NotNull(message = "Origin branch is required")
     private Long fromBranchId;  // was: fromBranch
 

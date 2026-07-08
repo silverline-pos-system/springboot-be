@@ -84,6 +84,11 @@ public class PosSaleServiceImpl implements PosSaleService {
                             "Serial '" + serial.getSerialNo() + "' belongs to another branch."
                         );
                     }
+                    if (serial.getTransferId() != null) {
+                        throw new com.silverline.erp.common.exception.ValidationException(
+                            "Serial '" + serial.getSerialNo() + "' is currently locked in a stock transfer request."
+                        );
+                    }
                 }
             }
         }

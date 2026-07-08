@@ -78,7 +78,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
 
     @Override
     public List<ProductSerialDTO> getAvailableSerials(Long branchId, Long productId) {
-        return productSerialRepository.findByBranchIdAndProductIdAndStatus(branchId, productId, "IN_STOCK").stream()
+        return productSerialRepository.findByBranchIdAndProductIdAndStatusAndTransferIdIsNull(branchId, productId, "IN_STOCK").stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -347,6 +347,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
         dto.setStatus(serial.getStatus());
         dto.setDispatchId(serial.getDispatchId());
         dto.setSaleId(serial.getSaleId());
+        dto.setTransferId(serial.getTransferId());
         dto.setCreatedAt(serial.getCreatedAt());
         dto.setSoldAt(serial.getSoldAt());
 
@@ -394,6 +395,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
         serial.setStatus(dto.getStatus());
         serial.setDispatchId(dto.getDispatchId());
         serial.setSaleId(dto.getSaleId());
+        serial.setTransferId(dto.getTransferId());
         serial.setSoldAt(dto.getSoldAt());
         return serial;
     }
@@ -443,6 +445,20 @@ public class ProductSerialServiceImpl implements ProductSerialService {
     @Override
     public List<ProductSerialDTO> findSerialsBySuffix(String suffix) {
         return productSerialRepository.findBySerialNoSuffix(suffix).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductSerialDTO> getSerialsByTransferId(Long transferId) {
+        return productSerialRepository.findByTransferId(transferId).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductSerialDTO> getAvailableTransferSerials(Long branchId, Long productId) {
+        return productSerialRepository.findByBranchIdAndProductIdAndStatusAndTransferIdIsNull(branchId, productId, "IN_STOCK").stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

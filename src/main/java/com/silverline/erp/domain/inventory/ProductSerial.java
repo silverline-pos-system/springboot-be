@@ -62,6 +62,9 @@ public class ProductSerial {
     @Column(name = "sale_id")
     private Long saleId;
 
+    @Column(name = "transfer_id")
+    private Long transferId;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

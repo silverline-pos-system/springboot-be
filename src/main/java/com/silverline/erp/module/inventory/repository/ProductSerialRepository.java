@@ -62,6 +62,10 @@ public interface ProductSerialRepository extends JpaRepository<ProductSerial, Lo
             Pageable pageable);
 
     List<ProductSerial> findBySerialNoSuffix(String serialNoSuffix);
+
+    List<ProductSerial> findByTransferId(Long transferId);
+
+    List<ProductSerial> findByBranchIdAndProductIdAndStatusAndTransferIdIsNull(Long branchId, Long productId, String status);
 }
 
 

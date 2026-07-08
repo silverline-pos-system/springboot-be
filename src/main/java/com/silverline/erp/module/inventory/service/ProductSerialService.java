@@ -52,4 +52,8 @@ public interface ProductSerialService {
     ProductSerialDTO findSerialByScan(String query);
 
     List<ProductSerialDTO> findSerialsBySuffix(String suffix);
+
+    List<ProductSerialDTO> getSerialsByTransferId(Long transferId);
+
+    List<ProductSerialDTO> getAvailableTransferSerials(Long branchId, Long productId);
 }
