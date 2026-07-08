@@ -47,64 +47,17 @@ public class PasswordResetRequestServiceImpl implements PasswordResetRequestServ
             throw new com.silverline.erp.common.exception.ValidationException("You already have a pending or verified password reset request. Please wait for admin approval.");
         }
 
-        // Generate a 6-digit verification code
-        String token = String.format("%06d", new SecureRandom().nextInt(1000000));
-        String tokenHash = SecurityUtils.hashToken(token);
-
         PasswordResetRequest resetRequest = new PasswordResetRequest();
         resetRequest.setUserId(user.getUserId());
         resetRequest.setUsername(user.getUsername());
         resetRequest.setFullName(user.getFullName());
         resetRequest.setEmail(user.getEmail());
         resetRequest.setNewPasswordHash(passwordEncoder.encode(newPassword));
-        resetRequest.setTokenHash(tokenHash);
+        resetRequest.setTokenHash(null);
         resetRequest.setStatus("PENDING");
         resetRequest.setRequestNotes(reason != null ? reason : "Password reset requested");
 
         passwordResetRequestRepository.save(resetRequest);
-
-        // Publish event to broadcast the updated pending count asynchronously
-        eventPublisher.publishEvent(new PasswordResetCountChangedEvent(this));
-
-        // Send email with verification code
-        try {
-            String subject = "Password Reset Verification - Silverline";
-            String htmlContent = TemplateEngine.loadAndResolve(
-                    "password_reset_request",
-                    Map.of(
-                            "fullName", user.getFullName(),
-                            "username", user.getUsername(),
-                            "verificationCode", token
-                    )
-            );
-            emailService.sendHtmlMessage(user.getEmail(), subject, htmlContent);
-        } catch (Exception e) {
-            log.error("Failed to send password reset verification email: {}", e.getMessage(), e);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void verifyForgotPasswordToken(String username, String token) {
-        Optional<UserProfile> userOpt = userProfileRepository.findByUsername(username);
-        if (userOpt.isEmpty()) {
-            throw new com.silverline.erp.common.exception.ResourceNotFoundException("Username not found.");
-        }
-        UserProfile user = userOpt.get();
-
-        List<PasswordResetRequest> requests = passwordResetRequestRepository.findByUserId(user.getUserId());
-        PasswordResetRequest pendingRequest = requests.stream()
-                .filter(r -> "PENDING".equals(r.getStatus()))
-                .findFirst()
-                .orElseThrow(() -> new com.silverline.erp.common.exception.ValidationException("No pending password reset request found."));
-
-        String inputHash = SecurityUtils.hashToken(token);
-        if (!inputHash.equals(pendingRequest.getTokenHash())) {
-            throw new com.silverline.erp.common.exception.ValidationException("Invalid verification code. Please try again.");
-        }
-
-        pendingRequest.setStatus("VERIFIED");
-        passwordResetRequestRepository.save(pendingRequest);
 
         // Publish event to broadcast the updated pending count asynchronously
         eventPublisher.publishEvent(new PasswordResetCountChangedEvent(this));
