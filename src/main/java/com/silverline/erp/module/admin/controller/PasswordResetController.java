@@ -71,9 +71,9 @@ public class PasswordResetController {
         PasswordResetRequest request = passwordResetRequestRepository.findById(id)
                 .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("Request not found"));
 
-        if (!"VERIFIED".equals(request.getStatus())) {
+        if (!"PENDING".equals(request.getStatus())) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Only verified password reset requests can be approved. Current status: " + request.getStatus()));
+                    .body(Map.of("message", "Only pending password reset requests can be approved. Current status: " + request.getStatus()));
         }
 
         UserProfile user = userRepository.findById(request.getUserId())
@@ -116,9 +116,9 @@ public class PasswordResetController {
         PasswordResetRequest request = passwordResetRequestRepository.findById(id)
                 .orElseThrow(() -> new com.silverline.erp.common.exception.ResourceNotFoundException("Request not found"));
 
-        if (!"PENDING".equals(request.getStatus()) && !"VERIFIED".equals(request.getStatus())) {
+        if (!"PENDING".equals(request.getStatus())) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Only pending or verified requests can be rejected. Current status: " + request.getStatus()));
+                    .body(Map.of("message", "Only pending requests can be rejected. Current status: " + request.getStatus()));
         }
 
         request.setStatus("REJECTED");

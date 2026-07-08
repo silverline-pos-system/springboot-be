@@ -101,26 +101,9 @@ public class AuthController {
         log.info("Processing password reset request for: {}", request.getUsername());
         try {
             passwordResetRequestService.forgotPassword(request.getUsername(), request.getNewPassword(), request.getReason());
-            return ResponseEntity.ok(ApiResponse.success("Password reset request submitted successfully. Please check your email for the verification code."));
+            return ResponseEntity.ok(ApiResponse.success("Password reset request submitted successfully. A system administrator will review and approve your request shortly."));
         } catch (RuntimeException e) {
             log.warn("Password reset request failed: {}", e.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error(e.getMessage()));
-        }
-    }
-
-    @Operation(summary = "Verify password reset request", description = "Verifies the password reset request using the emailed verification code")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Request verified successfully")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid code or validation failure")
-    @PostMapping("/forgot-password/verify")
-    public ResponseEntity<ApiResponse<Void>> verifyForgotPassword(@Valid @RequestBody ForgotPasswordVerifyDTO request) {
-        log.info("Verifying password reset request for: {}", request.getUsername());
-        try {
-            passwordResetRequestService.verifyForgotPasswordToken(request.getUsername(), request.getToken());
-            return ResponseEntity.ok(ApiResponse.success("Password reset request verified successfully. A system administrator will review and approve your request shortly."));
-        } catch (RuntimeException e) {
-            log.warn("Password reset verification failed: {}", e.getMessage());
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error(e.getMessage()));
