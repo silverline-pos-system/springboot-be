@@ -59,6 +59,35 @@ public class PosSaleServiceImpl implements PosSaleService {
 
         log.info("Creating sale: branchId={}, cashierId={}, shiftId={}, status={}", branchId, cashierId, shiftId, requestedStatus);
 
+        // --- IMEI/Serial Validation Gate ---
+        if (request.getItems() != null && !request.getItems().isEmpty()) {
+            java.util.Set<Long> serialIdsInRequest = new java.util.HashSet<>();
+            for (SaleItemRequest itemReq : request.getItems()) {
+                if (itemReq.getSerialId() != null) {
+                    if (!serialIdsInRequest.add(itemReq.getSerialId())) {
+                        throw new com.silverline.erp.common.exception.ValidationException(
+                            "Duplicate IMEI/Serial ID '" + itemReq.getSerialId() + "' scanned in the same transaction."
+                        );
+                    }
+
+                    com.silverline.erp.module.inventory.dto.ProductSerialDTO serial = productSerialService.getSerialById(itemReq.getSerialId());
+                    if (serial == null) {
+                        throw new com.silverline.erp.common.exception.ResourceNotFoundException("Serial not found with ID: " + itemReq.getSerialId());
+                    }
+                    if (!"IN_STOCK".equals(serial.getStatus())) {
+                        throw new com.silverline.erp.common.exception.ValidationException(
+                            "Serial '" + serial.getSerialNo() + "' is already " + serial.getStatus().toLowerCase() + " and cannot be sold again."
+                        );
+                    }
+                    if (!branchId.equals(serial.getBranchId())) {
+                        throw new com.silverline.erp.common.exception.ValidationException(
+                            "Serial '" + serial.getSerialNo() + "' belongs to another branch."
+                        );
+                    }
+                }
+            }
+        }
+
         if (isPaidSale && request.getItems() != null && !request.getItems().isEmpty()) {
             boolean allowOutOfStock = featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK");
 

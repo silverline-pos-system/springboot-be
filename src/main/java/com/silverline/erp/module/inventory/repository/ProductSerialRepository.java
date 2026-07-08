@@ -60,6 +60,8 @@ public interface ProductSerialRepository extends JpaRepository<ProductSerial, Lo
             @Param("status") String status,
             @Param("search") String search,
             Pageable pageable);
+
+    List<ProductSerial> findBySerialNoSuffix(String serialNoSuffix);
 }
 
 

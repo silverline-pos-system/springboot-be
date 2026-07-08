@@ -70,43 +70,8 @@ public class PosProductController {
 
         Long targetBranchId = getBranchIdFromParam(branchId);
 
-        if (query.matches("\\d+")) {
-            try {
-                Long id = Long.parseLong(query);
-                var product = productService.findById(id);
-                if (product != null) {
-                    PosProductDTO dto = mapToDTO(product, targetBranchId);
-                    if (!skipStockCheck && dto.getAvailableStock() != null && dto.getAvailableStock().compareTo(BigDecimal.ZERO) <= 0) {
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body(ApiResponse.error("Product '" + dto.getName() + "' is out of stock (Quantity: 0)"));
-                    }
-                    return ResponseEntity.ok(ApiResponse.success("Product found", dto));
-                }
-            } catch (NumberFormatException ignored) {
-            }
-        }
-
-        var productByBarcode = productService.findByBarcode(query);
-        if (productByBarcode != null) {
-            PosProductDTO dto = mapToDTO(productByBarcode, targetBranchId);
-            if (!skipStockCheck && dto.getAvailableStock() != null && dto.getAvailableStock().compareTo(BigDecimal.ZERO) <= 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(ApiResponse.error("Product '" + dto.getName() + "' is out of stock (Quantity: 0)"));
-            }
-            return ResponseEntity.ok(ApiResponse.success("Product found", dto));
-        }
-
-        var productBySku = productService.findBySku(query);
-        if (productBySku != null) {
-            PosProductDTO dto = mapToDTO(productBySku, targetBranchId);
-            if (!skipStockCheck && dto.getAvailableStock() != null && dto.getAvailableStock().compareTo(BigDecimal.ZERO) <= 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(ApiResponse.error("Product '" + dto.getName() + "' is out of stock (Quantity: 0)"));
-            }
-            return ResponseEntity.ok(ApiResponse.success("Product found", dto));
-        }
-
-        var serial = productSerialService.findSerialBySerialNo(query);
+        // 1. Try looking up by serial number (IMEI) first
+        var serial = productSerialService.findSerialByScan(query);
         if (serial != null) {
             var s = serial;
             if (!targetBranchId.equals(s.getBranchId())) {
@@ -125,8 +90,57 @@ public class PosProductController {
                 PosProductDTO dto = mapToDTO(product, targetBranchId);
                 dto.setSelectedSerialId(s.getSerialId());
                 dto.setSerialNo(s.getSerialNo());
+                dto.setSelectedBatchId(s.getBatchId());
+
+                if (s.getBatchId() != null) {
+                    try {
+                        var batch = batchService.getBatchById(s.getBatchId());
+                        if (batch != null && batch.getSellingPrice() != null) {
+                            dto.setSellingPrice(batch.getSellingPrice());
+                        }
+                    } catch (Exception ignored) {}
+                }
                 return ResponseEntity.ok(ApiResponse.success("Serial scanned: " + s.getSerialNo(), dto));
             }
+        }
+
+        // 2. Try looking up by product ID (if numeric)
+        if (query.matches("\\d+")) {
+            try {
+                Long id = Long.parseLong(query);
+                var product = productService.findById(id);
+                if (product != null) {
+                    PosProductDTO dto = mapToDTO(product, targetBranchId);
+                    if (!skipStockCheck && dto.getAvailableStock() != null && dto.getAvailableStock().compareTo(BigDecimal.ZERO) <= 0) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.error("Product '" + dto.getName() + "' is out of stock (Quantity: 0)"));
+                    }
+                    return ResponseEntity.ok(ApiResponse.success("Product found", dto));
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        // 3. Try looking up by product barcode
+        var productByBarcode = productService.findByBarcode(query);
+        if (productByBarcode != null) {
+            PosProductDTO dto = mapToDTO(productByBarcode, targetBranchId);
+            if (!skipStockCheck && dto.getAvailableStock() != null && dto.getAvailableStock().compareTo(BigDecimal.ZERO) <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Product '" + dto.getName() + "' is out of stock (Quantity: 0)"));
+            }
+            return ResponseEntity.ok(ApiResponse.success("Product found", dto));
+        }
+
+        // 4. Try looking up by product SKU
+        var productBySku = productService.findBySku(query);
+        if (productBySku != null) {
+            PosProductDTO dto = mapToDTO(productBySku, targetBranchId);
+            if (!skipStockCheck && dto.getAvailableStock() != null && dto.getAvailableStock().compareTo(BigDecimal.ZERO) <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Product '" + dto.getName() + "' is out of stock (Quantity: 0)"));
+            }
+            return ResponseEntity.ok(ApiResponse.success("Product found", dto));
         }
 
         return new ResponseEntity<>(

@@ -1,5 +1,6 @@
 package com.silverline.erp.module.inventory.service.impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import com.silverline.erp.common.exception.DuplicateResourceException;
 import com.silverline.erp.common.exception.InsufficientStockException;
 import com.silverline.erp.common.exception.ResourceNotFoundException;
@@ -33,6 +34,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class ProductSerialServiceImpl implements ProductSerialService {
+
+    @Value("${rocs.imei.suffix-length:9}")
+    private int imeiSuffixLength;
 
     private final ProductSerialRepository productSerialRepository;
     private final ProductRepository productRepository;
@@ -337,6 +341,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
         dto.setProductId(serial.getProductId());
         dto.setBranchId(serial.getBranchId());
         dto.setSerialNo(serial.getSerialNo());
+        dto.setSerialNoSuffix(serial.getSerialNoSuffix());
         dto.setBarcode(serial.getBarcode());
         dto.setBatchId(serial.getBatchId());
         dto.setStatus(serial.getStatus());
@@ -383,6 +388,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
         serial.setProductId(dto.getProductId());
         serial.setBranchId(dto.getBranchId());
         serial.setSerialNo(dto.getSerialNo());
+        serial.setSerialNoSuffix(dto.getSerialNoSuffix());
         serial.setBarcode(dto.getBarcode());
         serial.setBatchId(dto.getBatchId());
         serial.setStatus(dto.getStatus());
@@ -397,5 +403,47 @@ public class ProductSerialServiceImpl implements ProductSerialService {
         return productSerialRepository.findBySerialNo(serialNo)
                 .map(this::convertToDTO)
                 .orElse(null);
+    }
+
+    @Override
+    public ProductSerialDTO findSerialByScan(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return null;
+        }
+
+        // 1. Search by full IMEI first
+        java.util.Optional<ProductSerial> fullMatch = productSerialRepository.findBySerialNo(query);
+        if (fullMatch.isPresent()) {
+            return convertToDTO(fullMatch.get());
+        }
+
+        // 2. Extract suffix
+        int len = query.length();
+        String suffix;
+        if (len <= imeiSuffixLength) {
+            suffix = query;
+        } else {
+            suffix = query.substring(len - imeiSuffixLength);
+        }
+
+        // 3. Search by suffix
+        List<ProductSerial> suffixMatches = productSerialRepository.findBySerialNoSuffix(suffix);
+        if (suffixMatches.isEmpty()) {
+            return null;
+        }
+        if (suffixMatches.size() > 1) {
+            throw new com.silverline.erp.common.exception.ValidationException(
+                "Multiple matching IMEI records found for suffix '" + suffix + "'. Please resolve the duplicate data."
+            );
+        }
+
+        return convertToDTO(suffixMatches.get(0));
+    }
+
+    @Override
+    public List<ProductSerialDTO> findSerialsBySuffix(String suffix) {
+        return productSerialRepository.findBySerialNoSuffix(suffix).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }

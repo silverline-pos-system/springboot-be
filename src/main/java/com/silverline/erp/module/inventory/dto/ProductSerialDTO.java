@@ -19,6 +19,7 @@ public class ProductSerialDTO {
     private Long branchId;
     private String branchName;
     private String serialNo;
+    private String serialNoSuffix;
     private String barcode;
     private Long batchId;
     private String batchCode;

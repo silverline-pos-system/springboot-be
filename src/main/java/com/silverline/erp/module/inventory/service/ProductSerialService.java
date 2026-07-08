@@ -48,4 +48,8 @@ public interface ProductSerialService {
     List<DamagedProductDTO> getDamagedProducts(Long branchId);
 
     ProductSerialDTO findSerialBySerialNo(String serialNo);
+
+    ProductSerialDTO findSerialByScan(String query);
+
+    List<ProductSerialDTO> findSerialsBySuffix(String suffix);
 }

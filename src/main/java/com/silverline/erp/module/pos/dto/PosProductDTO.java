@@ -21,6 +21,7 @@ public class PosProductDTO {
     private java.util.List<BatchPriceDTO> availablePrices;
     private Long selectedSerialId;
     private String serialNo;
+    private Long selectedBatchId;
 
     @Data
     @NoArgsConstructor

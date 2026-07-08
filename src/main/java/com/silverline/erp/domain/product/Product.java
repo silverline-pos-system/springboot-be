@@ -94,6 +94,14 @@ public class Product {
     @Builder.Default
     private Boolean isSerialized = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tracking_type")
+    private TrackingType trackingType;
+
+    public TrackingType getTrackingType() {
+        return trackingType != null ? trackingType : TrackingType.NORMAL;
+    }
+
     /* -------------------- Tax & Warranty -------------------- */
 
     @Column(name = "warranty_months")
