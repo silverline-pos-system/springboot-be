@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import com.silverline.erp.module.admin.service.PrintSettingsService;
+import com.silverline.erp.module.admin.dto.PrintHeaderFooterDTO;
 
 @Slf4j
 @RestController
@@ -33,6 +35,7 @@ public class PosController {
     private final LoyaltyService loyaltyService;
     private final SaleQueryService saleQueryService;
     private final ShiftService shiftService;
+    private final PrintSettingsService printSettingsService;
 
     @Operation(summary = "Get last invoice info", description = "Retrieves metadata about the last recorded sale/invoice in the system")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Invoice info fetched successfully")
@@ -175,5 +178,14 @@ public class PosController {
         log.info("Verifying loyalty redemption for customer: {}", request.getCustomerId());
         java.math.BigDecimal discountValue = loyaltyService.verifyLoyaltyRedemption(request.getCustomerId(), request.getPointsToRedeem(), request.getOtpCode());
         return ResponseEntity.ok(ApiResponse.success("Redemption verified", Map.of("discountValue", discountValue)));
+    }
+
+    @Operation(summary = "Get print header/footer settings for POS", description = "Retrieves print settings (business name, address, contact, policy notes) for a specific branch. Allowed for cashier role.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Settings retrieved successfully")
+    @GetMapping("/print-settings/header-footer")
+    public ResponseEntity<ApiResponse<PrintHeaderFooterDTO>> getPrintSettings(@RequestParam Long branchId) {
+        log.info("POS fetching print header/footer settings for branchId: {}", branchId);
+        PrintHeaderFooterDTO dto = printSettingsService.getHeaderFooter(branchId);
+        return ResponseEntity.ok(ApiResponse.success("Print settings retrieved", dto));
     }
 }
