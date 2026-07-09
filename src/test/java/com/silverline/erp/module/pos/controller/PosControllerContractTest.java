@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.silverline.erp.common.filter.JwtFilter;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.auth.service.MyUserDetailsService;
+import com.silverline.erp.module.admin.service.PrintSettingsService;
 import com.silverline.erp.module.pos.dto.ShiftStartRequest;
 import com.silverline.erp.module.pos.dto.sale.CreateSaleRequest;
 import com.silverline.erp.module.pos.dto.sale.SaleItemRequest;
@@ -58,6 +59,9 @@ public class PosControllerContractTest {
 
     @MockitoBean
     private CashReconciliationService cashReconciliationService;
+
+    @MockitoBean
+    private PrintSettingsService printSettingsService;
 
     @MockitoBean
     private JwtFilter jwtFilter;
