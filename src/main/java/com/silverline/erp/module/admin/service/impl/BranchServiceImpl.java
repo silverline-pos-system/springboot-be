@@ -81,13 +81,8 @@ public class BranchServiceImpl implements BranchService {
         if (dto.getName() != null && !dto.getName().equals(existing.getName()) && branchRepository.existsByNameAndBranchIdNot(dto.getName(), id)) {
             throw new com.silverline.erp.common.exception.DuplicateResourceException("Branch name already exists");
         }
-        if (dto.getCode() != null && !dto.getCode().equals(existing.getCode()) && branchRepository.existsByCodeAndBranchIdNot(dto.getCode(), id)) {
-            throw new com.silverline.erp.common.exception.DuplicateResourceException("Branch code already exists");
-        }
-
         // update fields
         if (dto.getName() != null) existing.setName(dto.getName());
-        if (dto.getCode() != null) existing.setCode(dto.getCode());
         if (dto.getAddress() != null) existing.setAddress(dto.getAddress());
         if (dto.getLocation() != null) existing.setLocation(dto.getLocation());
         if (dto.getPhone() != null) existing.setPhone(dto.getPhone());
