@@ -37,6 +37,9 @@ public class BranchServiceImpl implements BranchService {
     @Override
     @org.springframework.transaction.annotation.Transactional
     public BranchDTO createBranch(BranchDTO dto) {
+        // Auto-generate next branch code on the backend to avoid concurrent client conflicts
+        dto.setCode(generateNextBranchCode());
+
         if (dto.getName() != null && branchRepository.existsByName(dto.getName())) {
             throw new com.silverline.erp.common.exception.DuplicateResourceException("Branch name already exists");
         }
@@ -231,6 +234,24 @@ public class BranchServiceImpl implements BranchService {
         b.setEmail(dto.getEmail());
         b.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
         return b;
+    }
+
+    private synchronized String generateNextBranchCode() {
+        List<Branch> branches = branchRepository.findAll();
+        int maxCodeNumber = 0;
+        for (Branch branch : branches) {
+            String rawCode = branch.getCode() != null ? branch.getCode() : "";
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d+)$").matcher(rawCode);
+            if (matcher.find()) {
+                try {
+                    int num = Integer.parseInt(matcher.group(1));
+                    if (num > maxCodeNumber) {
+                        maxCodeNumber = num;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return String.format("BR%03d", maxCodeNumber + 1);
     }
 }
 
