@@ -167,9 +167,12 @@ public class SecurityConfig {
                         // Secondary role "me" endpoint - any authenticated user
                         .requestMatchers("/api/v1/manager/secondary-roles/me").authenticated()
 
-                        // Grant Store Keeper access to activity logs
+                        // Allow any authenticated user to log their activities (e.g. cashiers)
+                        .requestMatchers("/api/v1/manager/activity/log").authenticated()
+
+                        // Grant Store Keeper and Supervisor access to activity logs
                         .requestMatchers("/api/v1/manager/activity/**")
-                        .hasAnyRole(Role.STORE_KEEPER.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+                        .hasAnyRole(Role.STORE_KEEPER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
                         // Manager endpoints
                         .requestMatchers("/api/v1/manager/**")
