@@ -106,6 +106,14 @@ public class RegistrationServiceImpl implements RegistrationService {
         );
     }
 
+    @Override
+    public boolean isUsernameExists(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+        return userProfileRepository.findByUsername(username.trim()).isPresent();
+    }
+
     private String generateSequentialEmployeeId() {
         Long maxNumber = userProfileRepository.findMaxEmployeeIdSequence();
         long nextNumber = (maxNumber != null ? maxNumber : 0) + 1;

@@ -15,6 +15,7 @@ public class PasswordResetResponseDTO {
     private String requestNotes;
     private String adminNotes;
     private Long reviewedBy;
+    private String phone;
     private LocalDateTime createdAt;
     private LocalDateTime reviewedAt;
 }

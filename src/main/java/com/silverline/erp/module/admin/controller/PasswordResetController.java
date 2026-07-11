@@ -192,6 +192,11 @@ public class PasswordResetController {
         dto.setReviewedBy(request.getReviewedBy());
         dto.setCreatedAt(request.getCreatedAt());
         dto.setReviewedAt(request.getReviewedAt());
+        
+        userRepository.findById(request.getUserId()).ifPresent(user -> {
+            dto.setPhone(user.getPhone());
+        });
+        
         return dto;
     }
 }

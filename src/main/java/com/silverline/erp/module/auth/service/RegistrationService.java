@@ -9,4 +9,5 @@ import java.util.List;
 public interface RegistrationService {
     RegisterResponseDTO registerUser(RegisterRequestDTO registerRequestDTO);
     List<Branch> getAllBranches();
+    boolean isUsernameExists(String username);
 }

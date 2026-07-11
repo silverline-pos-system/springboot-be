@@ -93,6 +93,13 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Check username availability", description = "Checks if a username already exists in the system")
+    @GetMapping("/check-username")
+    public ResponseEntity<ApiResponse<Map<String, Boolean>>> checkUsername(@RequestParam String username) {
+        boolean exists = registrationService.isUsernameExists(username);
+        return ResponseEntity.ok(ApiResponse.success("Username check completed", Map.of("exists", exists)));
+    }
+
     @Operation(summary = "Submit password reset request", description = "Creates a request for password reset that must be approved by an administrator")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Request submitted successfully")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid username or validation failure")
