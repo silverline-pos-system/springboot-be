@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface SecondaryRoleAssignmentRepository extends JpaRepository<SecondaryRoleAssignment, Long> {
 
-    List<SecondaryRoleAssignment> findByAssignedByBranchIdOrderByCreatedAtDesc(Long branchId);
+    List<SecondaryRoleAssignment> findAllByOrderByCreatedAtDesc();
 
     Optional<SecondaryRoleAssignment> findFirstByUserIdAndRevokedFalseAndExpiresAtAfterOrderByCreatedAtDesc(
             Long userId, LocalDateTime now

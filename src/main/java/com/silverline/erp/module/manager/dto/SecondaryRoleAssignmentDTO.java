@@ -15,7 +15,6 @@ public class SecondaryRoleAssignmentDTO {
     private String secondaryRole;
     private String expiresAt;           // ISO 8601 string
     private String reason;
-    private Long assignedByBranchId;
     private String createdAt;           // ISO 8601 string
     private Boolean revoked;
 }

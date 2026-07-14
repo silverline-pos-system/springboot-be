@@ -30,9 +30,6 @@ public class SecondaryRoleAssignment {
     @Column(length = 255)
     private String reason;
 
-    @Column(name = "assigned_by_branch_id")
-    private Long assignedByBranchId;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

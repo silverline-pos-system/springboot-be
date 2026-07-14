@@ -33,8 +33,7 @@ public class SecondaryRoleService {
     );
 
     public List<SecondaryRoleAssignmentDTO> getAssignments(Long branchId) {
-        List<SecondaryRoleAssignment> assignments = assignmentRepo
-                .findByAssignedByBranchIdOrderByCreatedAtDesc(branchId);
+        List<SecondaryRoleAssignment> assignments = assignmentRepo.findAllByOrderByCreatedAtDesc();
 
         return assignments.stream().map(a -> {
             UserProfile user = userRepo.findById(a.getUserId()).orElse(null);
@@ -46,7 +45,6 @@ public class SecondaryRoleService {
             dto.setSecondaryRole(a.getSecondaryRole());
             dto.setExpiresAt(a.getExpiresAt().toString());
             dto.setReason(a.getReason());
-            dto.setAssignedByBranchId(a.getAssignedByBranchId());
             dto.setCreatedAt(a.getCreatedAt().toString());
             dto.setRevoked(a.getRevoked());
             return dto;
@@ -82,7 +80,6 @@ public class SecondaryRoleService {
         assignment.setSecondaryRole(request.getSecondaryRole());
         assignment.setExpiresAt(expiresAt);
         assignment.setReason(request.getReason());
-        assignment.setAssignedByBranchId(request.getAssignedByBranchId());
 
         SecondaryRoleAssignment saved = assignmentRepo.save(assignment);
 
@@ -92,7 +89,6 @@ public class SecondaryRoleService {
         dto.setSecondaryRole(saved.getSecondaryRole());
         dto.setExpiresAt(saved.getExpiresAt().toString());
         dto.setReason(saved.getReason());
-        dto.setAssignedByBranchId(saved.getAssignedByBranchId());
         dto.setCreatedAt(saved.getCreatedAt().toString());
         return dto;
     }

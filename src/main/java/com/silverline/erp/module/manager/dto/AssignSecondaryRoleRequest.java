@@ -20,9 +20,6 @@ public class AssignSecondaryRoleRequest {
     private String expiresAt;           // ISO 8601 string e.g. "2025-07-15T23:59:59.999Z"
 
     private String reason;
-
-    @NotNull(message = "Assigned branch ID is required")
-    private Long assignedByBranchId;
 }
 
 

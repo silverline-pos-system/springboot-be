@@ -53,6 +53,7 @@ class ProductServiceImplTest {
         productDTO.setCostPrice(BigDecimal.valueOf(10));
         productDTO.setSellingPrice(BigDecimal.valueOf(20));
         productDTO.setIsActive(true);
+        productDTO.setTrackingType("NORMAL");
     }
 
     @Test

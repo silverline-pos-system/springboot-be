@@ -96,10 +96,18 @@ public class Product {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tracking_type")
-    private TrackingType trackingType;
+    @Builder.Default
+    private TrackingType trackingType = TrackingType.NORMAL;
 
     public TrackingType getTrackingType() {
         return trackingType != null ? trackingType : TrackingType.NORMAL;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.trackingType == null) {
+            this.trackingType = TrackingType.NORMAL;
+        }
     }
 
     /* -------------------- Tax & Warranty -------------------- */
