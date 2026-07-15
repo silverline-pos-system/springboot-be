@@ -63,9 +63,16 @@ public class SecondaryRoleService {
             throw new ValidationException("Cannot assign same role as primary");
         }
 
-        LocalDateTime expiresAt = LocalDateTime.parse(
-                request.getExpiresAt(), DateTimeFormatter.ISO_DATE_TIME
-        );
+        LocalDateTime expiresAt;
+        try {
+            expiresAt = LocalDateTime.ofInstant(
+                    java.time.Instant.parse(request.getExpiresAt()),
+                    java.time.ZoneId.systemDefault()
+            );
+        } catch (Exception e) {
+            expiresAt = LocalDateTime.parse(request.getExpiresAt(), DateTimeFormatter.ISO_DATE_TIME);
+        }
+
         if (expiresAt.isBefore(LocalDateTime.now())) {
             throw new ValidationException("Expiry must be in the future");
         }
