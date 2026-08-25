@@ -80,7 +80,11 @@ rocs:
     password: ${ROCS_ADMIN_PASSWORD}
     email: ${ROCS_ADMIN_EMAIL}
   rate-limit:
-    requests-per-minute: ${RATE_LIMIT_RPM:60}
+    # General per-IP limiting is DISABLED (0) for this internal LAN deployment: a data-heavy SPA
+    # legitimately fires many calls and the old cap caused HTTP 429 load failures. Set RATE_LIMIT_RPM
+    # to a positive number (e.g. 600) to re-enable a general ceiling if the app is ever exposed publicly.
+    requests-per-minute: ${RATE_LIMIT_RPM:0}
+    # Login/password-reset stays strict: this is the real brute-force protection and is always on.
     login-attempts-per-minute: ${RATE_LIMIT_LOGIN_RPM:5}
   imei:
     suffix-length: ${ROCS_IMEI_SUFFIX_LENGTH:9}

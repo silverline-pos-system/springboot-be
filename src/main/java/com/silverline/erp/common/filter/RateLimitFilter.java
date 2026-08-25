@@ -53,17 +53,26 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String clientIp = getClientIp(request);
         String uri = request.getRequestURI();
 
-        // Determine rate limit based on endpoint
-        int limit = maxRequestsPerMinute;
-        if (uri.contains("/auth/login") || uri.contains("/auth/forgot-password")) {
-            limit = maxLoginAttemptsPerMinute;
-            clientIp = clientIp + ":login"; // Separate bucket for login
-        }
-
-        // Skip rate limiting for health checks
+        // Skip rate limiting for health checks (load balancers / monitoring poll these).
         if (uri.startsWith("/api/v1/health")) {
             filterChain.doFilter(request, response);
             return;
+        }
+
+        boolean isLoginEndpoint = uri.contains("/auth/login") || uri.contains("/auth/forgot-password");
+
+        int limit;
+        if (isLoginEndpoint) {
+            limit = maxLoginAttemptsPerMinute;   // strict brute-force protection
+            clientIp = clientIp + ":login";      // separate bucket for login
+        } else {
+            // General traffic: a high ceiling that does not trip in normal use. When configured to
+            // 0 (or less), skip general limiting entirely so a busy screen never gets HTTP 429.
+            if (maxRequestsPerMinute <= 0) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+            limit = maxRequestsPerMinute;
         }
 
         RateLimitBucket bucket = buckets.get(clientIp, k -> new RateLimitBucket());

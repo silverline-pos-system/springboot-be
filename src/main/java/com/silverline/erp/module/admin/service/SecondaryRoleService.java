@@ -15,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -63,9 +62,7 @@ public class SecondaryRoleService {
             throw new ValidationException("Cannot assign same role as primary");
         }
 
-        LocalDateTime expiresAt = LocalDateTime.parse(
-                request.getExpiresAt(), DateTimeFormatter.ISO_DATE_TIME
-        );
+        LocalDateTime expiresAt = parseExpiryToServerLocal(request.getExpiresAt());
         if (expiresAt.isBefore(LocalDateTime.now())) {
             throw new ValidationException("Expiry must be in the future");
         }
@@ -91,6 +88,23 @@ public class SecondaryRoleService {
         dto.setReason(saved.getReason());
         dto.setCreatedAt(saved.getCreatedAt().toString());
         return dto;
+    }
+
+    /**
+     * Parse the client-supplied expiry into the server's local time. The frontend sends a UTC
+     * ISO string (JavaScript toISOString(), e.g. "2026-09-01T18:29:59.999Z"). Parsing that straight
+     * into LocalDateTime dropped the offset and treated UTC as local, shifting expiry by the local
+     * offset (5.5h in Sri Lanka) and causing false "must be in the future" errors and premature expiry.
+     * Here we honor the offset and convert to the server zone; a value without an offset is treated as local.
+     */
+    private LocalDateTime parseExpiryToServerLocal(String value) {
+        try {
+            return java.time.OffsetDateTime.parse(value)
+                    .atZoneSameInstant(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime();
+        } catch (java.time.format.DateTimeParseException withoutOffset) {
+            return LocalDateTime.parse(value);
+        }
     }
 
     public void revokeRole(Long id) {
