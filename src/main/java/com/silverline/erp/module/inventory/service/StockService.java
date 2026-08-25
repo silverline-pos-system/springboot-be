@@ -7,6 +7,7 @@ import com.silverline.erp.module.inventory.dto.StockReportDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface StockService {
@@ -41,7 +42,15 @@ public interface StockService {
 
     void increaseStock(Long branchId, Long productId, Integer quantity);
 
+    // Precise (fractional-safe) variants. Prefer these for sales/returns where qty can be decimal (kg, litre).
+    void reduceStock(Long branchId, Long productId, BigDecimal quantity);
+
+    void increaseStock(Long branchId, Long productId, BigDecimal quantity);
+
     boolean isStockAvailable(Long branchId, Long productId, Integer quantity);
 
     Integer getCurrentStock(Long branchId, Long productId);
+
+    // Exact on-hand quantity without truncating fractional stock.
+    BigDecimal getCurrentStockExact(Long branchId, Long productId);
 }

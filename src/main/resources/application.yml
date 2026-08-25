@@ -7,7 +7,8 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/silverline?currentSchema=public}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:24588}
+    # No default: production must supply DB_PASSWORD via environment. App fails fast if missing.
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: ${HIKARI_MAX_POOL:20}
@@ -21,13 +22,16 @@ spring:
     baseline-version: 1
   jpa:
     hibernate:
-      ddl-auto: update
+      # Flyway owns the schema. validate fails startup on drift instead of silently altering tables.
+      # If startup fails after this change, reconcile the schema with a Flyway migration, do NOT revert to update.
+      ddl-auto: ${JPA_DDL_AUTO:validate}
     show-sql: ${JPA_SHOW_SQL:false}
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:chathurabasnayake2007@gmail.com}
-    password: ${MAIL_PASSWORD:ndih ahpi jcgb iyfy}
+    # No defaults: supply real SMTP credentials via environment. The previous committed app password must be revoked.
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -39,7 +43,8 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
-mySecretKey: ${JWT_SECRET:dGhpc2lzYXZlcnlsb25nc2VjcmV0aos2V5Zm9yand0dG9rZW5nZW5lcmF0aW9uYW5kaXRzaG91bGRiZWF0bGVhc3QyNTZiaXRz}
+# No default: supply a fresh base64 256-bit secret via JWT_SECRET. The previously committed value must not be reused.
+mySecretKey: ${JWT_SECRET}
 jwt:
   expiration-ms: ${JWT_EXPIRATION_MS:36000000}
 
@@ -69,8 +74,9 @@ server:
 rocs:
   admin:
     username: ${ROCS_ADMIN_USERNAME:admin}
-    password: ${ROCS_ADMIN_PASSWORD:admin@123}
-    email: ${ROCS_ADMIN_EMAIL:shamikakeshanuni@gmail.com}
+    # No defaults: bootstrap admin credentials must come from environment and be rotated after first login.
+    password: ${ROCS_ADMIN_PASSWORD}
+    email: ${ROCS_ADMIN_EMAIL}
   rate-limit:
     requests-per-minute: ${RATE_LIMIT_RPM:60}
     login-attempts-per-minute: ${RATE_LIMIT_LOGIN_RPM:5}
@@ -87,7 +93,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        # Only health is public (used by load balancers). info/metrics are gated in SecurityConfig to SUPER_ADMIN.
+        include: ${ACTUATOR_EXPOSURE:health,info,metrics}
   endpoint:
     health:
-      show-details: always
+      # Do not leak DB pool internals to anonymous callers.
+      show-details: when_authorized

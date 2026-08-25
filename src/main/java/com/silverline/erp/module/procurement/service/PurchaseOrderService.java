@@ -51,12 +51,31 @@ public class PurchaseOrderService {
 
     private final UserRepository userRepository;
 
+    private String generateSequentialPoNo() {
+        List<String> poNumbers = poRepository.findAllPoNumbersWithPrefix();
+        long maxSeq = 0;
+        for (String num : poNumbers) {
+            try {
+                if (num != null && num.length() > 3) {
+                    String suffix = num.substring(3);
+                    long val = Long.parseLong(suffix);
+                    if (val > maxSeq) {
+                        maxSeq = val;
+                    }
+                }
+            } catch (NumberFormatException e) {
+                // Ignore legacy non-numeric formats
+            }
+        }
+        return String.format("PO-%05d", maxSeq + 1);
+    }
+
     @Transactional
     public PurchaseOrder createPurchaseOrder(PurchaseOrderDTO dto) {
         PurchaseOrder po = new PurchaseOrder();
 
-        // Generate a random PO No if not provided, or a formatted one.
-        po.setPoNo(dto.getPoNo() != null && !dto.getPoNo().isEmpty() ? dto.getPoNo() : "PO-" + System.currentTimeMillis());
+        // Generate sequential PO No if not provided.
+        po.setPoNo(dto.getPoNo() != null && !dto.getPoNo().isEmpty() ? dto.getPoNo() : generateSequentialPoNo());
 
         po.setBranchId(dto.getBranchId() != null ? dto.getBranchId() : 1L);
         po.setSupplierId(dto.getSupplierId());

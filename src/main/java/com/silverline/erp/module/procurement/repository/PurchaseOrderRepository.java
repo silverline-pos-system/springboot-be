@@ -17,5 +17,8 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
     List<PurchaseOrder> findByStatus(String status);
 
     List<PurchaseOrder> findBySupplierId(Long supplierId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT p.poNo FROM PurchaseOrder p WHERE p.poNo LIKE 'PO-%'")
+    List<String> findAllPoNumbersWithPrefix();
 }
 

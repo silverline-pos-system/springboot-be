@@ -107,8 +107,11 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/actuator/**"
+                                "/actuator/health"
                         ).permitAll()
+
+                        // Actuator info/metrics/others restricted to SUPER_ADMIN (no anonymous JVM/DB disclosure)
+                        .requestMatchers("/actuator/**").hasRole(Role.SUPER_ADMIN.name())
 
                         // Health check endpoint
                         .requestMatchers("/api/v1/health/**").permitAll()
@@ -120,12 +123,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/pos/**")
                         .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
-                        // Inventory PO endpoints - accessible by CASHIER for supplier payments
-                        .requestMatchers("/api/inventory/po/status/**", "/api/inventory/po/*/items", "/api/inventory/po/*/process")
+                        // Inventory PO endpoints - accessible by CASHIER for supplier payments (both URL aliases)
+                        .requestMatchers(
+                                "/api/inventory/po/status/**", "/api/inventory/po/*/items", "/api/inventory/po/*/process",
+                                "/api/v1/inventory/po/status/**", "/api/v1/inventory/po/*/items", "/api/v1/inventory/po/*/process")
                         .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.STORE_KEEPER.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
-                        // Inventory endpoints - accessible by STORE_KEEPER, MANAGER, SUPER_ADMIN
-                        .requestMatchers("/api/inventory/**")
+                        // Inventory endpoints - accessible by STORE_KEEPER, MANAGER, SUPER_ADMIN.
+                        // BOTH aliases gated: /api/v1/inventory/** previously had no matcher and fell through to
+                        // anyRequest().authenticated(), letting any logged-in cashier adjust stock (SEC-08).
+                        .requestMatchers("/api/inventory/**", "/api/v1/inventory/**")
                         .hasAnyRole(Role.STORE_KEEPER.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
                         // Dashboard endpoints - accessible by MANAGER, SUPER_ADMIN

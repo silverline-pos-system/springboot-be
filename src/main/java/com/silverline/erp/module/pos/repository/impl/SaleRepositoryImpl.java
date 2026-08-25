@@ -214,7 +214,8 @@ public class SaleRepositoryImpl implements SaleRepository {
 
     @Override
     public java.math.BigDecimal sumNetTotalForToday() {
-        String sql = "SELECT SUM(net_total) FROM sales WHERE DATE(sale_date) = CURDATE()";
+        // PostgreSQL syntax: cast to date and compare with CURRENT_DATE (MySQL DATE()/CURDATE() are invalid here).
+        String sql = "SELECT SUM(net_total) FROM sales WHERE sale_date::date = CURRENT_DATE";
         java.math.BigDecimal sum = jdbcTemplate.queryForObject(sql, java.math.BigDecimal.class);
         return sum != null ? sum : java.math.BigDecimal.ZERO;
     }
@@ -243,10 +244,11 @@ public class SaleRepositoryImpl implements SaleRepository {
 
     @Override
     public List<Object[]> findLastNDaysSales(int days) {
-        String sql = "SELECT DATE(sale_date) as d, SUM(net_total) as total " +
+        // PostgreSQL syntax: sale_date::date and NOW() - (n days). MySQL DATE()/DATE_SUB(... INTERVAL ? DAY) are invalid here.
+        String sql = "SELECT sale_date::date as d, SUM(net_total) as total " +
                 "FROM sales " +
-                "WHERE sale_date >= DATE_SUB(NOW(), INTERVAL ? DAY) " +
-                "GROUP BY DATE(sale_date) " +
+                "WHERE sale_date >= NOW() - (? * INTERVAL '1 day') " +
+                "GROUP BY sale_date::date " +
                 "ORDER BY d ASC";
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Object[]{
                 rs.getDate("d").toString(),
