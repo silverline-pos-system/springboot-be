@@ -348,21 +348,8 @@ public class PosSaleServiceImpl implements PosSaleService {
     private String generateInvoiceNo() {
         String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String datePrefix = "INV-" + today;
-
-        String lastInvoice = saleRepository.findLastInvoiceNoByDatePrefix(datePrefix);
-
-        int nextSequence = 1;
-        if (lastInvoice != null && lastInvoice.startsWith(datePrefix)) {
-            try {
-                String[] parts = lastInvoice.split("-");
-                if (parts.length >= 3) {
-                    nextSequence = Integer.parseInt(parts[2]) + 1;
-                }
-            } catch (NumberFormatException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
+        // Atomic per-day counter: concurrency-safe, no max()+1 race that could duplicate invoice numbers.
+        int nextSequence = saleRepository.nextInvoiceSequence(datePrefix);
         return String.format("%s-%05d", datePrefix, nextSequence);
     }
 }

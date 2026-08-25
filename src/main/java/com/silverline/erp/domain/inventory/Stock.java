@@ -41,5 +41,11 @@ public class Stock {
     @UpdateTimestamp
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
+
+    // Optimistic lock: concurrent updates to the same stock row make the later commit fail
+    // rather than silently overwrite (prevents oversell / lost stock updates).
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 }
 

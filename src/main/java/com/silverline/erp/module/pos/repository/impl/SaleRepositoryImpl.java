@@ -213,6 +213,17 @@ public class SaleRepositoryImpl implements SaleRepository {
     }
 
     @Override
+    public int nextInvoiceSequence(String datePrefix) {
+        // Atomic upsert-and-increment. PostgreSQL evaluates this as a single statement, so two
+        // concurrent sales are serialized on the counter row and each gets a distinct sequence.
+        String sql = "INSERT INTO invoice_counters (date_prefix, last_seq) VALUES (?, 1) " +
+                "ON CONFLICT (date_prefix) DO UPDATE SET last_seq = invoice_counters.last_seq + 1 " +
+                "RETURNING last_seq";
+        Integer seq = jdbcTemplate.queryForObject(sql, Integer.class, datePrefix);
+        return seq != null ? seq : 1;
+    }
+
+    @Override
     public java.math.BigDecimal sumNetTotalForToday() {
         // PostgreSQL syntax: cast to date and compare with CURRENT_DATE (MySQL DATE()/CURDATE() are invalid here).
         String sql = "SELECT SUM(net_total) FROM sales WHERE sale_date::date = CURRENT_DATE";

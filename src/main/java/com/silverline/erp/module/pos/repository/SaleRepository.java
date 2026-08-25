@@ -101,6 +101,15 @@ public interface SaleRepository {
     String findLastInvoiceNoByDatePrefix(String datePrefix);
 
     /**
+     * Atomically reserve the next sequence number for a given invoice date prefix.
+     * Concurrency-safe: uses an upsert-with-increment so two simultaneous sales never get the same number.
+     *
+     * @param datePrefix - Date prefix in format INV-YYYYMMDD
+     * @return the next sequence (1 for the first sale of the day)
+     */
+    int nextInvoiceSequence(String datePrefix);
+
+    /**
      * Get total net sales for today (all branches)
      */
     BigDecimal sumNetTotalForToday();
