@@ -50,6 +50,8 @@ class ReturnServiceImplTest {
     private SaleRepository saleRepository;
     @Mock
     private SaleItemRepository saleItemRepository;
+    @Mock
+    private com.silverline.erp.module.inventory.service.ProductSerialService productSerialService;
 
     @InjectMocks
     private ReturnServiceImpl returnService;

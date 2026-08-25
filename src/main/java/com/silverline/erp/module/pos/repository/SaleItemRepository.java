@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -46,4 +47,14 @@ public interface SaleItemRepository extends JpaRepository<@NonNull SaleItem, @No
 
     @Query("SELECT si.saleId, COUNT(si) FROM SaleItem si WHERE si.saleId IN :saleIds GROUP BY si.saleId")
     List<Object[]> countItemsBySaleIds(@Param("saleIds") java.util.Collection<Long> saleIds);
+
+    /**
+     * Actual cost of goods sold over a date range: sum of (quantity sold x product cost price)
+     * for PAID sales. Replaces the fabricated "revenue x 0.60" estimate.
+     */
+    @Query("SELECT COALESCE(SUM(si.qty * p.costPrice), 0) " +
+            "FROM SaleItem si JOIN Sale s ON si.saleId = s.saleId JOIN Product p ON si.productId = p.productId " +
+            "WHERE s.saleDate BETWEEN :startDate AND :endDate AND s.paymentStatus = 'PAID'")
+    BigDecimal calculateCogsByDateRange(@Param("startDate") LocalDateTime startDate,
+                                        @Param("endDate") LocalDateTime endDate);
 }

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class AdjustmentController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Stock adjustment logged and updated successfully")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid payload or insufficient available inventory for negative adjustment")
     @PostMapping
+    @PreAuthorize("hasAnyRole('STORE_KEEPER','MANAGER','SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<?>> createAdjustment(@Valid @RequestBody StockAdjustmentDTO adjustmentDTO) {
         StockAdjustmentDTO created = adjustmentService.createAdjustment(adjustmentDTO);
         return ResponseEntity.status(HttpStatus.CREATED)

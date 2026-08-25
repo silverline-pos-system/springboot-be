@@ -8,6 +8,7 @@ import com.silverline.erp.domain.pos.SalesReturn;
 import com.silverline.erp.domain.pos.SalesReturnItem;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.repository.UserProfileRepository;
+import com.silverline.erp.module.inventory.service.ProductSerialService;
 import com.silverline.erp.module.inventory.service.StockService;
 import com.silverline.erp.module.pos.dto.returns.ReturnRequest;
 import com.silverline.erp.module.pos.repository.SaleItemRepository;
@@ -41,6 +42,7 @@ public class ReturnServiceImpl implements ReturnService {
     private final AuditLogService activityLogService;
     private final SaleRepository saleRepository;
     private final SaleItemRepository saleItemRepository;
+    private final ProductSerialService productSerialService;
 
     @Override
     @Transactional
@@ -134,10 +136,17 @@ public class ReturnServiceImpl implements ReturnService {
                 totalRefund = totalRefund.add(item.getTotal());
 
                 try {
-                    // Restock the exact (possibly fractional) quantity. Re-throw on failure so the whole
-                    // refund rolls back rather than paying the customer without returning stock (DI-09/10).
-                    stockService.increaseStock(request.getBranchId(), originalItem.getProductId(), itemReq.getQty());
+                    if (originalItem.getSerialId() != null) {
+                        // Serialized item: restore that specific serial. markAsReturned sets the serial to
+                        // RETURNED and increments stock by 1, so do NOT also call increaseStock (double count).
+                        productSerialService.markAsReturned(originalItem.getSerialId());
+                    } else {
+                        // Non-serialized: restock the exact (possibly fractional) quantity.
+                        stockService.increaseStock(request.getBranchId(), originalItem.getProductId(), itemReq.getQty());
+                    }
                 } catch (Exception e) {
+                    // Re-throw so the whole refund rolls back rather than paying the customer without
+                    // returning stock (DI-09/10).
                     log.error("Restock failed for product {} - rolling back return", originalItem.getProductId(), e);
                     throw new ValidationException("Return cancelled: could not restock product " + originalItem.getProductId() + ". " + e.getMessage());
                 }

@@ -37,6 +37,12 @@ public interface SaleRepository {
     Optional<Sale> findByInvoiceNo(String invoiceNo);
 
     /**
+     * Find a sale previously created with the given idempotency key, if any.
+     * Used to make a retried checkout return the original sale instead of duplicating it.
+     */
+    Optional<Sale> findByIdempotencyKey(String idempotencyKey);
+
+    /**
      * Get all Saless for a shift
      *
      * @param shiftId - Shift ID

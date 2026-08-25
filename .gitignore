@@ -44,3 +44,6 @@ logs/
 build_output.log
 compile_out.txt
 compile_log.txt
+
+### Local run script (contains secrets) ###
+run-local.ps1

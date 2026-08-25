@@ -1,5 +1,7 @@
 package com.silverline.erp.common.filter;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,14 +14,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Simple in-memory rate limiting filter.
- * Limits requests per IP address per minute.
- * For production, consider using Redis-backed rate limiting.
+ * In-memory rate limiting filter, limiting requests per client per minute.
+ * Buckets are held in a Caffeine cache that evicts idle entries automatically, so the map
+ * cannot grow without bound (the previous ConcurrentHashMap never evicted -> memory-leak DoS).
+ * For a multi-instance deployment, move to a shared store (e.g. Redis).
  */
 @Slf4j
 @Component
@@ -32,7 +34,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Value("${rocs.rate-limit.login-attempts-per-minute:5}")
     private int maxLoginAttemptsPerMinute;
 
-    private final Map<String, RateLimitBucket> buckets = new ConcurrentHashMap<>();
+    // Only honor X-Forwarded-For / X-Real-IP when explicitly behind a trusted reverse proxy.
+    // Default false: otherwise any client can spoof the header to dodge the limit.
+    @Value("${rocs.rate-limit.trust-forwarded-header:false}")
+    private boolean trustForwardedHeader;
+
+    // Auto-evicting bucket store: entries expire 2 minutes after last use, capped at 100k keys.
+    private final Cache<String, RateLimitBucket> buckets = Caffeine.newBuilder()
+            .expireAfterAccess(Duration.ofMinutes(2))
+            .maximumSize(100_000)
+            .build();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -55,7 +66,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        RateLimitBucket bucket = buckets.computeIfAbsent(clientIp, k -> new RateLimitBucket());
+        RateLimitBucket bucket = buckets.get(clientIp, k -> new RateLimitBucket());
 
         if (bucket.isRateLimited(limit)) {
             log.warn("Rate limit exceeded for IP: {} on URI: {}", clientIp, uri);
@@ -69,13 +80,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private String getClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isEmpty()) {
-            return xRealIp;
+        // By default use the real socket address, which a client cannot spoof. Proxy headers are
+        // only trusted when explicitly enabled (deployment sits behind a known reverse proxy).
+        if (trustForwardedHeader) {
+            String xForwardedFor = request.getHeader("X-Forwarded-For");
+            if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+                return xForwardedFor.split(",")[0].trim();
+            }
+            String xRealIp = request.getHeader("X-Real-IP");
+            if (xRealIp != null && !xRealIp.isEmpty()) {
+                return xRealIp;
+            }
         }
         return request.getRemoteAddr();
     }

@@ -6,10 +6,14 @@ import com.silverline.erp.module.finance.dto.ChartOfAccountDTO;
 import com.silverline.erp.module.finance.dto.JournalEntryDTO;
 import com.silverline.erp.module.finance.dto.JournalEntryRequest;
 import com.silverline.erp.module.finance.dto.ProfitLossDTO;
+import com.silverline.erp.module.finance.repository.ExpenseRepository;
 import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
+import com.silverline.erp.module.pos.repository.SaleItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.math.RoundingMode;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,6 +30,8 @@ import java.util.stream.Collectors;
 public class AccountingService {
 
     private final ManagerSaleRepository saleRepository;
+    private final SaleItemRepository saleItemRepository;
+    private final ExpenseRepository expenseRepository;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -175,25 +181,27 @@ public class AccountingService {
                 break;
         }
 
-        // Calculate revenue from sales
+        // Real revenue from PAID sales.
         BigDecimal revenue = saleRepository.sumNetTotalByDateRange(startDate, endDate);
         if (revenue == null) revenue = BigDecimal.ZERO;
 
-        // Estimate COGS as ~60% of revenue (typical retail margin)
-        BigDecimal cogs = revenue.multiply(new BigDecimal("0.60"));
+        // Real COGS: sum of (qty sold x product cost price) over the same range.
+        BigDecimal cogs = saleItemRepository.calculateCogsByDateRange(startDate, endDate);
+        if (cogs == null) cogs = BigDecimal.ZERO;
+        cogs = cogs.setScale(2, RoundingMode.HALF_UP);
         BigDecimal grossProfit = revenue.subtract(cogs);
 
-        // Sample expenses
+        // Real operating expenses from the expenses table, grouped by category.
         List<ProfitLossDTO.ExpenseDTO> expenses = new ArrayList<>();
-        expenses.add(ProfitLossDTO.ExpenseDTO.builder().name("Salaries & Wages").amount(new BigDecimal("150000")).build());
-        expenses.add(ProfitLossDTO.ExpenseDTO.builder().name("Rent").amount(new BigDecimal("75000")).build());
-        expenses.add(ProfitLossDTO.ExpenseDTO.builder().name("Utilities").amount(new BigDecimal("25000")).build());
-        expenses.add(ProfitLossDTO.ExpenseDTO.builder().name("Marketing").amount(new BigDecimal("15000")).build());
-        expenses.add(ProfitLossDTO.ExpenseDTO.builder().name("Other Expenses").amount(new BigDecimal("10000")).build());
+        for (Object[] row : expenseRepository.sumByCategoryInRange(startDate.toLocalDate(), endDate.toLocalDate())) {
+            String name = row[0] != null ? row[0].toString() : "Uncategorised";
+            BigDecimal amount = row[1] != null ? (BigDecimal) row[1] : BigDecimal.ZERO;
+            expenses.add(ProfitLossDTO.ExpenseDTO.builder().name(name).amount(amount).build());
+        }
 
         BigDecimal totalExpenses = expenses.stream()
-                .map(e -> e.getAmount())
-                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+                .map(ProfitLossDTO.ExpenseDTO::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal netProfit = grossProfit.subtract(totalExpenses);
 
@@ -232,8 +240,10 @@ public class AccountingService {
                         .filter(val -> val != null)
                         .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
-                // Estimate profit as ~40% of revenue (after COGS)
-                BigDecimal profit = revenue.multiply(new BigDecimal("0.40"));
+                // Real gross profit for the day: revenue minus actual COGS (qty x cost price).
+                BigDecimal dayCogs = saleItemRepository.calculateCogsByDateRange(dayStart, dayEnd);
+                if (dayCogs == null) dayCogs = BigDecimal.ZERO;
+                BigDecimal profit = revenue.subtract(dayCogs).setScale(2, RoundingMode.HALF_UP);
 
                 reports.add(SalesReportDTO.builder()
                         .date(date.format(DATE_FORMATTER))

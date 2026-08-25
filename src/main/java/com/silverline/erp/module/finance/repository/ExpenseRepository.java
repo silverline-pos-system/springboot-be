@@ -30,4 +30,18 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e WHERE MONTH(e.expenseDate) = :month AND YEAR(e.expenseDate) = :year")
     Double sumAmountByMonthAndYear(@Param("month") int month, @Param("year") int year);
+
+    /**
+     * Total non-cancelled expenses in a date range, grouped by category name, for the real P&L.
+     * Returns rows of [categoryName, sumAmount].
+     */
+    @Query("SELECT e.category.name, COALESCE(SUM(e.amount), 0) " +
+            "FROM Expense e " +
+            "WHERE e.expenseDate BETWEEN :startDate AND :endDate AND e.status <> 'CANCELLED' " +
+            "GROUP BY e.category.name ORDER BY SUM(e.amount) DESC")
+    List<Object[]> sumByCategoryInRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
+            "WHERE e.expenseDate BETWEEN :startDate AND :endDate AND e.status <> 'CANCELLED'")
+    java.math.BigDecimal sumApprovedByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

@@ -55,7 +55,9 @@ logging:
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    # [%X{requestId}] is the per-request correlation id set by RequestIdFilter (traceability).
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId}] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId}] %-5level %logger{36} - %msg%n"
   file:
     name: ${LOG_FILE:logs/rocs-backend.log}
     max-size: 10MB

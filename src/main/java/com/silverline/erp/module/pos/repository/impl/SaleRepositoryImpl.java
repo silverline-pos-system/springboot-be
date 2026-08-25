@@ -65,6 +65,7 @@ public class SaleRepositoryImpl implements SaleRepository {
         sale.setPaymentStatus(rs.getString("payment_status"));
         sale.setSaleType(rs.getString("sale_type"));
         sale.setNotes(rs.getString("notes"));
+        sale.setIdempotencyKey(rs.getString("idempotency_key"));
 
         return sale;
     };
@@ -104,8 +105,8 @@ public class SaleRepositoryImpl implements SaleRepository {
             String sql = "INSERT INTO sales " +
                     "(invoice_no, branch_id, cashier_id, customer_id, shift_id, " +
                     " gross_total, discount, tax_amount, net_total, paid_amount, " +
-                    " change_amount, payment_status, sale_type, notes, sale_date) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                    " change_amount, payment_status, sale_type, notes, idempotency_key, sale_date) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                     "RETURNING sale_id";
 
             return jdbcTemplate.queryForObject(
@@ -125,7 +126,22 @@ public class SaleRepositoryImpl implements SaleRepository {
                     sale.getPaymentStatus(),
                     sale.getSaleType(),
                     sale.getNotes(),
+                    sale.getIdempotencyKey(),
                     sale.getSaleDate() != null ? sale.getSaleDate() : LocalDateTime.now());
+        }
+    }
+
+    @Override
+    public Optional<Sale> findByIdempotencyKey(String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            String sql = "SELECT * FROM sales WHERE idempotency_key = ?";
+            Sale sale = jdbcTemplate.queryForObject(sql, saleRowMapper, idempotencyKey);
+            return Optional.ofNullable(sale);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
     }
 

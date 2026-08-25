@@ -160,6 +160,49 @@ class PosSaleServiceImplTest {
     }
 
     @Test
+    void createSale_IdempotentReplay_ReturnsExistingSale() {
+        // A retried checkout with the same idempotency key must return the original sale,
+        // not create a second one.
+        request.setIdempotencyKey("abc-123");
+        Sale existing = new Sale();
+        existing.setSaleId(99L);
+        when(saleRepository.findByIdempotencyKey("abc-123")).thenReturn(Optional.of(existing));
+        when(saleQueryService.getSaleById(99L)).thenReturn(new SaleResponse.Builder().saleId(99L).build());
+
+        SaleResponse res = posSaleService.createSale(request, branchId, cashierId, shiftId);
+
+        assertEquals(99L, res.getSaleId());
+        verify(saleRepository, never()).save(any(Sale.class));
+    }
+
+    @Test
+    void createSale_RejectsArbitraryStatus_CoercesToPaid() {
+        // A client-injected bogus status must not be persisted; it is coerced to PAID.
+        request.setStatus("COMPLETED_SKIP_CHECKS");
+
+        Product mockProduct = new Product();
+        mockProduct.setProductId(100L);
+        mockProduct.setName("Test Product");
+        mockProduct.setSellingPrice(BigDecimal.valueOf(50));
+        UserProfile mockUser = new UserProfile();
+        mockUser.setUsername("testCashier");
+
+        when(featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK")).thenReturn(false);
+        when(productService.findById(100L)).thenReturn(mockProduct);
+        when(stockService.getCurrentStockExact(branchId, 100L)).thenReturn(BigDecimal.valueOf(5));
+        when(saleRepository.save(any(Sale.class))).thenReturn(1L);
+        when(userProfileRepository.findById(cashierId)).thenReturn(Optional.of(mockUser));
+        when(saleQueryService.mapToResponse(any(Sale.class), anyList(), anyList()))
+                .thenReturn(new SaleResponse.Builder().saleId(1L).build());
+
+        posSaleService.createSale(request, branchId, cashierId, shiftId);
+
+        org.mockito.ArgumentCaptor<Sale> captor = org.mockito.ArgumentCaptor.forClass(Sale.class);
+        verify(saleRepository).save(captor.capture());
+        assertEquals("PAID", captor.getValue().getPaymentStatus());
+    }
+
+    @Test
     void createSale_OutOfStock_ThrowsException() {
         // Arrange
         Product mockProduct = new Product();

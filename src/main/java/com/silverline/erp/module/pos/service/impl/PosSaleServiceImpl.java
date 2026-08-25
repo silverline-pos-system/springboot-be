@@ -50,11 +50,24 @@ public class PosSaleServiceImpl implements PosSaleService {
     private final ProductSerialService productSerialService;
     private final SaleQueryService saleQueryService;
 
+    // Statuses a client is allowed to request. Anything else is coerced to PAID so the client
+    // cannot inject an arbitrary status to skip stock deduction or validation (mass-assignment guard).
+    private static final java.util.Set<String> CLIENT_ALLOWED_STATUSES = java.util.Set.of("PAID", "HELD", "PENDING");
+
     @Override
     @Transactional
     public SaleResponse createSale(CreateSaleRequest request, Long branchId, Long cashierId, Long shiftId) {
-        String requestedStatus = (request.getStatus() != null && !request.getStatus().isEmpty())
-                ? request.getStatus().toUpperCase() : "PAID";
+        // Idempotent retry: if this exact checkout was already processed, return the original sale
+        // instead of creating a duplicate (protects against lost-response network retries).
+        if (request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()) {
+            java.util.Optional<Sale> existing = saleRepository.findByIdempotencyKey(request.getIdempotencyKey());
+            if (existing.isPresent()) {
+                log.info("Idempotent replay: returning existing sale {} for key {}", existing.get().getSaleId(), request.getIdempotencyKey());
+                return saleQueryService.getSaleById(existing.get().getSaleId());
+            }
+        }
+
+        String requestedStatus = normalizeStatus(request.getStatus());
         boolean isPaidSale = "PAID".equals(requestedStatus);
 
         log.info("Creating sale: branchId={}, cashierId={}, shiftId={}, status={}", branchId, cashierId, shiftId, requestedStatus);
@@ -156,11 +169,8 @@ public class PosSaleServiceImpl implements PosSaleService {
         sale.setTaxAmount(BigDecimal.ZERO);
         sale.setSaleType(request.getSaleType() != null ? request.getSaleType() : "RETAIL");
 
-        if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-            sale.setPaymentStatus(request.getStatus().toUpperCase());
-        } else {
-            sale.setPaymentStatus("PAID");
-        }
+        sale.setPaymentStatus(requestedStatus);
+        sale.setIdempotencyKey(request.getIdempotencyKey());
 
         BigDecimal grossTotal = BigDecimal.ZERO;
         if (request.getItems() != null && !request.getItems().isEmpty()) {
@@ -333,6 +343,16 @@ public class PosSaleServiceImpl implements PosSaleService {
                     "Cannot sell product " + itemReq.getProductId() + ": no catalog price configured.");
         }
         return product.getSellingPrice();
+    }
+
+    /**
+     * Coerces a client-requested status to an allowed value, defaulting to PAID.
+     * Prevents a client from injecting an arbitrary status (mass-assignment).
+     */
+    private String normalizeStatus(String requested) {
+        if (requested == null || requested.isBlank()) return "PAID";
+        String upper = requested.toUpperCase();
+        return CLIENT_ALLOWED_STATUSES.contains(upper) ? upper : "PAID";
     }
 
     /**
