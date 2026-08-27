@@ -50,11 +50,24 @@ public class PosSaleServiceImpl implements PosSaleService {
     private final ProductSerialService productSerialService;
     private final SaleQueryService saleQueryService;
 
+    // Statuses a client is allowed to request. Anything else is coerced to PAID so the client
+    // cannot inject an arbitrary status to skip stock deduction or validation (mass-assignment guard).
+    private static final java.util.Set<String> CLIENT_ALLOWED_STATUSES = java.util.Set.of("PAID", "HELD", "PENDING");
+
     @Override
     @Transactional
     public SaleResponse createSale(CreateSaleRequest request, Long branchId, Long cashierId, Long shiftId) {
-        String requestedStatus = (request.getStatus() != null && !request.getStatus().isEmpty())
-                ? request.getStatus().toUpperCase() : "PAID";
+        // Idempotent retry: if this exact checkout was already processed, return the original sale
+        // instead of creating a duplicate (protects against lost-response network retries).
+        if (request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()) {
+            java.util.Optional<Sale> existing = saleRepository.findByIdempotencyKey(request.getIdempotencyKey());
+            if (existing.isPresent()) {
+                log.info("Idempotent replay: returning existing sale {} for key {}", existing.get().getSaleId(), request.getIdempotencyKey());
+                return saleQueryService.getSaleById(existing.get().getSaleId());
+            }
+        }
+
+        String requestedStatus = normalizeStatus(request.getStatus());
         boolean isPaidSale = "PAID".equals(requestedStatus);
 
         log.info("Creating sale: branchId={}, cashierId={}, shiftId={}, status={}", branchId, cashierId, shiftId, requestedStatus);
@@ -107,7 +120,9 @@ public class PosSaleServiceImpl implements PosSaleService {
                         continue;
                     }
 
-                    BigDecimal availableQty = BigDecimal.valueOf(stockService.getCurrentStock(branchId, itemReq.getProductId()));
+                    // Exact available quantity: getCurrentStock truncates fractional stock (0.75 -> 0),
+                    // which would wrongly report a grocery item as out of stock.
+                    BigDecimal availableQty = stockService.getCurrentStockExact(branchId, itemReq.getProductId());
 
                     if (availableQty.compareTo(BigDecimal.ZERO) <= 0) {
                         log.warn("Out of stock business rule violation: product='{}', branchId={}", productName, branchId);
@@ -154,37 +169,19 @@ public class PosSaleServiceImpl implements PosSaleService {
         sale.setTaxAmount(BigDecimal.ZERO);
         sale.setSaleType(request.getSaleType() != null ? request.getSaleType() : "RETAIL");
 
-        if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-            sale.setPaymentStatus(request.getStatus().toUpperCase());
-        } else {
-            sale.setPaymentStatus("PAID");
-        }
+        sale.setPaymentStatus(requestedStatus);
+        sale.setIdempotencyKey(request.getIdempotencyKey());
 
         BigDecimal grossTotal = BigDecimal.ZERO;
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             for (SaleItemRequest itemReq : request.getItems()) {
-                BigDecimal unitPrice = itemReq.getUnitPrice();
-                BigDecimal quantity = itemReq.getQuantity();
+                Product product = productService.findById(itemReq.getProductId());
+                BigDecimal unitPrice = resolveUnitPrice(itemReq, product);
+                BigDecimal quantity = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ONE;
 
-                if (unitPrice == null || quantity == null) {
-                    Product product = productService.findById(itemReq.getProductId());
-                    if (product != null) {
-                        if (unitPrice == null) {
-                            unitPrice = product.getSellingPrice() != null ? product.getSellingPrice() : BigDecimal.ZERO;
-                        }
-                        if (quantity == null) {
-                            quantity = BigDecimal.ONE;
-                        }
-                    } else {
-                        unitPrice = unitPrice != null ? unitPrice : BigDecimal.ZERO;
-                        quantity = quantity != null ? quantity : BigDecimal.ONE;
-                    }
-                }
-
-                BigDecimal lineTotal = unitPrice.multiply(quantity);
-                BigDecimal itemDiscount = itemReq.getDiscount() != null ? itemReq.getDiscount() : BigDecimal.ZERO;
-                lineTotal = lineTotal.subtract(itemDiscount);
-                grossTotal = grossTotal.add(lineTotal);
+                BigDecimal lineGross = unitPrice.multiply(quantity);
+                BigDecimal itemDiscount = clampDiscount(itemReq.getDiscount(), lineGross);
+                grossTotal = grossTotal.add(lineGross.subtract(itemDiscount));
             }
         } else {
             if (request.getPayments() != null) {
@@ -195,7 +192,10 @@ public class PosSaleServiceImpl implements PosSaleService {
         }
         sale.setGrossTotal(grossTotal);
 
-        BigDecimal netTotal = grossTotal.subtract(sale.getDiscount());
+        // Cap the cart-level discount at the gross total so the net can never go negative (no negative sales).
+        BigDecimal cartDiscount = clampDiscount(sale.getDiscount(), grossTotal);
+        sale.setDiscount(cartDiscount);
+        BigDecimal netTotal = grossTotal.subtract(cartDiscount);
         sale.setNetTotal(netTotal);
 
         BigDecimal paidAmount = BigDecimal.ZERO;
@@ -220,17 +220,10 @@ public class PosSaleServiceImpl implements PosSaleService {
         List<SaleItem> saleItems = new ArrayList<>();
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             for (SaleItemRequest itemReq : request.getItems()) {
-                BigDecimal unitPrice = itemReq.getUnitPrice();
-                BigDecimal quantity = itemReq.getQuantity();
-
-                if (unitPrice == null) {
-                    Product product = productService.findById(itemReq.getProductId());
-                    unitPrice = (product != null && product.getSellingPrice() != null)
-                            ? product.getSellingPrice() : BigDecimal.ZERO;
-                }
-                if (quantity == null) {
-                    quantity = BigDecimal.ONE;
-                }
+                Product product = productService.findById(itemReq.getProductId());
+                BigDecimal unitPrice = resolveUnitPrice(itemReq, product);
+                BigDecimal quantity = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ONE;
+                BigDecimal itemDiscount = clampDiscount(itemReq.getDiscount(), unitPrice.multiply(quantity));
 
                 SaleItem item = new SaleItem();
                 item.setSaleId(saleId);
@@ -239,7 +232,7 @@ public class PosSaleServiceImpl implements PosSaleService {
                 item.setBatchId(itemReq.getBatchId());
                 item.setQty(quantity);
                 item.setUnitPrice(unitPrice);
-                item.setDiscount(itemReq.getDiscount() != null ? itemReq.getDiscount() : BigDecimal.ZERO);
+                item.setDiscount(itemDiscount);
                 item.setTotal(unitPrice.multiply(quantity));
 
                 saleItemRepository.save(item);
@@ -273,24 +266,30 @@ public class PosSaleServiceImpl implements PosSaleService {
                     if (!(soldItem.getProductId() == 332L || productName.toLowerCase().contains("service") || productName.toLowerCase().contains("dialog tv") || productName.toLowerCase().contains("dtv"))) {
                         BigDecimal soldQty = soldItem.getQty() != null ? soldItem.getQty() : BigDecimal.ONE;
 
-                        // Reduce stock via StockService
-                        stockService.reduceStock(branchId, soldItem.getProductId(), soldQty.intValue());
-                        log.info("Stock deducted for product {} in branch {}: -{}", soldItem.getProductId(), branchId, soldQty);
+                        if (soldItem.getSerialId() != null) {
+                            // Serialized item: markAsSold performs the single, atomic stock decrement.
+                            // Do NOT also call reduceStock here or the unit is deducted twice (DI-02).
+                            productSerialService.markAsSold(soldItem.getSerialId(), finalSale.getSaleId());
+                            log.info("Serial {} marked as SOLD for Sale {} (stock decremented once)", soldItem.getSerialId(), finalSale.getInvoiceNo());
+                        } else {
+                            // Non-serialized item: deduct the exact quantity. Pass BigDecimal so fractional
+                            // quantities (e.g. 0.750 kg) are preserved instead of truncated to 0 (DI-03).
+                            stockService.reduceStock(branchId, soldItem.getProductId(), soldQty);
+                            log.info("Stock deducted for product {} in branch {}: -{}", soldItem.getProductId(), branchId, soldQty);
+                        }
 
                         if (soldItem.getBatchId() != null) {
                             // Reduce batch stock via BatchService
                             batchService.deductBatchStock(soldItem.getBatchId(), soldQty);
                             log.info("Batch {} deducted by {}", soldItem.getBatchId(), soldQty);
                         }
-
-                        if (soldItem.getSerialId() != null) {
-                            // Mark serial as sold via ProductSerialService
-                            productSerialService.markAsSold(soldItem.getSerialId(), finalSale.getSaleId());
-                            log.info("Serial {} marked as SOLD for Sale {}", soldItem.getSerialId(), finalSale.getInvoiceNo());
-                        }
                     }
                 } catch (Exception e) {
-                    log.error("Failed to deduct stock for product {}: {}", soldItem.getProductId(), e.getMessage());
+                    // Re-throw so the @Transactional sale rolls back. A paid sale must never commit
+                    // with its stock movement missing (DI-04). Fail the checkout instead.
+                    log.error("Stock deduction failed for product {} - rolling back sale {}", soldItem.getProductId(), finalSale.getInvoiceNo(), e);
+                    throw new com.silverline.erp.common.exception.InsufficientStockException(
+                            "Sale cancelled: could not update stock for product " + soldItem.getProductId() + ". " + e.getMessage());
                 }
             }
         }
@@ -322,24 +321,55 @@ public class PosSaleServiceImpl implements PosSaleService {
         });
     }
 
+    /**
+     * Returns the price the server will actually charge for a line.
+     * Physical goods: the catalog selling price is authoritative and the client-supplied price is ignored,
+     * which blocks price manipulation (SEC-14). Service items (repairs, DTV installs) have no catalog price
+     * and keep the POS-entered charge.
+     */
+    private BigDecimal resolveUnitPrice(SaleItemRequest itemReq, Product product) {
+        String name = product != null && product.getName() != null ? product.getName().toLowerCase() : "";
+        boolean isService = itemReq.getProductId() == 332L
+                || name.contains("service") || name.contains("dialog tv") || name.contains("dtv");
+
+        if (isService) {
+            BigDecimal entered = itemReq.getUnitPrice();
+            if (entered != null) return entered;
+            return (product != null && product.getSellingPrice() != null) ? product.getSellingPrice() : BigDecimal.ZERO;
+        }
+
+        if (product == null || product.getSellingPrice() == null) {
+            throw new com.silverline.erp.common.exception.ValidationException(
+                    "Cannot sell product " + itemReq.getProductId() + ": no catalog price configured.");
+        }
+        return product.getSellingPrice();
+    }
+
+    /**
+     * Coerces a client-requested status to an allowed value, defaulting to PAID.
+     * Prevents a client from injecting an arbitrary status (mass-assignment).
+     */
+    private String normalizeStatus(String requested) {
+        if (requested == null || requested.isBlank()) return "PAID";
+        String upper = requested.toUpperCase();
+        return CLIENT_ALLOWED_STATUSES.contains(upper) ? upper : "PAID";
+    }
+
+    /**
+     * Clamps a discount into [0, max] so it can neither be negative nor exceed the value it applies to.
+     * Prevents client-supplied discounts from producing negative totals (SEC-19).
+     */
+    private BigDecimal clampDiscount(BigDecimal discount, BigDecimal max) {
+        if (discount == null || discount.compareTo(BigDecimal.ZERO) < 0) return BigDecimal.ZERO;
+        if (max != null && discount.compareTo(max) > 0) return max;
+        return discount;
+    }
+
     private String generateInvoiceNo() {
         String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String datePrefix = "INV-" + today;
-
-        String lastInvoice = saleRepository.findLastInvoiceNoByDatePrefix(datePrefix);
-
-        int nextSequence = 1;
-        if (lastInvoice != null && lastInvoice.startsWith(datePrefix)) {
-            try {
-                String[] parts = lastInvoice.split("-");
-                if (parts.length >= 3) {
-                    nextSequence = Integer.parseInt(parts[2]) + 1;
-                }
-            } catch (NumberFormatException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
+        // Atomic per-day counter: concurrency-safe, no max()+1 race that could duplicate invoice numbers.
+        int nextSequence = saleRepository.nextInvoiceSequence(datePrefix);
         return String.format("%s-%05d", datePrefix, nextSequence);
     }
 }

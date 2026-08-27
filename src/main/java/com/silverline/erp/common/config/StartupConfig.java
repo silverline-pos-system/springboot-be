@@ -27,10 +27,11 @@ public class StartupConfig implements CommandLineRunner {
     @Value("${rocs.admin.username:admin}")
     private String adminUsername;
 
-    @Value("${rocs.admin.password:admin@123}")
+    // No defaults: the bootstrap admin credentials must come from the environment (fail fast if absent).
+    @Value("${rocs.admin.password}")
     private String adminPassword;
 
-    @Value("${rocs.admin.email:shamikakeshanuni@gmail.com}")
+    @Value("${rocs.admin.email}")
     private String adminEmail;
 
     @Override

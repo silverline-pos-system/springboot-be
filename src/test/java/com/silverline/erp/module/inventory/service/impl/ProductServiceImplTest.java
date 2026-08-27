@@ -139,26 +139,32 @@ class ProductServiceImplTest {
     }
 
     @Test
-    void deleteProduct_Success() {
-        // Arrange
-        when(productRepository.existsById(10L)).thenReturn(true);
+    void deleteProduct_Success_SoftDeletes() {
+        // Arrange: delete now deactivates instead of hard-deleting (preserves sale history).
+        com.silverline.erp.domain.product.Product product = new com.silverline.erp.domain.product.Product();
+        product.setProductId(10L);
+        product.setIsActive(true);
+        when(productRepository.findById(10L)).thenReturn(java.util.Optional.of(product));
 
         // Act
         productService.deleteProduct(10L);
 
-        // Assert
-        verify(productRepository).deleteById(10L);
+        // Assert: deactivated and saved, never hard-deleted.
+        assertFalse(product.getIsActive());
+        verify(productRepository).save(product);
+        verify(productRepository, never()).deleteById(10L);
     }
 
     @Test
     void deleteProduct_NotFound_ThrowsException() {
         // Arrange
-        when(productRepository.existsById(10L)).thenReturn(false);
+        when(productRepository.findById(10L)).thenReturn(java.util.Optional.empty());
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () ->
                 productService.deleteProduct(10L)
         );
+        verify(productRepository, never()).save(any());
         verify(productRepository, never()).deleteById(10L);
     }
 

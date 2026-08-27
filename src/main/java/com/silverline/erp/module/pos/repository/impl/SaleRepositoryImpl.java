@@ -65,6 +65,7 @@ public class SaleRepositoryImpl implements SaleRepository {
         sale.setPaymentStatus(rs.getString("payment_status"));
         sale.setSaleType(rs.getString("sale_type"));
         sale.setNotes(rs.getString("notes"));
+        sale.setIdempotencyKey(rs.getString("idempotency_key"));
 
         return sale;
     };
@@ -104,8 +105,8 @@ public class SaleRepositoryImpl implements SaleRepository {
             String sql = "INSERT INTO sales " +
                     "(invoice_no, branch_id, cashier_id, customer_id, shift_id, " +
                     " gross_total, discount, tax_amount, net_total, paid_amount, " +
-                    " change_amount, payment_status, sale_type, notes, sale_date) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                    " change_amount, payment_status, sale_type, notes, idempotency_key, sale_date) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                     "RETURNING sale_id";
 
             return jdbcTemplate.queryForObject(
@@ -125,7 +126,22 @@ public class SaleRepositoryImpl implements SaleRepository {
                     sale.getPaymentStatus(),
                     sale.getSaleType(),
                     sale.getNotes(),
+                    sale.getIdempotencyKey(),
                     sale.getSaleDate() != null ? sale.getSaleDate() : LocalDateTime.now());
+        }
+    }
+
+    @Override
+    public Optional<Sale> findByIdempotencyKey(String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            String sql = "SELECT * FROM sales WHERE idempotency_key = ?";
+            Sale sale = jdbcTemplate.queryForObject(sql, saleRowMapper, idempotencyKey);
+            return Optional.ofNullable(sale);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
     }
 
@@ -213,8 +229,20 @@ public class SaleRepositoryImpl implements SaleRepository {
     }
 
     @Override
+    public int nextInvoiceSequence(String datePrefix) {
+        // Atomic upsert-and-increment. PostgreSQL evaluates this as a single statement, so two
+        // concurrent sales are serialized on the counter row and each gets a distinct sequence.
+        String sql = "INSERT INTO invoice_counters (date_prefix, last_seq) VALUES (?, 1) " +
+                "ON CONFLICT (date_prefix) DO UPDATE SET last_seq = invoice_counters.last_seq + 1 " +
+                "RETURNING last_seq";
+        Integer seq = jdbcTemplate.queryForObject(sql, Integer.class, datePrefix);
+        return seq != null ? seq : 1;
+    }
+
+    @Override
     public java.math.BigDecimal sumNetTotalForToday() {
-        String sql = "SELECT SUM(net_total) FROM sales WHERE DATE(sale_date) = CURDATE()";
+        // PostgreSQL syntax: cast to date and compare with CURRENT_DATE (MySQL DATE()/CURDATE() are invalid here).
+        String sql = "SELECT SUM(net_total) FROM sales WHERE sale_date::date = CURRENT_DATE";
         java.math.BigDecimal sum = jdbcTemplate.queryForObject(sql, java.math.BigDecimal.class);
         return sum != null ? sum : java.math.BigDecimal.ZERO;
     }
@@ -243,10 +271,11 @@ public class SaleRepositoryImpl implements SaleRepository {
 
     @Override
     public List<Object[]> findLastNDaysSales(int days) {
-        String sql = "SELECT DATE(sale_date) as d, SUM(net_total) as total " +
+        // PostgreSQL syntax: sale_date::date and NOW() - (n days). MySQL DATE()/DATE_SUB(... INTERVAL ? DAY) are invalid here.
+        String sql = "SELECT sale_date::date as d, SUM(net_total) as total " +
                 "FROM sales " +
-                "WHERE sale_date >= DATE_SUB(NOW(), INTERVAL ? DAY) " +
-                "GROUP BY DATE(sale_date) " +
+                "WHERE sale_date >= NOW() - (? * INTERVAL '1 day') " +
+                "GROUP BY sale_date::date " +
                 "ORDER BY d ASC";
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Object[]{
                 rs.getDate("d").toString(),

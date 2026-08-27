@@ -103,7 +103,7 @@ class PosSaleServiceImplTest {
 
         when(featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK")).thenReturn(false);
         when(productService.findById(100L)).thenReturn(mockProduct);
-        when(stockService.getCurrentStock(branchId, 100L)).thenReturn(5);
+        when(stockService.getCurrentStockExact(branchId, 100L)).thenReturn(BigDecimal.valueOf(5));
         when(saleRepository.save(any(Sale.class))).thenReturn(1L);
         when(userProfileRepository.findById(cashierId)).thenReturn(Optional.of(mockUser));
 
@@ -123,8 +123,83 @@ class PosSaleServiceImplTest {
         assertEquals(1L, actualResponse.getSaleId());
         assertEquals(BigDecimal.valueOf(90), actualResponse.getNetTotal());
 
-        verify(stockService).reduceStock(eq(branchId), eq(100L), eq(2));
+        verify(stockService).reduceStock(eq(branchId), eq(100L), eq(BigDecimal.valueOf(2)));
         verify(eventPublisher).publishEvent(any(SaleCompletedEvent.class));
+    }
+
+    @Test
+    void createSale_IgnoresClientPrice_UsesCatalogPrice() {
+        // Cashier tampers with the request: unitPrice=1 for a product that sells for 50.
+        // The server must charge the catalog price, not the client-supplied one (SEC-14).
+        request.getItems().get(0).setUnitPrice(BigDecimal.ONE);
+        request.setDiscount(BigDecimal.ZERO);
+
+        Product mockProduct = new Product();
+        mockProduct.setProductId(100L);
+        mockProduct.setName("Test Product");
+        mockProduct.setSellingPrice(BigDecimal.valueOf(50));
+
+        UserProfile mockUser = new UserProfile();
+        mockUser.setUsername("testCashier");
+
+        when(featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK")).thenReturn(false);
+        when(productService.findById(100L)).thenReturn(mockProduct);
+        when(stockService.getCurrentStockExact(branchId, 100L)).thenReturn(BigDecimal.valueOf(5));
+        when(saleRepository.save(any(Sale.class))).thenReturn(1L);
+        when(userProfileRepository.findById(cashierId)).thenReturn(Optional.of(mockUser));
+        when(saleQueryService.mapToResponse(any(Sale.class), anyList(), anyList()))
+                .thenReturn(new SaleResponse.Builder().saleId(1L).build());
+
+        posSaleService.createSale(request, branchId, cashierId, shiftId);
+
+        // The persisted line item must carry the catalog price (50), not the tampered price (1).
+        org.mockito.ArgumentCaptor<com.silverline.erp.domain.pos.SaleItem> captor =
+                org.mockito.ArgumentCaptor.forClass(com.silverline.erp.domain.pos.SaleItem.class);
+        verify(saleItemRepository).save(captor.capture());
+        assertEquals(0, captor.getValue().getUnitPrice().compareTo(BigDecimal.valueOf(50)));
+    }
+
+    @Test
+    void createSale_IdempotentReplay_ReturnsExistingSale() {
+        // A retried checkout with the same idempotency key must return the original sale,
+        // not create a second one.
+        request.setIdempotencyKey("abc-123");
+        Sale existing = new Sale();
+        existing.setSaleId(99L);
+        when(saleRepository.findByIdempotencyKey("abc-123")).thenReturn(Optional.of(existing));
+        when(saleQueryService.getSaleById(99L)).thenReturn(new SaleResponse.Builder().saleId(99L).build());
+
+        SaleResponse res = posSaleService.createSale(request, branchId, cashierId, shiftId);
+
+        assertEquals(99L, res.getSaleId());
+        verify(saleRepository, never()).save(any(Sale.class));
+    }
+
+    @Test
+    void createSale_RejectsArbitraryStatus_CoercesToPaid() {
+        // A client-injected bogus status must not be persisted; it is coerced to PAID.
+        request.setStatus("COMPLETED_SKIP_CHECKS");
+
+        Product mockProduct = new Product();
+        mockProduct.setProductId(100L);
+        mockProduct.setName("Test Product");
+        mockProduct.setSellingPrice(BigDecimal.valueOf(50));
+        UserProfile mockUser = new UserProfile();
+        mockUser.setUsername("testCashier");
+
+        when(featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK")).thenReturn(false);
+        when(productService.findById(100L)).thenReturn(mockProduct);
+        when(stockService.getCurrentStockExact(branchId, 100L)).thenReturn(BigDecimal.valueOf(5));
+        when(saleRepository.save(any(Sale.class))).thenReturn(1L);
+        when(userProfileRepository.findById(cashierId)).thenReturn(Optional.of(mockUser));
+        when(saleQueryService.mapToResponse(any(Sale.class), anyList(), anyList()))
+                .thenReturn(new SaleResponse.Builder().saleId(1L).build());
+
+        posSaleService.createSale(request, branchId, cashierId, shiftId);
+
+        org.mockito.ArgumentCaptor<Sale> captor = org.mockito.ArgumentCaptor.forClass(Sale.class);
+        verify(saleRepository).save(captor.capture());
+        assertEquals("PAID", captor.getValue().getPaymentStatus());
     }
 
     @Test
@@ -136,7 +211,7 @@ class PosSaleServiceImplTest {
 
         when(featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK")).thenReturn(false);
         when(productService.findById(100L)).thenReturn(mockProduct);
-        when(stockService.getCurrentStock(branchId, 100L)).thenReturn(0);
+        when(stockService.getCurrentStockExact(branchId, 100L)).thenReturn(BigDecimal.ZERO);
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
@@ -156,7 +231,7 @@ class PosSaleServiceImplTest {
 
         when(featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK")).thenReturn(false);
         when(productService.findById(100L)).thenReturn(mockProduct);
-        when(stockService.getCurrentStock(branchId, 100L)).thenReturn(1); // request wants 2
+        when(stockService.getCurrentStockExact(branchId, 100L)).thenReturn(BigDecimal.ONE); // request wants 2
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
@@ -173,11 +248,13 @@ class PosSaleServiceImplTest {
         Product mockProduct = new Product();
         mockProduct.setProductId(100L);
         mockProduct.setName("Test Product");
+        mockProduct.setSellingPrice(BigDecimal.valueOf(50));
 
         UserProfile mockUser = new UserProfile();
         mockUser.setUsername("testCashier");
 
         when(featureService.isFeatureEnabled("ALLOW_OUT_OF_STOCK")).thenReturn(true);
+        when(productService.findById(100L)).thenReturn(mockProduct);
         when(saleRepository.save(any(Sale.class))).thenReturn(1L);
         when(userProfileRepository.findById(cashierId)).thenReturn(Optional.of(mockUser));
 
@@ -192,8 +269,8 @@ class PosSaleServiceImplTest {
 
         // Assert
         assertNotNull(actualResponse);
-        verify(stockService, never()).getCurrentStock(anyLong(), anyLong());
-        verify(stockService).reduceStock(eq(branchId), eq(100L), eq(2));
+        verify(stockService, never()).getCurrentStockExact(anyLong(), anyLong());
+        verify(stockService).reduceStock(eq(branchId), eq(100L), eq(BigDecimal.valueOf(2)));
     }
 
     @Test

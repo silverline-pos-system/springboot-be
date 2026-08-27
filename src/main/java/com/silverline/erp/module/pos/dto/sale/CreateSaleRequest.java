@@ -34,6 +34,10 @@ public class CreateSaleRequest {
     private String notes;
     private String status; // NEW FIELD for Hold/Pending
 
+    // Optional client-generated key (e.g. a UUID per checkout attempt). If the same key is retried
+    // after a network hiccup, the server returns the original sale instead of creating a duplicate.
+    private String idempotencyKey;
+
     @Override
     public String toString() {
         return "CreateSaleRequest{" +

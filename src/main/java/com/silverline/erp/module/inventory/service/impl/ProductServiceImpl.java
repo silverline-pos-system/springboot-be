@@ -211,10 +211,13 @@ public class ProductServiceImpl implements ProductService {
     @CacheEvict(value = "products", allEntries = true)
     @Override
     public void deleteProduct(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Product not found with id: " + id);
-        }
-        productRepository.deleteById(id);
+        // Soft delete: a product that appears on historical sales must never be hard-deleted, or the
+        // sale history and referential integrity break. Deactivate it instead so it stops appearing
+        // in catalogs/search but existing sale lines remain valid.
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        product.setIsActive(false);
+        productRepository.save(product);
     }
 
     @CacheEvict(value = "products", allEntries = true)

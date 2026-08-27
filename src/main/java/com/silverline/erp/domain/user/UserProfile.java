@@ -39,6 +39,7 @@ public class UserProfile implements UserDetails {
     private String email;
 
     @Column(nullable = false, length = 200)
+    @JsonIgnore // Never serialize the BCrypt hash in any API response (SEC-06)
     private String password;
 
     @Column(nullable = false, length = 150)

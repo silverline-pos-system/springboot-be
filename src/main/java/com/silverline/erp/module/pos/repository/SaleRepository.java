@@ -37,6 +37,12 @@ public interface SaleRepository {
     Optional<Sale> findByInvoiceNo(String invoiceNo);
 
     /**
+     * Find a sale previously created with the given idempotency key, if any.
+     * Used to make a retried checkout return the original sale instead of duplicating it.
+     */
+    Optional<Sale> findByIdempotencyKey(String idempotencyKey);
+
+    /**
      * Get all Saless for a shift
      *
      * @param shiftId - Shift ID
@@ -99,6 +105,15 @@ public interface SaleRepository {
      * @return Last invoice number for today or null if none exists
      */
     String findLastInvoiceNoByDatePrefix(String datePrefix);
+
+    /**
+     * Atomically reserve the next sequence number for a given invoice date prefix.
+     * Concurrency-safe: uses an upsert-with-increment so two simultaneous sales never get the same number.
+     *
+     * @param datePrefix - Date prefix in format INV-YYYYMMDD
+     * @return the next sequence (1 for the first sale of the day)
+     */
+    int nextInvoiceSequence(String datePrefix);
 
     /**
      * Get total net sales for today (all branches)

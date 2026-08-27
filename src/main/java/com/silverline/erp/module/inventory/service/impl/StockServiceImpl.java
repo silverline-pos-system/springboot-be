@@ -234,12 +234,35 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public void reduceStock(Long branchId, Long productId, Integer quantity) {
-        removeStock(branchId, productId, quantity);
+        reduceStock(branchId, productId, BigDecimal.valueOf(quantity));
     }
 
     @Override
     public void increaseStock(Long branchId, Long productId, Integer quantity) {
-        addStock(branchId, productId, quantity);
+        increaseStock(branchId, productId, BigDecimal.valueOf(quantity));
+    }
+
+    @Override
+    public void reduceStock(Long branchId, Long productId, BigDecimal quantity) {
+        applyExactAdjustment(branchId, productId, quantity, "SUBTRACT");
+    }
+
+    @Override
+    public void increaseStock(Long branchId, Long productId, BigDecimal quantity) {
+        applyExactAdjustment(branchId, productId, quantity, "ADD");
+    }
+
+    /**
+     * Adjusts stock by an exact BigDecimal amount, preserving fractional quantities.
+     * Reuses adjustStock so the same insufficient-stock guard and StockAdjustedEvent apply.
+     */
+    private void applyExactAdjustment(Long branchId, Long productId, BigDecimal quantity, String type) {
+        StockAdjustmentDTO adjustment = new StockAdjustmentDTO();
+        adjustment.setBranchId(branchId);
+        adjustment.setProductId(productId);
+        adjustment.setQuantity(quantity);
+        adjustment.setAdjustmentType(type);
+        adjustStock(adjustment);
     }
 
     @Override
@@ -253,11 +276,14 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public Integer getCurrentStock(Long branchId, Long productId) {
-        Optional<Stock> stockOpt = stockRepository.findByBranchIdAndProductId(branchId, productId);
-        if (stockOpt.isPresent()) {
-            return stockOpt.get().getQuantity().intValue();
-        }
-        return 0;
+        return getCurrentStockExact(branchId, productId).intValue();
+    }
+
+    @Override
+    public BigDecimal getCurrentStockExact(Long branchId, Long productId) {
+        return stockRepository.findByBranchIdAndProductId(branchId, productId)
+                .map(Stock::getQuantity)
+                .orElse(BigDecimal.ZERO);
     }
 
     private StockDTO mapToDTO(Stock stock) {

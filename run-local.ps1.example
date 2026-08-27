@@ -1,0 +1,26 @@
+# Copy this file to run-local.ps1, fill in the real values, then run:  .\run-local.ps1
+# run-local.ps1 is git-ignored so your secrets are never committed.
+# This sets the environment for THIS session only and starts the backend.
+
+# --- Database (PostgreSQL on this machine) ---
+$env:DB_URL      = "jdbc:postgresql://localhost:5432/silverline?currentSchema=public"
+$env:DB_USERNAME = "postgres"
+$env:DB_PASSWORD = "REPLACE_WITH_NEW_DB_PASSWORD"
+
+# --- JWT signing secret (use the fresh one you generated) ---
+$env:JWT_SECRET  = "REPLACE_WITH_NEW_JWT_SECRET"
+
+# --- Email / SMTP (new Gmail app password after revoking the old one) ---
+$env:MAIL_USERNAME = "your-shop-email@gmail.com"
+$env:MAIL_PASSWORD = "REPLACE_WITH_NEW_GMAIL_APP_PASSWORD"
+
+# --- Bootstrap admin (used only when the database has no users yet) ---
+$env:ROCS_ADMIN_USERNAME = "admin"
+$env:ROCS_ADMIN_PASSWORD = "REPLACE_WITH_STRONG_ADMIN_PASSWORD"
+$env:ROCS_ADMIN_EMAIL    = "your-shop-email@gmail.com"
+
+# --- Schema safety: Flyway owns the schema, Hibernate only validates ---
+$env:JPA_DDL_AUTO = "validate"
+
+Write-Host "Environment set. Starting backend..." -ForegroundColor Green
+.\mvnw.cmd spring-boot:run

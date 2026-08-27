@@ -66,6 +66,11 @@ public class Sale {
     @Column(name = "sale_type")
     private String saleType; // RETAIL, WHOLESALE
 
+    // Client-supplied key that makes a retried checkout return the existing sale instead of
+    // creating a duplicate. Unique (partial index) when present.
+    @Column(name = "idempotency_key", length = 80)
+    private String idempotencyKey;
+
     private String notes;
 
     @Column(name = "created_at")
