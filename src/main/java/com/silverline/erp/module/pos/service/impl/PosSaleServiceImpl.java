@@ -406,6 +406,66 @@ public class PosSaleServiceImpl implements PosSaleService {
      * which blocks price manipulation (SEC-14). Service items (repairs, DTV installs) have no catalog price
      * and keep the POS-entered charge.
      */
+    @Override
+    public com.silverline.erp.module.pos.dto.CartPricing.Response priceCart(
+            com.silverline.erp.module.pos.dto.CartPricing.Request request) {
+        com.silverline.erp.module.pos.dto.CartPricing.Response resp =
+                new com.silverline.erp.module.pos.dto.CartPricing.Response();
+        Long branchId = request.getBranchId();
+        if (request.getItems() == null || request.getItems().isEmpty()) return resp;
+
+        List<com.silverline.erp.module.pos.dto.PromotionEval.Line> evalLines = new ArrayList<>();
+        for (com.silverline.erp.module.pos.dto.CartPricing.Item it : request.getItems()) {
+            Product product = productService.findById(it.getProductId());
+            com.silverline.erp.domain.inventory.Batch saleBatch = batchService
+                    .resolveSaleBatch(branchId, it.getProductId(), it.getBatchId()).orElse(null);
+            BigDecimal qty = it.getQty() != null ? it.getQty() : BigDecimal.ONE;
+            SaleItemRequest fake = new SaleItemRequest();
+            fake.setProductId(it.getProductId());
+            BigDecimal unitPrice = resolveUnitPrice(fake, product, branchId, saleBatch);
+
+            com.silverline.erp.module.pos.dto.CartPricing.PricedLine line =
+                    new com.silverline.erp.module.pos.dto.CartPricing.PricedLine(
+                            it.getProductId(), product != null ? product.getName() : null,
+                            saleBatch != null ? saleBatch.getBatchId() : it.getBatchId(),
+                            qty, unitPrice, BigDecimal.ZERO, unitPrice.multiply(qty), false, null, null);
+            resp.getItems().add(line);
+            evalLines.add(new com.silverline.erp.module.pos.dto.PromotionEval.Line(
+                    it.getProductId(), qty, unitPrice, saleBatch != null ? saleBatch.getExpiryDate() : null));
+        }
+
+        com.silverline.erp.module.pos.dto.PromotionEval.Outcome promo =
+                promotionService.evaluate(evalLines, branchId, java.time.LocalDateTime.now());
+
+        for (com.silverline.erp.module.pos.dto.PromotionEval.LineDiscount ld : promo.getLineDiscounts()) {
+            if (ld.getLineIndex() < 0 || ld.getLineIndex() >= resp.getItems().size()) continue;
+            com.silverline.erp.module.pos.dto.CartPricing.PricedLine l = resp.getItems().get(ld.getLineIndex());
+            l.setLineDiscount(l.getLineDiscount().add(ld.getDiscount()));
+            l.setLineTotal(l.getUnitPrice().multiply(l.getQty()).subtract(l.getLineDiscount()).max(BigDecimal.ZERO));
+            l.setPromotionId(ld.getPromotionId());
+            l.setPromotionName(ld.getReason());
+        }
+        for (com.silverline.erp.module.pos.dto.PromotionEval.FreeItem fi : promo.getFreeItems()) {
+            BigDecimal value = fi.getUnitPrice().multiply(fi.getQty());
+            Product fp = productService.findById(fi.getProductId());
+            resp.getItems().add(new com.silverline.erp.module.pos.dto.CartPricing.PricedLine(
+                    fi.getProductId(), fp != null ? fp.getName() : null, null, fi.getQty(),
+                    fi.getUnitPrice(), value, BigDecimal.ZERO, true, fi.getPromotionId(), fi.getReason()));
+        }
+        resp.setPromotions(promo.getApplied());
+
+        BigDecimal subTotal = BigDecimal.ZERO;
+        BigDecimal discountTotal = promo.getCartDiscount();
+        for (com.silverline.erp.module.pos.dto.CartPricing.PricedLine l : resp.getItems()) {
+            subTotal = subTotal.add(l.getUnitPrice().multiply(l.getQty()));
+            discountTotal = discountTotal.add(l.getLineDiscount());
+        }
+        resp.setSubTotal(subTotal);
+        resp.setDiscountTotal(discountTotal);
+        resp.setNetTotal(subTotal.subtract(discountTotal).max(BigDecimal.ZERO));
+        return resp;
+    }
+
     private BigDecimal resolveUnitPrice(SaleItemRequest itemReq, Product product, Long branchId,
                                         com.silverline.erp.domain.inventory.Batch saleBatch) {
         String name = product != null && product.getName() != null ? product.getName().toLowerCase() : "";
