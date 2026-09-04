@@ -20,5 +20,5 @@ public interface LoyaltyOtpRepository extends JpaRepository<LoyaltyOtp, Long> {
 
     @Modifying
     @Query("DELETE FROM LoyaltyOtp o WHERE o.expiresAt < :time")
-    void deleteByExpiresAtBefore(LocalDateTime time);
+    int deleteByExpiresAtBefore(LocalDateTime time);
 }

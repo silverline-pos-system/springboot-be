@@ -154,8 +154,8 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Scheduled(cron = "0 */10 * * * *")
     @Transactional
     public void purgeExpiredOtps() {
-        log.info("Running scheduled cleanup to purge expired loyalty OTPs");
-        loyaltyOtpRepository.deleteByExpiresAtBefore(LocalDateTime.now());
+        int deletedCount = loyaltyOtpRepository.deleteByExpiresAtBefore(LocalDateTime.now());
+        log.info("Scheduled cleanup purged {} expired loyalty OTP(s)", deletedCount);
     }
 
     @Override
