@@ -72,6 +72,17 @@ public class PosController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Order created successfully", response));
     }
 
+    @Operation(summary = "Price a cart", description = "Returns the live priced cart with batch prices and promotions applied, without persisting anything")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Cart priced successfully")
+    @PostMapping("/cart/price")
+    public ResponseEntity<ApiResponse<com.silverline.erp.module.pos.dto.CartPricing.Response>> priceCart(
+            @RequestBody com.silverline.erp.module.pos.dto.CartPricing.Request request) {
+        if (request.getBranchId() == null) {
+            request.setBranchId(1L);
+        }
+        return ResponseEntity.ok(ApiResponse.success("Cart priced", saleService.priceCart(request)));
+    }
+
     @Operation(summary = "Get sales list / bills", description = "Returns a paginated list of sales records for the branch, with optional filters")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Orders fetched successfully")
     @GetMapping({"/orders", "/sales"})

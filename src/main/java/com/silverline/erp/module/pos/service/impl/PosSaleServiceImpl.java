@@ -50,6 +50,7 @@ public class PosSaleServiceImpl implements PosSaleService {
     private final ProductSerialService productSerialService;
     private final SaleQueryService saleQueryService;
     private final com.silverline.erp.module.inventory.repository.BranchProductRepository branchProductRepository;
+    private final com.silverline.erp.module.pos.service.PromotionService promotionService;
 
     // Statuses a client is allowed to request. Anything else is coerced to PAID so the client
     // cannot inject an arbitrary status to skip stock deduction or validation (mass-assignment guard).
@@ -177,7 +178,10 @@ public class PosSaleServiceImpl implements PosSaleService {
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             for (SaleItemRequest itemReq : request.getItems()) {
                 Product product = productService.findById(itemReq.getProductId());
-                BigDecimal unitPrice = resolveUnitPrice(itemReq, product, branchId);
+                com.silverline.erp.domain.inventory.Batch saleBatch = batchService
+                        .resolveSaleBatch(branchId, itemReq.getProductId(), itemReq.getBatchId())
+                        .orElse(null);
+                BigDecimal unitPrice = resolveUnitPrice(itemReq, product, branchId, saleBatch);
                 BigDecimal quantity = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ONE;
 
                 BigDecimal lineGross = unitPrice.multiply(quantity);
@@ -219,10 +223,16 @@ public class PosSaleServiceImpl implements PosSaleService {
         sale.setSaleId(saleId);
 
         List<SaleItem> saleItems = new ArrayList<>();
+        List<com.silverline.erp.module.pos.dto.PromotionEval.Line> evalLines = new ArrayList<>();
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             for (SaleItemRequest itemReq : request.getItems()) {
                 Product product = productService.findById(itemReq.getProductId());
-                BigDecimal unitPrice = resolveUnitPrice(itemReq, product, branchId);
+                // FEFO default with cashier override: the priced batch is the chosen one
+                // if valid, else the first-expired batch.
+                com.silverline.erp.domain.inventory.Batch saleBatch = batchService
+                        .resolveSaleBatch(branchId, itemReq.getProductId(), itemReq.getBatchId())
+                        .orElse(null);
+                BigDecimal unitPrice = resolveUnitPrice(itemReq, product, branchId, saleBatch);
                 BigDecimal quantity = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ONE;
                 BigDecimal itemDiscount = clampDiscount(itemReq.getDiscount(), unitPrice.multiply(quantity));
 
@@ -230,16 +240,84 @@ public class PosSaleServiceImpl implements PosSaleService {
                 item.setSaleId(saleId);
                 item.setProductId(itemReq.getProductId());
                 item.setSerialId(itemReq.getSerialId());
-                item.setBatchId(itemReq.getBatchId());
+                item.setBatchId(saleBatch != null ? saleBatch.getBatchId() : itemReq.getBatchId());
                 item.setQty(quantity);
                 item.setUnitPrice(unitPrice);
+                item.setUnitCost(saleBatch != null ? saleBatch.getCostPrice()
+                        : (product != null ? product.getCostPrice() : null));
                 item.setDiscount(itemDiscount);
                 item.setTotal(unitPrice.multiply(quantity));
 
                 saleItemRepository.save(item);
                 saleItems.add(item);
+                evalLines.add(new com.silverline.erp.module.pos.dto.PromotionEval.Line(
+                        itemReq.getProductId(), quantity, unitPrice,
+                        saleBatch != null ? saleBatch.getExpiryDate() : null));
             }
         }
+
+        // ---- Apply promotions authoritatively (line discounts, free items, cart discount) ----
+        BigDecimal promoCartDiscount = BigDecimal.ZERO;
+        if (!saleItems.isEmpty()) {
+            com.silverline.erp.module.pos.dto.PromotionEval.Outcome promo =
+                    promotionService.evaluate(evalLines, branchId, java.time.LocalDateTime.now());
+
+            for (com.silverline.erp.module.pos.dto.PromotionEval.LineDiscount ld : promo.getLineDiscounts()) {
+                if (ld.getLineIndex() < 0 || ld.getLineIndex() >= saleItems.size()) continue;
+                SaleItem si = saleItems.get(ld.getLineIndex());
+                BigDecimal maxDiscount = si.getUnitPrice().multiply(si.getQty());
+                BigDecimal newDiscount = clampDiscount(
+                        (si.getDiscount() != null ? si.getDiscount() : BigDecimal.ZERO).add(ld.getDiscount()), maxDiscount);
+                si.setDiscount(newDiscount);
+                si.setPromotionId(ld.getPromotionId());
+                si.setDiscountReason(ld.getReason());
+                saleItemRepository.save(si);
+            }
+
+            for (com.silverline.erp.module.pos.dto.PromotionEval.FreeItem fi : promo.getFreeItems()) {
+                com.silverline.erp.domain.inventory.Batch freeBatch = batchService
+                        .resolveSaleBatch(branchId, fi.getProductId(), null).orElse(null);
+                BigDecimal lineValue = fi.getUnitPrice().multiply(fi.getQty());
+                SaleItem free = new SaleItem();
+                free.setSaleId(saleId);
+                free.setProductId(fi.getProductId());
+                free.setBatchId(freeBatch != null ? freeBatch.getBatchId() : null);
+                free.setQty(fi.getQty());
+                free.setUnitPrice(fi.getUnitPrice());
+                free.setUnitCost(freeBatch != null ? freeBatch.getCostPrice() : null);
+                free.setDiscount(lineValue); // fully discounted (free)
+                free.setTotal(lineValue);
+                free.setIsFree(true);
+                free.setPromotionId(fi.getPromotionId());
+                free.setDiscountReason(fi.getReason());
+                saleItemRepository.save(free);
+                saleItems.add(free);
+            }
+
+            promoCartDiscount = promo.getCartDiscount();
+            promotionService.recordUsage(promo, saleId);
+        }
+
+        // ---- Recompute totals from the final sale items plus any cart-level discount ----
+        BigDecimal itemsGross = BigDecimal.ZERO;
+        BigDecimal itemsDiscount = BigDecimal.ZERO;
+        for (SaleItem si : saleItems) {
+            itemsGross = itemsGross.add(si.getUnitPrice().multiply(si.getQty()));
+            itemsDiscount = itemsDiscount.add(si.getDiscount() != null ? si.getDiscount() : BigDecimal.ZERO);
+        }
+        BigDecimal finalCartDiscount = clampDiscount(
+                (sale.getDiscount() != null ? sale.getDiscount() : BigDecimal.ZERO).add(promoCartDiscount),
+                itemsGross.subtract(itemsDiscount).max(BigDecimal.ZERO));
+        sale.setGrossTotal(itemsGross);
+        sale.setDiscount(finalCartDiscount);
+        BigDecimal finalNet = itemsGross.subtract(itemsDiscount).subtract(finalCartDiscount).max(BigDecimal.ZERO);
+        sale.setNetTotal(finalNet);
+        sale.setChangeAmount(sale.getPaidAmount() != null ? sale.getPaidAmount().subtract(finalNet) : BigDecimal.ZERO);
+        if ("PAID".equals(sale.getPaymentStatus()) && sale.getPaidAmount() != null
+                && sale.getPaidAmount().compareTo(finalNet) < 0) {
+            sale.setPaymentStatus("PARTIAL");
+        }
+        saleRepository.save(sale);
 
         List<Payment> payments = new ArrayList<>();
         if (request.getPayments() != null) {
@@ -280,9 +358,9 @@ public class PosSaleServiceImpl implements PosSaleService {
                         }
 
                         if (soldItem.getBatchId() != null) {
-                            // Reduce batch stock via BatchService
-                            batchService.deductBatchStock(soldItem.getBatchId(), soldQty);
-                            log.info("Batch {} deducted by {}", soldItem.getBatchId(), soldQty);
+                            // Deduct the priced batch first, remainder oldest-first (FEFO).
+                            batchService.deductForSale(branchId, soldItem.getProductId(), soldItem.getBatchId(), soldQty);
+                            log.info("Batch stock deducted for product {} (preferred batch {}) by {}", soldItem.getProductId(), soldItem.getBatchId(), soldQty);
                         }
                     }
                 } catch (Exception e) {
@@ -328,14 +406,75 @@ public class PosSaleServiceImpl implements PosSaleService {
      * which blocks price manipulation (SEC-14). Service items (repairs, DTV installs) have no catalog price
      * and keep the POS-entered charge.
      */
-    private BigDecimal resolveUnitPrice(SaleItemRequest itemReq, Product product, Long branchId) {
+    @Override
+    public com.silverline.erp.module.pos.dto.CartPricing.Response priceCart(
+            com.silverline.erp.module.pos.dto.CartPricing.Request request) {
+        com.silverline.erp.module.pos.dto.CartPricing.Response resp =
+                new com.silverline.erp.module.pos.dto.CartPricing.Response();
+        Long branchId = request.getBranchId();
+        if (request.getItems() == null || request.getItems().isEmpty()) return resp;
+
+        List<com.silverline.erp.module.pos.dto.PromotionEval.Line> evalLines = new ArrayList<>();
+        for (com.silverline.erp.module.pos.dto.CartPricing.Item it : request.getItems()) {
+            Product product = productService.findById(it.getProductId());
+            com.silverline.erp.domain.inventory.Batch saleBatch = batchService
+                    .resolveSaleBatch(branchId, it.getProductId(), it.getBatchId()).orElse(null);
+            BigDecimal qty = it.getQty() != null ? it.getQty() : BigDecimal.ONE;
+            SaleItemRequest fake = new SaleItemRequest();
+            fake.setProductId(it.getProductId());
+            BigDecimal unitPrice = resolveUnitPrice(fake, product, branchId, saleBatch);
+
+            com.silverline.erp.module.pos.dto.CartPricing.PricedLine line =
+                    new com.silverline.erp.module.pos.dto.CartPricing.PricedLine(
+                            it.getProductId(), product != null ? product.getName() : null,
+                            saleBatch != null ? saleBatch.getBatchId() : it.getBatchId(),
+                            qty, unitPrice, BigDecimal.ZERO, unitPrice.multiply(qty), false, null, null);
+            resp.getItems().add(line);
+            evalLines.add(new com.silverline.erp.module.pos.dto.PromotionEval.Line(
+                    it.getProductId(), qty, unitPrice, saleBatch != null ? saleBatch.getExpiryDate() : null));
+        }
+
+        com.silverline.erp.module.pos.dto.PromotionEval.Outcome promo =
+                promotionService.evaluate(evalLines, branchId, java.time.LocalDateTime.now());
+
+        for (com.silverline.erp.module.pos.dto.PromotionEval.LineDiscount ld : promo.getLineDiscounts()) {
+            if (ld.getLineIndex() < 0 || ld.getLineIndex() >= resp.getItems().size()) continue;
+            com.silverline.erp.module.pos.dto.CartPricing.PricedLine l = resp.getItems().get(ld.getLineIndex());
+            l.setLineDiscount(l.getLineDiscount().add(ld.getDiscount()));
+            l.setLineTotal(l.getUnitPrice().multiply(l.getQty()).subtract(l.getLineDiscount()).max(BigDecimal.ZERO));
+            l.setPromotionId(ld.getPromotionId());
+            l.setPromotionName(ld.getReason());
+        }
+        for (com.silverline.erp.module.pos.dto.PromotionEval.FreeItem fi : promo.getFreeItems()) {
+            BigDecimal value = fi.getUnitPrice().multiply(fi.getQty());
+            Product fp = productService.findById(fi.getProductId());
+            resp.getItems().add(new com.silverline.erp.module.pos.dto.CartPricing.PricedLine(
+                    fi.getProductId(), fp != null ? fp.getName() : null, null, fi.getQty(),
+                    fi.getUnitPrice(), value, BigDecimal.ZERO, true, fi.getPromotionId(), fi.getReason()));
+        }
+        resp.setPromotions(promo.getApplied());
+
+        BigDecimal subTotal = BigDecimal.ZERO;
+        BigDecimal discountTotal = promo.getCartDiscount();
+        for (com.silverline.erp.module.pos.dto.CartPricing.PricedLine l : resp.getItems()) {
+            subTotal = subTotal.add(l.getUnitPrice().multiply(l.getQty()));
+            discountTotal = discountTotal.add(l.getLineDiscount());
+        }
+        resp.setSubTotal(subTotal);
+        resp.setDiscountTotal(discountTotal);
+        resp.setNetTotal(subTotal.subtract(discountTotal).max(BigDecimal.ZERO));
+        return resp;
+    }
+
+    private BigDecimal resolveUnitPrice(SaleItemRequest itemReq, Product product, Long branchId,
+                                        com.silverline.erp.domain.inventory.Batch saleBatch) {
         String name = product != null && product.getName() != null ? product.getName().toLowerCase() : "";
         boolean isService = itemReq.getProductId() == 332L
                 || name.contains("service") || name.contains("dialog tv") || name.contains("dtv");
 
-        // Per-branch price (branch_product) is authoritative; the global product
-        // price is only a catalog default/fallback when a branch has not set one.
-        BigDecimal effectivePrice = resolveEffectiveSellingPrice(product, branchId);
+        // Price precedence: the batch being sold (its own selling price) wins, then the
+        // per-branch price (branch_product), then the global product catalog default.
+        BigDecimal effectivePrice = resolveEffectiveSellingPrice(product, branchId, saleBatch);
 
         if (isService) {
             BigDecimal entered = itemReq.getUnitPrice();
@@ -350,9 +489,13 @@ public class PosSaleServiceImpl implements PosSaleService {
         return effectivePrice;
     }
 
-    /** Branch price from branch_product if present, else the global catalog default. */
-    private BigDecimal resolveEffectiveSellingPrice(Product product, Long branchId) {
+    /** Batch price if selling from a batch, else branch_product price, else the global default. */
+    private BigDecimal resolveEffectiveSellingPrice(Product product, Long branchId,
+                                                    com.silverline.erp.domain.inventory.Batch saleBatch) {
         if (product == null) return null;
+        if (saleBatch != null && saleBatch.getSellingPrice() != null) {
+            return saleBatch.getSellingPrice();
+        }
         if (branchId != null) {
             BigDecimal branchPrice = branchProductRepository
                     .findByBranchIdAndProductId(branchId, product.getProductId())

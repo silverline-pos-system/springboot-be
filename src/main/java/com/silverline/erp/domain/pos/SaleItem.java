@@ -39,12 +39,26 @@ public class SaleItem {
     @Column(name = "unit_price", precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
+    // Cost of the batch this line was sold from (per-line COGS / margin).
+    @Column(name = "unit_cost", precision = 10, scale = 2)
+    private BigDecimal unitCost;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal discount;
 
 
     @Column(precision = 10, scale = 2)
     private BigDecimal total;
+
+    // Promotion that produced this line's discount or free giveaway, if any.
+    @Column(name = "promotion_id")
+    private Long promotionId;
+
+    @Column(name = "is_free")
+    private Boolean isFree = false;
+
+    @Column(name = "discount_reason", length = 200)
+    private String discountReason;
 
 
     @Override
