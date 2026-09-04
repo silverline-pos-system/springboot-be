@@ -78,8 +78,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT COUNT(poi) > 0 FROM PurchaseOrderItem poi WHERE poi.productId = :productId")
     boolean isUsedInPurchaseOrders(@Param("productId") Long productId);
 
-    @Query("SELECT COUNT(di) > 0 FROM DispatchItem di WHERE di.productId = :productId")
-    boolean isUsedInDispatches(@Param("productId") Long productId);
+    @Query("SELECT COUNT(gi) > 0 FROM GrnItem gi WHERE gi.productId = :productId")
+    boolean isUsedInGrns(@Param("productId") Long productId);
 
     @Query("SELECT COUNT(si) > 0 FROM SaleItem si WHERE si.productId = :productId")
     boolean isUsedInSales(@Param("productId") Long productId);

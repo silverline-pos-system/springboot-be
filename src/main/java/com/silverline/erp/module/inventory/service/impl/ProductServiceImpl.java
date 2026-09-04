@@ -157,7 +157,7 @@ public class ProductServiceImpl implements ProductService {
         // Check if user tries to change the tracking type
         if (product.getTrackingType() != null && !product.getTrackingType().name().equalsIgnoreCase(tt)) {
             boolean isUsed = productRepository.isUsedInPurchaseOrders(id) || 
-                             productRepository.isUsedInDispatches(id) || 
+                             productRepository.isUsedInGrns(id) || 
                              productRepository.isUsedInSales(id);
             if (isUsed) {
                 throw new ValidationException("Cannot change inventory tracking type once the product has been used in transactions.");

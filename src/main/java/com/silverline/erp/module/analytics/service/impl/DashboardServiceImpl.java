@@ -1,6 +1,6 @@
 package com.silverline.erp.module.analytics.service.impl;
 
-import com.silverline.erp.domain.procurement.Dispatch;
+import com.silverline.erp.domain.procurement.Grn;
 import com.silverline.erp.domain.procurement.Supplier;
 import com.silverline.erp.module.analytics.dto.DashboardStatsDTO;
 import com.silverline.erp.module.analytics.dto.StockAlertDTO;
@@ -10,7 +10,7 @@ import com.silverline.erp.module.inventory.repository.SupplierRepository;
 import com.silverline.erp.module.manager.dto.PendingDispatchDTO;
 import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
 import com.silverline.erp.module.manager.repository.ManagerUserRepository;
-import com.silverline.erp.module.procurement.repository.DispatchRepository;
+import com.silverline.erp.module.procurement.repository.GrnRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class DashboardServiceImpl implements DashboardService {
 
     private final ManagerSaleRepository saleRepository;
-    private final DispatchRepository dispatchRepository;
+    private final GrnRepository grnRepository;
     private final ManagerUserRepository userRepository;
     private final SupplierRepository supplierRepository;
     private final AlertService alertService;
@@ -44,18 +44,18 @@ public class DashboardServiceImpl implements DashboardService {
         BigDecimal todaySales;
         Long todayTransactions;
         BigDecimal yesterdaySales;
-        List<Dispatch> pendingDispatches;
+        List<Grn> pendingGrns;
 
         if (branchId != null) {
             todaySales = saleRepository.sumNetTotalByBranchAndDateRange(branchId, todayStart, todayEnd);
             todayTransactions = saleRepository.countByBranchAndDateRange(branchId, todayStart, todayEnd);
             yesterdaySales = saleRepository.sumNetTotalByBranchAndDateRange(branchId, yesterdayStart, yesterdayEnd);
-            pendingDispatches = dispatchRepository.findByBranchIdAndStatus(branchId, "PENDING");
+            pendingGrns = grnRepository.findByBranchIdAndStatus(branchId, "DRAFT");
         } else {
             todaySales = saleRepository.sumNetTotalByDateRange(todayStart, todayEnd);
             todayTransactions = saleRepository.countByDateRange(todayStart, todayEnd);
             yesterdaySales = saleRepository.sumNetTotalByDateRange(yesterdayStart, yesterdayEnd);
-            pendingDispatches = dispatchRepository.findByStatus("PENDING");
+            pendingGrns = grnRepository.findByStatus("DRAFT");
         }
 
         todaySales = todaySales != null ? todaySales : BigDecimal.ZERO;
@@ -80,10 +80,10 @@ public class DashboardServiceImpl implements DashboardService {
                 .build());
 
         stats.add(DashboardStatsDTO.builder()
-                .title("pending dispatches")
-                .value(String.valueOf(pendingDispatches.size()))
+                .title("Pending GRNs")
+                .value(String.valueOf(pendingGrns.size()))
                 .icon("truck")
-                .tone(pendingDispatches.isEmpty() ? "success" : "warning")
+                .tone(pendingGrns.isEmpty() ? "success" : "warning")
                 .build());
 
         stats.add(DashboardStatsDTO.builder()
@@ -98,27 +98,27 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public List<PendingDispatchDTO> getPendingDispatches(Long branchId) {
-        List<Dispatch> pendingDispatches;
+        List<Grn> pendingGrns;
         if (branchId != null) {
-            pendingDispatches = dispatchRepository.findByBranchIdAndStatus(branchId, "PENDING");
+            pendingGrns = grnRepository.findByBranchIdAndStatus(branchId, "DRAFT");
         } else {
-            pendingDispatches = dispatchRepository.findByStatus("PENDING");
+            pendingGrns = grnRepository.findByStatus("DRAFT");
         }
 
-        return pendingDispatches.stream()
-                .map(dispatch -> {
-                    String supplierName = getSupplierName(dispatch.getSupplierId());
-                    String eta = calculateEta(dispatch.getDispatchDate());
+        return pendingGrns.stream()
+                .map(grn -> {
+                    String supplierName = getSupplierName(grn.getSupplierId());
+                    String eta = calculateEta(grn.getGrnDate());
 
                     return PendingDispatchDTO.builder()
-                            .id(dispatch.getDispatchNo())
+                            .id(grn.getGrnNo())
                             .supplier(supplierName)
                             .items(0)
                             .eta(eta)
-                            .requestedBy(dispatch.getCreatedBy() != null ?
-                                    userRepository.findById(dispatch.getCreatedBy())
+                            .requestedBy(grn.getReceivedBy() != null ?
+                                    userRepository.findById(grn.getReceivedBy())
                                             .map(u -> u.getFullName())
-                                            .orElse("ID: " + dispatch.getCreatedBy()) : "System")
+                                            .orElse("ID: " + grn.getReceivedBy()) : "System")
                             .build();
                 })
                 .collect(Collectors.toList());

@@ -24,7 +24,7 @@ public class ProductSerialDTO {
     private Long batchId;
     private String batchCode;
     private String status;
-    private Long dispatchId;
+    private Long grnId;
     private Long saleId;
     private Long transferId;
     private String invoiceNo;
