@@ -56,9 +56,6 @@ public class ProductSerial {
     @Column(name = "status", length = 20)
     private String status = "IN_STOCK"; // IN_STOCK, SOLD, DAMAGED, RETURNED
 
-    @Column(name = "dispatch_id")
-    private Long dispatchId;
-
     @Column(name = "grn_id")
     private Long grnId;
 

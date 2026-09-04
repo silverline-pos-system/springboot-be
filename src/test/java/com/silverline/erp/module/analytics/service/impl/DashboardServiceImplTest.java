@@ -1,6 +1,6 @@
 package com.silverline.erp.module.analytics.service.impl;
 
-import com.silverline.erp.domain.procurement.Dispatch;
+import com.silverline.erp.domain.procurement.Grn;
 import com.silverline.erp.module.analytics.dto.DashboardStatsDTO;
 import com.silverline.erp.module.analytics.dto.StockAlertDTO;
 import com.silverline.erp.module.analytics.service.AlertService;
@@ -8,7 +8,7 @@ import com.silverline.erp.module.inventory.repository.SupplierRepository;
 import com.silverline.erp.module.manager.dto.PendingDispatchDTO;
 import com.silverline.erp.module.manager.repository.ManagerSaleRepository;
 import com.silverline.erp.module.manager.repository.ManagerUserRepository;
-import com.silverline.erp.module.procurement.repository.DispatchRepository;
+import com.silverline.erp.module.procurement.repository.GrnRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,7 +33,7 @@ class DashboardServiceImplTest {
     @Mock
     private ManagerSaleRepository saleRepository;
     @Mock
-    private DispatchRepository dispatchRepository;
+    private GrnRepository grnRepository;
     @Mock
     private ManagerUserRepository userRepository;
     @Mock
@@ -53,10 +53,10 @@ class DashboardServiceImplTest {
         when(saleRepository.countByBranchAndDateRange(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(5L);
 
-        Dispatch mockDispatch = new Dispatch();
-        mockDispatch.setDispatchId(50L);
-        when(dispatchRepository.findByBranchIdAndStatus(1L, "PENDING"))
-                .thenReturn(Collections.singletonList(mockDispatch));
+        Grn mockGrn = new Grn();
+        mockGrn.setGrnId(50L);
+        when(grnRepository.findByBranchIdAndStatus(1L, "DRAFT"))
+                .thenReturn(Collections.singletonList(mockGrn));
 
         StockAlertDTO mockAlert = new StockAlertDTO();
         when(alertService.getStockAlerts(1L)).thenReturn(Collections.singletonList(mockAlert));
@@ -69,23 +69,23 @@ class DashboardServiceImplTest {
         assertEquals(4, stats.size());
         assertEquals("Today's Sales", stats.get(0).getTitle());
         assertEquals("Transactions", stats.get(1).getTitle());
-        assertEquals("pending dispatches", stats.get(2).getTitle());
+        assertEquals("Pending GRNs", stats.get(2).getTitle());
         assertEquals("1", stats.get(2).getValue());
         assertEquals("Low Stock Items", stats.get(3).getTitle());
         assertEquals("1", stats.get(3).getValue());
     }
 
     @Test
-    void getPendingDispatches_Success() {
+    void getPendingGrns_Success() {
         // Arrange
-        Dispatch mockDispatch = new Dispatch();
-        mockDispatch.setDispatchId(50L);
-        mockDispatch.setSupplierId(10L);
-        mockDispatch.setDispatchNo("INV-999");
-        mockDispatch.setStatus("PENDING");
+        Grn mockGrn = new Grn();
+        mockGrn.setGrnId(50L);
+        mockGrn.setSupplierId(10L);
+        mockGrn.setGrnNo("GRN-999");
+        mockGrn.setStatus("DRAFT");
 
-        when(dispatchRepository.findByBranchIdAndStatus(1L, "PENDING"))
-                .thenReturn(Collections.singletonList(mockDispatch));
+        when(grnRepository.findByBranchIdAndStatus(1L, "DRAFT"))
+                .thenReturn(Collections.singletonList(mockGrn));
         when(supplierRepository.findById(10L)).thenReturn(Optional.empty());
 
         // Act
@@ -94,6 +94,6 @@ class DashboardServiceImplTest {
         // Assert
         assertNotNull(list);
         assertEquals(1, list.size());
-        assertEquals("INV-999", list.getFirst().getId());
+        assertEquals("GRN-999", list.getFirst().getId());
     }
 }

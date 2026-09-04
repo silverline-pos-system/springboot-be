@@ -147,10 +147,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/admin/users/**")
                         .hasAnyRole(Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
-                        // Dispatch payment requests
-                        .requestMatchers("/api/v1/dispatch-payments/**")
-                        .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
-
                         // GRN payment requests
                         .requestMatchers("/api/v1/grn-payments/**")
                         .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
