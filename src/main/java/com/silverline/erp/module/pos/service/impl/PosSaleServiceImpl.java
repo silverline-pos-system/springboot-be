@@ -50,6 +50,7 @@ public class PosSaleServiceImpl implements PosSaleService {
     private final ProductSerialService productSerialService;
     private final SaleQueryService saleQueryService;
     private final com.silverline.erp.module.inventory.repository.BranchProductRepository branchProductRepository;
+    private final com.silverline.erp.module.pos.service.PromotionService promotionService;
 
     // Statuses a client is allowed to request. Anything else is coerced to PAID so the client
     // cannot inject an arbitrary status to skip stock deduction or validation (mass-assignment guard).
@@ -222,6 +223,7 @@ public class PosSaleServiceImpl implements PosSaleService {
         sale.setSaleId(saleId);
 
         List<SaleItem> saleItems = new ArrayList<>();
+        List<com.silverline.erp.module.pos.dto.PromotionEval.Line> evalLines = new ArrayList<>();
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             for (SaleItemRequest itemReq : request.getItems()) {
                 Product product = productService.findById(itemReq.getProductId());
@@ -248,8 +250,74 @@ public class PosSaleServiceImpl implements PosSaleService {
 
                 saleItemRepository.save(item);
                 saleItems.add(item);
+                evalLines.add(new com.silverline.erp.module.pos.dto.PromotionEval.Line(
+                        itemReq.getProductId(), quantity, unitPrice,
+                        saleBatch != null ? saleBatch.getExpiryDate() : null));
             }
         }
+
+        // ---- Apply promotions authoritatively (line discounts, free items, cart discount) ----
+        BigDecimal promoCartDiscount = BigDecimal.ZERO;
+        if (!saleItems.isEmpty()) {
+            com.silverline.erp.module.pos.dto.PromotionEval.Outcome promo =
+                    promotionService.evaluate(evalLines, branchId, java.time.LocalDateTime.now());
+
+            for (com.silverline.erp.module.pos.dto.PromotionEval.LineDiscount ld : promo.getLineDiscounts()) {
+                if (ld.getLineIndex() < 0 || ld.getLineIndex() >= saleItems.size()) continue;
+                SaleItem si = saleItems.get(ld.getLineIndex());
+                BigDecimal maxDiscount = si.getUnitPrice().multiply(si.getQty());
+                BigDecimal newDiscount = clampDiscount(
+                        (si.getDiscount() != null ? si.getDiscount() : BigDecimal.ZERO).add(ld.getDiscount()), maxDiscount);
+                si.setDiscount(newDiscount);
+                si.setPromotionId(ld.getPromotionId());
+                si.setDiscountReason(ld.getReason());
+                saleItemRepository.save(si);
+            }
+
+            for (com.silverline.erp.module.pos.dto.PromotionEval.FreeItem fi : promo.getFreeItems()) {
+                com.silverline.erp.domain.inventory.Batch freeBatch = batchService
+                        .resolveSaleBatch(branchId, fi.getProductId(), null).orElse(null);
+                BigDecimal lineValue = fi.getUnitPrice().multiply(fi.getQty());
+                SaleItem free = new SaleItem();
+                free.setSaleId(saleId);
+                free.setProductId(fi.getProductId());
+                free.setBatchId(freeBatch != null ? freeBatch.getBatchId() : null);
+                free.setQty(fi.getQty());
+                free.setUnitPrice(fi.getUnitPrice());
+                free.setUnitCost(freeBatch != null ? freeBatch.getCostPrice() : null);
+                free.setDiscount(lineValue); // fully discounted (free)
+                free.setTotal(lineValue);
+                free.setIsFree(true);
+                free.setPromotionId(fi.getPromotionId());
+                free.setDiscountReason(fi.getReason());
+                saleItemRepository.save(free);
+                saleItems.add(free);
+            }
+
+            promoCartDiscount = promo.getCartDiscount();
+            promotionService.recordUsage(promo, saleId);
+        }
+
+        // ---- Recompute totals from the final sale items plus any cart-level discount ----
+        BigDecimal itemsGross = BigDecimal.ZERO;
+        BigDecimal itemsDiscount = BigDecimal.ZERO;
+        for (SaleItem si : saleItems) {
+            itemsGross = itemsGross.add(si.getUnitPrice().multiply(si.getQty()));
+            itemsDiscount = itemsDiscount.add(si.getDiscount() != null ? si.getDiscount() : BigDecimal.ZERO);
+        }
+        BigDecimal finalCartDiscount = clampDiscount(
+                (sale.getDiscount() != null ? sale.getDiscount() : BigDecimal.ZERO).add(promoCartDiscount),
+                itemsGross.subtract(itemsDiscount).max(BigDecimal.ZERO));
+        sale.setGrossTotal(itemsGross);
+        sale.setDiscount(finalCartDiscount);
+        BigDecimal finalNet = itemsGross.subtract(itemsDiscount).subtract(finalCartDiscount).max(BigDecimal.ZERO);
+        sale.setNetTotal(finalNet);
+        sale.setChangeAmount(sale.getPaidAmount() != null ? sale.getPaidAmount().subtract(finalNet) : BigDecimal.ZERO);
+        if ("PAID".equals(sale.getPaymentStatus()) && sale.getPaidAmount() != null
+                && sale.getPaidAmount().compareTo(finalNet) < 0) {
+            sale.setPaymentStatus("PARTIAL");
+        }
+        saleRepository.save(sale);
 
         List<Payment> payments = new ArrayList<>();
         if (request.getPayments() != null) {

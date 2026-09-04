@@ -61,6 +61,8 @@ class PosSaleServiceImplTest {
     private SaleQueryService saleQueryService;
     @Mock
     private com.silverline.erp.module.inventory.repository.BranchProductRepository branchProductRepository;
+    @Mock
+    private com.silverline.erp.module.pos.service.PromotionService promotionService;
 
     @InjectMocks
     private PosSaleServiceImpl posSaleService;
@@ -72,6 +74,9 @@ class PosSaleServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        lenient().when(promotionService.evaluate(any(), any(), any()))
+                .thenReturn(new com.silverline.erp.module.pos.dto.PromotionEval.Outcome());
+
         request = new CreateSaleRequest();
         request.setCustomerId(10L);
         request.setDiscount(BigDecimal.TEN);
@@ -200,7 +205,8 @@ class PosSaleServiceImplTest {
         posSaleService.createSale(request, branchId, cashierId, shiftId);
 
         org.mockito.ArgumentCaptor<Sale> captor = org.mockito.ArgumentCaptor.forClass(Sale.class);
-        verify(saleRepository).save(captor.capture());
+        // Sale is saved for its id, then re-saved after promotions recompute totals.
+        verify(saleRepository, atLeastOnce()).save(captor.capture());
         assertEquals("PAID", captor.getValue().getPaymentStatus());
     }
 
