@@ -25,4 +25,8 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
             "AND (p.maxUses IS NULL OR p.usesCount < p.maxUses) " +
             "ORDER BY p.priority DESC, p.promotionId ASC")
     List<Promotion> findActiveForBranch(@Param("branchId") Long branchId, @Param("now") LocalDateTime now);
+
+    /** For management: a branch's promotions plus all-branch ones, regardless of active/window. */
+    @Query("SELECT p FROM Promotion p WHERE p.branchId IS NULL OR p.branchId = :branchId ORDER BY p.promotionId DESC")
+    List<Promotion> findActiveForBranchIncludingInactive(@Param("branchId") Long branchId);
 }

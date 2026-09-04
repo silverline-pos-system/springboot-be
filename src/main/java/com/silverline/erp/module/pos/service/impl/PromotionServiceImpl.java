@@ -194,6 +194,106 @@ public class PromotionServiceImpl implements PromotionService {
         }
     }
 
+    // ---- management ----
+
+    @Override
+    public List<com.silverline.erp.module.pos.dto.PromotionDTO> list(Long branchId) {
+        List<Promotion> all = branchId == null
+                ? promotionRepository.findAll()
+                : promotionRepository.findActiveForBranchIncludingInactive(branchId);
+        return all.stream().map(this::toDTO).toList();
+    }
+
+    @Override
+    public com.silverline.erp.module.pos.dto.PromotionDTO get(Long id) {
+        return promotionRepository.findById(id).map(this::toDTO)
+                .orElseThrow(() -> new IllegalArgumentException("Promotion not found: " + id));
+    }
+
+    @Override
+    @Transactional
+    public com.silverline.erp.module.pos.dto.PromotionDTO create(com.silverline.erp.module.pos.dto.PromotionDTO dto, Long userId) {
+        Promotion p = new Promotion();
+        applyDto(p, dto);
+        p.setCreatedBy(userId);
+        if (p.getUsesCount() == null) p.setUsesCount(0);
+        return toDTO(promotionRepository.save(p));
+    }
+
+    @Override
+    @Transactional
+    public com.silverline.erp.module.pos.dto.PromotionDTO update(Long id, com.silverline.erp.module.pos.dto.PromotionDTO dto) {
+        Promotion p = promotionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Promotion not found: " + id));
+        applyDto(p, dto);
+        return toDTO(promotionRepository.save(p));
+    }
+
+    @Override
+    @Transactional
+    public com.silverline.erp.module.pos.dto.PromotionDTO setActive(Long id, boolean active) {
+        Promotion p = promotionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Promotion not found: " + id));
+        p.setIsActive(active);
+        return toDTO(promotionRepository.save(p));
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        promotionRepository.deleteById(id);
+    }
+
+    private void applyDto(Promotion p, com.silverline.erp.module.pos.dto.PromotionDTO d) {
+        p.setName(d.getName());
+        p.setDescription(d.getDescription());
+        if (d.getPromoType() != null) p.setPromoType(PromoType.valueOf(d.getPromoType()));
+        p.setBranchId(d.getBranchId());
+        p.setScopeType(d.getScopeType() != null ? d.getScopeType() : "ALL");
+        p.setScopeRefId(d.getScopeRefId());
+        p.setBuyQty(d.getBuyQty());
+        p.setGetQty(d.getGetQty());
+        p.setGetProductId(d.getGetProductId());
+        p.setDiscountPercent(d.getDiscountPercent());
+        p.setDiscountAmount(d.getDiscountAmount());
+        p.setFixedPrice(d.getFixedPrice());
+        p.setMinCartAmount(d.getMinCartAmount());
+        p.setClearanceDays(d.getClearanceDays());
+        p.setStartAt(d.getStartAt());
+        p.setEndAt(d.getEndAt());
+        if (d.getPriority() != null) p.setPriority(d.getPriority());
+        if (d.getStackable() != null) p.setStackable(d.getStackable());
+        if (d.getIsActive() != null) p.setIsActive(d.getIsActive());
+        p.setMaxUses(d.getMaxUses());
+    }
+
+    private com.silverline.erp.module.pos.dto.PromotionDTO toDTO(Promotion p) {
+        return com.silverline.erp.module.pos.dto.PromotionDTO.builder()
+                .promotionId(p.getPromotionId())
+                .name(p.getName())
+                .description(p.getDescription())
+                .promoType(p.getPromoType() != null ? p.getPromoType().name() : null)
+                .branchId(p.getBranchId())
+                .scopeType(p.getScopeType())
+                .scopeRefId(p.getScopeRefId())
+                .buyQty(p.getBuyQty())
+                .getQty(p.getGetQty())
+                .getProductId(p.getGetProductId())
+                .discountPercent(p.getDiscountPercent())
+                .discountAmount(p.getDiscountAmount())
+                .fixedPrice(p.getFixedPrice())
+                .minCartAmount(p.getMinCartAmount())
+                .clearanceDays(p.getClearanceDays())
+                .startAt(p.getStartAt())
+                .endAt(p.getEndAt())
+                .priority(p.getPriority())
+                .stackable(p.getStackable())
+                .isActive(p.getIsActive())
+                .maxUses(p.getMaxUses())
+                .usesCount(p.getUsesCount())
+                .build();
+    }
+
     // ---- helpers ----
 
     private boolean qualifies(Promotion p, PromotionEval.Line line, Long categoryId) {
