@@ -50,6 +50,16 @@ public class SaleItem {
     @Column(precision = 10, scale = 2)
     private BigDecimal total;
 
+    // Promotion that produced this line's discount or free giveaway, if any.
+    @Column(name = "promotion_id")
+    private Long promotionId;
+
+    @Column(name = "is_free")
+    private Boolean isFree = false;
+
+    @Column(name = "discount_reason", length = 200)
+    private String discountReason;
+
 
     @Override
     public String toString() {
