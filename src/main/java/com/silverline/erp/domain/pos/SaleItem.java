@@ -39,6 +39,10 @@ public class SaleItem {
     @Column(name = "unit_price", precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
+    // Cost of the batch this line was sold from (per-line COGS / margin).
+    @Column(name = "unit_cost", precision = 10, scale = 2)
+    private BigDecimal unitCost;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal discount;
 

@@ -39,4 +39,18 @@ public interface BatchService {
     List<BatchDTO> getFEFOBatches(Long productId, Long branchId);
 
     void deductBatchStock(Long batchId, java.math.BigDecimal qty);
+
+    /**
+     * The batch a sale line should be priced from and deducted first: the explicitly
+     * chosen batch if it is valid and has stock, otherwise the FEFO (first-expired)
+     * batch. Empty when the product has no batches at this branch.
+     */
+    java.util.Optional<com.silverline.erp.domain.inventory.Batch> resolveSaleBatch(Long branchId, Long productId, Long explicitBatchId);
+
+    /**
+     * Deduct a sold quantity for a product: the preferred (chosen/FEFO) batch first,
+     * then the remainder oldest-first across the other batches. Best-effort at batch
+     * level; the aggregate Stock row remains the oversell guard.
+     */
+    void deductForSale(Long branchId, Long productId, Long preferredBatchId, java.math.BigDecimal qty);
 }

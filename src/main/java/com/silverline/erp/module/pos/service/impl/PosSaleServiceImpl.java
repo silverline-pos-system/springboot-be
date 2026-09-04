@@ -177,7 +177,10 @@ public class PosSaleServiceImpl implements PosSaleService {
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             for (SaleItemRequest itemReq : request.getItems()) {
                 Product product = productService.findById(itemReq.getProductId());
-                BigDecimal unitPrice = resolveUnitPrice(itemReq, product, branchId);
+                com.silverline.erp.domain.inventory.Batch saleBatch = batchService
+                        .resolveSaleBatch(branchId, itemReq.getProductId(), itemReq.getBatchId())
+                        .orElse(null);
+                BigDecimal unitPrice = resolveUnitPrice(itemReq, product, branchId, saleBatch);
                 BigDecimal quantity = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ONE;
 
                 BigDecimal lineGross = unitPrice.multiply(quantity);
@@ -222,7 +225,12 @@ public class PosSaleServiceImpl implements PosSaleService {
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             for (SaleItemRequest itemReq : request.getItems()) {
                 Product product = productService.findById(itemReq.getProductId());
-                BigDecimal unitPrice = resolveUnitPrice(itemReq, product, branchId);
+                // FEFO default with cashier override: the priced batch is the chosen one
+                // if valid, else the first-expired batch.
+                com.silverline.erp.domain.inventory.Batch saleBatch = batchService
+                        .resolveSaleBatch(branchId, itemReq.getProductId(), itemReq.getBatchId())
+                        .orElse(null);
+                BigDecimal unitPrice = resolveUnitPrice(itemReq, product, branchId, saleBatch);
                 BigDecimal quantity = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ONE;
                 BigDecimal itemDiscount = clampDiscount(itemReq.getDiscount(), unitPrice.multiply(quantity));
 
@@ -230,9 +238,11 @@ public class PosSaleServiceImpl implements PosSaleService {
                 item.setSaleId(saleId);
                 item.setProductId(itemReq.getProductId());
                 item.setSerialId(itemReq.getSerialId());
-                item.setBatchId(itemReq.getBatchId());
+                item.setBatchId(saleBatch != null ? saleBatch.getBatchId() : itemReq.getBatchId());
                 item.setQty(quantity);
                 item.setUnitPrice(unitPrice);
+                item.setUnitCost(saleBatch != null ? saleBatch.getCostPrice()
+                        : (product != null ? product.getCostPrice() : null));
                 item.setDiscount(itemDiscount);
                 item.setTotal(unitPrice.multiply(quantity));
 
@@ -280,9 +290,9 @@ public class PosSaleServiceImpl implements PosSaleService {
                         }
 
                         if (soldItem.getBatchId() != null) {
-                            // Reduce batch stock via BatchService
-                            batchService.deductBatchStock(soldItem.getBatchId(), soldQty);
-                            log.info("Batch {} deducted by {}", soldItem.getBatchId(), soldQty);
+                            // Deduct the priced batch first, remainder oldest-first (FEFO).
+                            batchService.deductForSale(branchId, soldItem.getProductId(), soldItem.getBatchId(), soldQty);
+                            log.info("Batch stock deducted for product {} (preferred batch {}) by {}", soldItem.getProductId(), soldItem.getBatchId(), soldQty);
                         }
                     }
                 } catch (Exception e) {
@@ -328,14 +338,15 @@ public class PosSaleServiceImpl implements PosSaleService {
      * which blocks price manipulation (SEC-14). Service items (repairs, DTV installs) have no catalog price
      * and keep the POS-entered charge.
      */
-    private BigDecimal resolveUnitPrice(SaleItemRequest itemReq, Product product, Long branchId) {
+    private BigDecimal resolveUnitPrice(SaleItemRequest itemReq, Product product, Long branchId,
+                                        com.silverline.erp.domain.inventory.Batch saleBatch) {
         String name = product != null && product.getName() != null ? product.getName().toLowerCase() : "";
         boolean isService = itemReq.getProductId() == 332L
                 || name.contains("service") || name.contains("dialog tv") || name.contains("dtv");
 
-        // Per-branch price (branch_product) is authoritative; the global product
-        // price is only a catalog default/fallback when a branch has not set one.
-        BigDecimal effectivePrice = resolveEffectiveSellingPrice(product, branchId);
+        // Price precedence: the batch being sold (its own selling price) wins, then the
+        // per-branch price (branch_product), then the global product catalog default.
+        BigDecimal effectivePrice = resolveEffectiveSellingPrice(product, branchId, saleBatch);
 
         if (isService) {
             BigDecimal entered = itemReq.getUnitPrice();
@@ -350,9 +361,13 @@ public class PosSaleServiceImpl implements PosSaleService {
         return effectivePrice;
     }
 
-    /** Branch price from branch_product if present, else the global catalog default. */
-    private BigDecimal resolveEffectiveSellingPrice(Product product, Long branchId) {
+    /** Batch price if selling from a batch, else branch_product price, else the global default. */
+    private BigDecimal resolveEffectiveSellingPrice(Product product, Long branchId,
+                                                    com.silverline.erp.domain.inventory.Batch saleBatch) {
         if (product == null) return null;
+        if (saleBatch != null && saleBatch.getSellingPrice() != null) {
+            return saleBatch.getSellingPrice();
+        }
         if (branchId != null) {
             BigDecimal branchPrice = branchProductRepository
                     .findByBranchIdAndProductId(branchId, product.getProductId())

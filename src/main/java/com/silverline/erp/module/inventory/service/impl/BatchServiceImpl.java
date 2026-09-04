@@ -10,6 +10,7 @@ import com.silverline.erp.module.inventory.repository.BatchRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
 import com.silverline.erp.module.inventory.service.BatchService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class BatchServiceImpl implements BatchService {
 
     private final BatchRepository batchRepository;
@@ -211,6 +213,70 @@ public class BatchServiceImpl implements BatchService {
         }
 
         batchRepository.saveAll(toUpdate);
+    }
+
+    @Override
+    public java.util.Optional<Batch> resolveSaleBatch(Long branchId, Long productId, Long explicitBatchId) {
+        if (branchId == null || productId == null) {
+            return java.util.Optional.empty();
+        }
+        if (explicitBatchId != null) {
+            java.util.Optional<Batch> chosen = batchRepository.findById(explicitBatchId);
+            if (chosen.isPresent()) {
+                Batch b = chosen.get();
+                boolean sameProduct = productId.equals(b.getProductId());
+                boolean sameBranch = branchId.equals(b.getBranchId());
+                boolean hasQty = b.getQty() != null && b.getQty().compareTo(BigDecimal.ZERO) > 0;
+                if (sameProduct && sameBranch && hasQty) {
+                    return chosen;
+                }
+            }
+        }
+        List<Batch> fefo = batchRepository.findAvailableByBranchAndProductFefo(branchId, productId, LocalDate.now());
+        return fefo.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(fefo.get(0));
+    }
+
+    @Override
+    @Transactional
+    public void deductForSale(Long branchId, Long productId, Long preferredBatchId, BigDecimal qty) {
+        if (branchId == null || productId == null || qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        BigDecimal remaining = qty;
+
+        // 1. Deduct the preferred (chosen or FEFO-primary) batch first: this is the
+        //    tier the line was priced from.
+        if (preferredBatchId != null) {
+            Batch preferred = batchRepository.findById(preferredBatchId).orElse(null);
+            if (preferred != null && preferred.getQty() != null && preferred.getQty().compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal take = preferred.getQty().min(remaining);
+                preferred.setQty(preferred.getQty().subtract(take));
+                batchRepository.save(preferred);
+                remaining = remaining.subtract(take);
+            }
+        }
+
+        // 2. Remainder oldest-first across the other available batches.
+        if (remaining.compareTo(BigDecimal.ZERO) > 0) {
+            List<Batch> fefo = batchRepository.findAvailableByBranchAndProductFefo(branchId, productId, LocalDate.now());
+            for (Batch batch : fefo) {
+                if (remaining.compareTo(BigDecimal.ZERO) <= 0) break;
+                if (preferredBatchId != null && preferredBatchId.equals(batch.getBatchId())) continue;
+                BigDecimal take = batch.getQty().min(remaining);
+                if (take.compareTo(BigDecimal.ZERO) > 0) {
+                    batch.setQty(batch.getQty().subtract(take));
+                    batchRepository.save(batch);
+                    remaining = remaining.subtract(take);
+                }
+            }
+        }
+
+        if (remaining.compareTo(BigDecimal.ZERO) > 0) {
+            // Batch quantities did not fully cover the line (batch/aggregate drift).
+            // The aggregate Stock decrement is the real oversell guard, so log and continue.
+            log.warn("Batch stock short by {} for product {} at branch {}; aggregate stock remains authoritative",
+                    remaining, productId, branchId);
+        }
     }
 
     @Override
