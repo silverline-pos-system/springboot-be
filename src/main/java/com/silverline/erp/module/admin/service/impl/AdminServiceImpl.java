@@ -87,8 +87,8 @@ public class AdminServiceImpl implements AdminService {
 
         // Sales metrics
         overview.put("todaySales", getTodaysSales());
-        BigDecimal allTimeSales = saleRepository.sumNetTotalAllTime();
-        overview.put("totalSales", allTimeSales != null ? allTimeSales : BigDecimal.ZERO);
+        BigDecimal monthSales = saleRepository.sumNetTotalForCurrentMonth();
+        overview.put("monthSales", monthSales != null ? monthSales : BigDecimal.ZERO);
 
         // User metrics
         overview.put("userStats", getUserStatsByRole());

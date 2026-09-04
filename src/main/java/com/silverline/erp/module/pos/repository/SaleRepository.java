@@ -126,6 +126,11 @@ public interface SaleRepository {
     BigDecimal sumNetTotalAllTime();
 
     /**
+     * Get total net sales for the current calendar month (all branches)
+     */
+    BigDecimal sumNetTotalForCurrentMonth();
+
+    /**
      * Get top branches by sales volume
      * Returns List of [BranchId, BranchName, TotalSales]
      */
