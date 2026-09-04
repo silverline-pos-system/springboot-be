@@ -5,7 +5,6 @@ public enum Role {
     MANAGER,
     SUPERVISOR,
     CASHIER,
-    STORE_KEEPER,
     DTV_TECHNICIAN,
     MOBILE_TECHNICIAN
 }

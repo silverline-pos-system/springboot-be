@@ -1,7 +1,7 @@
 package com.silverline.erp.module.analytics.service.impl;
 
 import com.silverline.erp.domain.inventory.Batch;
-import com.silverline.erp.domain.procurement.Dispatch;
+import com.silverline.erp.domain.procurement.Grn;
 import com.silverline.erp.module.analytics.dto.BranchAlertDTO;
 import com.silverline.erp.module.analytics.dto.ExpiryAlertDTO;
 import com.silverline.erp.module.analytics.dto.StockAlertDTO;
@@ -10,7 +10,7 @@ import com.silverline.erp.module.inventory.dto.projection.ProductNameProjection;
 import com.silverline.erp.module.inventory.dto.projection.ProductStockProjection;
 import com.silverline.erp.module.inventory.repository.BatchRepository;
 import com.silverline.erp.module.inventory.repository.ProductRepository;
-import com.silverline.erp.module.procurement.repository.DispatchRepository;
+import com.silverline.erp.module.procurement.repository.GrnRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ public class AlertServiceImpl implements AlertService {
 
     private final ProductRepository productRepository;
     private final BatchRepository batchRepository;
-    private final DispatchRepository dispatchRepository;
+    private final GrnRepository grnRepository;
 
     @Override
     public List<StockAlertDTO> getStockAlerts(Long branchId) {
@@ -128,18 +128,18 @@ public class AlertServiceImpl implements AlertService {
             }
         }
 
-        // Pending dispatch alerts
-        List<Dispatch> pendingDispatches;
+        // Pending GRN alerts (draft GRNs awaiting posting)
+        List<Grn> pendingGrns;
         if (branchId != null) {
-            pendingDispatches = dispatchRepository.findByBranchIdAndStatus(branchId, "PENDING");
+            pendingGrns = grnRepository.findByBranchIdAndStatus(branchId, "DRAFT");
         } else {
-            pendingDispatches = dispatchRepository.findByStatus("PENDING");
+            pendingGrns = grnRepository.findByStatus("DRAFT");
         }
 
-        if (!pendingDispatches.isEmpty()) {
+        if (!pendingGrns.isEmpty()) {
             alerts.add(BranchAlertDTO.builder()
                     .alertId((long) alerts.size() + 1)
-                    .message(pendingDispatches.size() + " pending dispatch(s) awaiting approval")
+                    .message(pendingGrns.size() + " draft GRN(s) awaiting posting")
                     .time("Now")
                     .type("Info")
                     .build());

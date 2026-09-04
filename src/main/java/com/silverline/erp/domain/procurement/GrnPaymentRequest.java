@@ -9,26 +9,26 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Dispatch Payment Request entity - tracks payment requests for approved Dispatches
- * that need to be processed by the finance/accounting department
+ * Payment request raised when a GRN is posted. Drives the supplier payment
+ * workflow: supervisor approve, transfer to manager, process payment.
  */
 @Entity
-@Table(name = "dispatch_payment_requests")
+@Table(name = "grn_payment_requests")
 @Getter
 @Setter
 @NoArgsConstructor
-public class DispatchPaymentRequest {
+public class GrnPaymentRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "request_id")
     private Long requestId;
 
-    @Column(name = "dispatch_id", nullable = false)
-    private Long dispatchId;
+    @Column(name = "grn_id", nullable = false)
+    private Long grnId;
 
-    @Column(name = "dispatch_no", length = 50)
-    private String dispatchNo;
+    @Column(name = "grn_no", length = 50)
+    private String grnNo;
 
     @Column(name = "branch_id", nullable = false)
     private Long branchId;
@@ -46,19 +46,14 @@ public class DispatchPaymentRequest {
     private String invoiceNo;
 
     /**
-     * Status of the payment request:
-     * - PENDING: Awaiting processing
-     * - SUPERVISOR_APPROVED: Approved by supervisor, ready for manager
-     * - TRANSFERRED_TO_MANAGER: Sent to manager for payment processing
-     * - PROCESSING: Manager is processing the payment
-     * - PAID: Payment has been made
-     * - REJECTED: Request was rejected
+     * PENDING, SUPERVISOR_APPROVED, TRANSFERRED_TO_MANAGER, PROCESSING, PAID,
+     * REJECTED.
      */
     @Column(length = 30)
     private String status = "PENDING";
 
     @Column(name = "priority", length = 20)
-    private String priority = "NORMAL"; // URGENT, HIGH, NORMAL, LOW
+    private String priority = "NORMAL";
 
     @Column(name = "due_date")
     private LocalDateTime dueDate;
@@ -91,7 +86,7 @@ public class DispatchPaymentRequest {
     private String paymentReference;
 
     @Column(name = "payment_method", length = 50)
-    private String paymentMethod; // BANK_TRANSFER, CHEQUE, CASH
+    private String paymentMethod;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

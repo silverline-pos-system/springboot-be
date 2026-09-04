@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DispatchPaymentRequestDTO {
+public class GrnPaymentRequestDTO {
     private Long requestId;
-    private Long dispatchId;
-    private String dispatchNo;
+    private Long grnId;
+    private String grnNo;
     private Long branchId;
     private String branchName;
     private Long supplierId;
@@ -41,4 +41,3 @@ public class DispatchPaymentRequestDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

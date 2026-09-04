@@ -1,7 +1,7 @@
 package com.silverline.erp.module.procurement.service.impl;
 
-import com.silverline.erp.domain.procurement.Dispatch;
-import com.silverline.erp.domain.procurement.DispatchPaymentRequest;
+import com.silverline.erp.domain.procurement.Grn;
+import com.silverline.erp.domain.procurement.GrnPaymentRequest;
 import com.silverline.erp.domain.procurement.Supplier;
 import com.silverline.erp.domain.user.UserProfile;
 import com.silverline.erp.module.admin.repository.BranchRepository;
@@ -9,10 +9,10 @@ import com.silverline.erp.module.admin.repository.UserProfileRepository;
 import com.silverline.erp.module.inventory.dto.ProcessPaymentRequest;
 import com.silverline.erp.module.inventory.dto.TransferToManagerRequest;
 import com.silverline.erp.module.inventory.repository.SupplierRepository;
-import com.silverline.erp.module.procurement.dto.DispatchPaymentRequestDTO;
-import com.silverline.erp.module.procurement.repository.DispatchPaymentRequestRepository;
-import com.silverline.erp.module.procurement.repository.DispatchRepository;
-import com.silverline.erp.module.procurement.service.DispatchPaymentRequestService;
+import com.silverline.erp.module.procurement.dto.GrnPaymentRequestDTO;
+import com.silverline.erp.module.procurement.repository.GrnPaymentRequestRepository;
+import com.silverline.erp.module.procurement.repository.GrnRepository;
+import com.silverline.erp.module.procurement.service.GrnPaymentRequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,10 +28,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequestService {
+public class GrnPaymentRequestServiceImpl implements GrnPaymentRequestService {
 
-    private final DispatchPaymentRequestRepository paymentRequestRepository;
-    private final DispatchRepository dispatchRepository;
+    private final GrnPaymentRequestRepository paymentRequestRepository;
+    private final GrnRepository grnRepository;
     private final SupplierRepository supplierRepository;
     private final BranchRepository branchRepository;
     private final UserProfileRepository userProfileRepository;
@@ -39,54 +39,49 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
 
     @Override
     @Transactional
-    public DispatchPaymentRequestDTO createPaymentRequest(Long dispatchId, Long requestedBy) {
-        log.info("Creating payment request for Dispatch ID: {}", dispatchId);
+    public GrnPaymentRequestDTO createPaymentRequest(Long grnId, Long requestedBy) {
+        log.info("Creating payment request for GRN ID: {}", grnId);
 
-        // Check if request already exists
-        if (paymentRequestRepository.findByDispatchId(dispatchId).isPresent()) {
-            throw new RuntimeException("Payment request already exists for this Dispatch");
+        if (paymentRequestRepository.findByGrnId(grnId).isPresent()) {
+            throw new RuntimeException("Payment request already exists for this GRN");
         }
 
-        Dispatch dispatch = dispatchRepository.findById(dispatchId)
-                .orElseThrow(() -> new RuntimeException("Dispatch not found: " + dispatchId));
+        Grn grn = grnRepository.findById(grnId)
+                .orElseThrow(() -> new RuntimeException("GRN not found: " + grnId));
 
-        if (!"APPROVED".equals(dispatch.getStatus())) {
-            throw new RuntimeException("Can only create payment request for approved Dispatches");
+        if (!"POSTED".equals(grn.getStatus())) {
+            throw new RuntimeException("Can only create payment request for posted GRNs");
         }
 
-        Supplier supplier = supplierRepository.findById(dispatch.getSupplierId())
-                .orElse(null);
+        Supplier supplier = supplierRepository.findById(grn.getSupplierId()).orElse(null);
 
-        DispatchPaymentRequest request = new DispatchPaymentRequest();
-        request.setDispatchId(dispatchId);
-        request.setDispatchNo(dispatch.getDispatchNo());
-        request.setBranchId(dispatch.getBranchId());
-        request.setSupplierId(dispatch.getSupplierId());
+        GrnPaymentRequest request = new GrnPaymentRequest();
+        request.setGrnId(grnId);
+        request.setGrnNo(grn.getGrnNo());
+        request.setBranchId(grn.getBranchId());
+        request.setSupplierId(grn.getSupplierId());
         request.setSupplierName(supplier != null ? supplier.getName() : "Unknown Supplier");
-        request.setAmount(dispatch.getNetAmount());
-        request.setInvoiceNo(dispatch.getInvoiceNo());
+        request.setAmount(grn.getNetAmount());
+        request.setInvoiceNo(grn.getInvoiceNo());
         request.setStatus("PENDING");
         request.setPriority("NORMAL");
         request.setRequestedBy(requestedBy);
 
-        // Set due date (e.g., 30 days from invoice date or now)
-        if (dispatch.getInvoiceDate() != null) {
-            request.setDueDate(dispatch.getInvoiceDate().atStartOfDay().plusDays(30));
+        if (grn.getInvoiceDate() != null) {
+            request.setDueDate(grn.getInvoiceDate().atStartOfDay().plusDays(30));
         } else {
             request.setDueDate(LocalDateTime.now().plusDays(30));
         }
 
         request = paymentRequestRepository.save(request);
         log.info("Payment request created with ID: {}", request.getRequestId());
-
         return convertToDTO(request);
     }
 
     @Override
-    public List<DispatchPaymentRequestDTO> getPaymentRequestsByBranch(Long branchId) {
+    public List<GrnPaymentRequestDTO> getPaymentRequestsByBranch(Long branchId) {
         return paymentRequestRepository.findByBranchId(branchId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+                .map(this::convertToDTO).collect(Collectors.toList());
     }
 
     @Override
@@ -95,17 +90,15 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
     }
 
     @Override
-    public List<DispatchPaymentRequestDTO> getPaymentRequestsByStatus(String status) {
+    public List<GrnPaymentRequestDTO> getPaymentRequestsByStatus(String status) {
         return paymentRequestRepository.findByStatus(status).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+                .map(this::convertToDTO).collect(Collectors.toList());
     }
 
     @Override
-    public List<DispatchPaymentRequestDTO> getManagerPaymentRequests() {
+    public List<GrnPaymentRequestDTO> getManagerPaymentRequests() {
         return paymentRequestRepository.findManagerPendingRequests().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+                .map(this::convertToDTO).collect(Collectors.toList());
     }
 
     @Override
@@ -115,20 +108,16 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
 
     @Override
     @Transactional
-    public DispatchPaymentRequestDTO transferToManager(Long requestId, TransferToManagerRequest request, Long transferredBy) {
-        log.info("Transferring payment request {} to manager", requestId);
-
-        // Verify supervisor credentials
+    public GrnPaymentRequestDTO transferToManager(Long requestId, TransferToManagerRequest request, Long transferredBy) {
         verifySupervisorCredentials(request.getSupervisorUsername(), request.getSupervisorPassword());
 
-        DispatchPaymentRequest paymentRequest = paymentRequestRepository.findById(requestId)
+        GrnPaymentRequest paymentRequest = paymentRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Payment request not found: " + requestId));
 
         if (!"PENDING".equals(paymentRequest.getStatus()) && !"SUPERVISOR_APPROVED".equals(paymentRequest.getStatus())) {
             throw new RuntimeException("Cannot transfer request in current status: " + paymentRequest.getStatus());
         }
 
-        // Update status and tracking
         paymentRequest.setStatus("TRANSFERRED_TO_MANAGER");
         paymentRequest.setSupervisorApprovedBy(transferredBy);
         paymentRequest.setSupervisorApprovedAt(LocalDateTime.now());
@@ -139,30 +128,24 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
             String existingNotes = paymentRequest.getNotes() != null ? paymentRequest.getNotes() + "\n" : "";
             paymentRequest.setNotes(existingNotes + "Transfer Note: " + request.getNotes());
         }
-
         if (request.getPriority() != null) {
             paymentRequest.setPriority(request.getPriority());
         }
 
         paymentRequest = paymentRequestRepository.save(paymentRequest);
-        log.info("Payment request {} transferred to manager", requestId);
-
         return convertToDTO(paymentRequest);
     }
 
     @Override
     @Transactional
-    public DispatchPaymentRequestDTO processPayment(Long requestId, ProcessPaymentRequest request, Long processedBy) {
-        log.info("Processing payment for request {}", requestId);
-
-        DispatchPaymentRequest paymentRequest = paymentRequestRepository.findById(requestId)
+    public GrnPaymentRequestDTO processPayment(Long requestId, ProcessPaymentRequest request, Long processedBy) {
+        GrnPaymentRequest paymentRequest = paymentRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Payment request not found: " + requestId));
 
         if (!"TRANSFERRED_TO_MANAGER".equals(paymentRequest.getStatus()) && !"PROCESSING".equals(paymentRequest.getStatus())) {
             throw new RuntimeException("Cannot process payment in current status: " + paymentRequest.getStatus());
         }
 
-        // Update payment details
         paymentRequest.setStatus("PAID");
         paymentRequest.setProcessedBy(processedBy);
         paymentRequest.setProcessedAt(LocalDateTime.now());
@@ -174,25 +157,20 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
             paymentRequest.setNotes(existingNotes + "Payment Note: " + request.getNotes());
         }
 
-        // Update Dispatch payment status
-        Dispatch dispatch = dispatchRepository.findById(paymentRequest.getDispatchId()).orElse(null);
-        if (dispatch != null) {
-            dispatch.setPaymentStatus("PAID");
-            dispatchRepository.save(dispatch);
+        Grn grn = grnRepository.findById(paymentRequest.getGrnId()).orElse(null);
+        if (grn != null) {
+            grn.setPaymentStatus("PAID");
+            grnRepository.save(grn);
         }
 
         paymentRequest = paymentRequestRepository.save(paymentRequest);
-        log.info("Payment processed for request {}", requestId);
-
         return convertToDTO(paymentRequest);
     }
 
     @Override
     @Transactional
-    public DispatchPaymentRequestDTO rejectRequest(Long requestId, String reason, Long rejectedBy) {
-        log.info("Rejecting payment request {}", requestId);
-
-        DispatchPaymentRequest paymentRequest = paymentRequestRepository.findById(requestId)
+    public GrnPaymentRequestDTO rejectRequest(Long requestId, String reason, Long rejectedBy) {
+        GrnPaymentRequest paymentRequest = paymentRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Payment request not found: " + requestId));
 
         paymentRequest.setStatus("REJECTED");
@@ -202,21 +180,18 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
         String existingNotes = paymentRequest.getNotes() != null ? paymentRequest.getNotes() + "\n" : "";
         paymentRequest.setNotes(existingNotes + "Rejection Reason: " + reason);
 
-        // Update Dispatch payment status
-        Dispatch dispatch = dispatchRepository.findById(paymentRequest.getDispatchId()).orElse(null);
-        if (dispatch != null) {
-            dispatch.setPaymentStatus("REJECTED");
-            dispatchRepository.save(dispatch);
+        Grn grn = grnRepository.findById(paymentRequest.getGrnId()).orElse(null);
+        if (grn != null) {
+            grn.setPaymentStatus("REJECTED");
+            grnRepository.save(grn);
         }
 
         paymentRequest = paymentRequestRepository.save(paymentRequest);
-        log.info("Payment request {} rejected", requestId);
-
         return convertToDTO(paymentRequest);
     }
 
     @Override
-    public DispatchPaymentRequestDTO getPaymentRequestById(Long requestId) {
+    public GrnPaymentRequestDTO getPaymentRequestById(Long requestId) {
         return paymentRequestRepository.findById(requestId)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new RuntimeException("Payment request not found: " + requestId));
@@ -225,16 +200,12 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
     private void verifySupervisorCredentials(String username, String password) {
         try {
             Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password)
-            );
-
+                    new UsernamePasswordAuthenticationToken(username, password));
             if (!auth.isAuthenticated()) {
                 throw new RuntimeException("Invalid supervisor credentials");
             }
-
             UserProfile supervisor = userProfileRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Supervisor not found"));
-
             String role = supervisor.getRole().name();
             if (!"SUPER_ADMIN".equals(role) && !"ADMIN".equals(role) && !"MANAGER".equals(role) && !"SUPERVISOR".equals(role)) {
                 throw new RuntimeException("User does not have supervisor privileges");
@@ -244,11 +215,11 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
         }
     }
 
-    private DispatchPaymentRequestDTO convertToDTO(DispatchPaymentRequest request) {
-        DispatchPaymentRequestDTO dto = DispatchPaymentRequestDTO.builder()
+    private GrnPaymentRequestDTO convertToDTO(GrnPaymentRequest request) {
+        GrnPaymentRequestDTO dto = GrnPaymentRequestDTO.builder()
                 .requestId(request.getRequestId())
-                .dispatchId(request.getDispatchId())
-                .dispatchNo(request.getDispatchNo())
+                .grnId(request.getGrnId())
+                .grnNo(request.getGrnNo())
                 .branchId(request.getBranchId())
                 .supplierId(request.getSupplierId())
                 .supplierName(request.getSupplierName())
@@ -271,24 +242,16 @@ public class DispatchPaymentRequestServiceImpl implements DispatchPaymentRequest
                 .updatedAt(request.getUpdatedAt())
                 .build();
 
-        // Fetch branch name
-        branchRepository.findById(request.getBranchId()).ifPresent(branch ->
-                dto.setBranchName(branch.getName()));
-
-        // Fetch user names
+        branchRepository.findById(request.getBranchId()).ifPresent(branch -> dto.setBranchName(branch.getName()));
         if (request.getRequestedBy() != null) {
-            userProfileRepository.findById(request.getRequestedBy()).ifPresent(user ->
-                    dto.setRequestedByName(user.getFullName()));
+            userProfileRepository.findById(request.getRequestedBy()).ifPresent(user -> dto.setRequestedByName(user.getFullName()));
         }
         if (request.getSupervisorApprovedBy() != null) {
-            userProfileRepository.findById(request.getSupervisorApprovedBy()).ifPresent(user ->
-                    dto.setSupervisorApprovedByName(user.getFullName()));
+            userProfileRepository.findById(request.getSupervisorApprovedBy()).ifPresent(user -> dto.setSupervisorApprovedByName(user.getFullName()));
         }
         if (request.getProcessedBy() != null) {
-            userProfileRepository.findById(request.getProcessedBy()).ifPresent(user ->
-                    dto.setProcessedByName(user.getFullName()));
+            userProfileRepository.findById(request.getProcessedBy()).ifPresent(user -> dto.setProcessedByName(user.getFullName()));
         }
-
         return dto;
     }
 }

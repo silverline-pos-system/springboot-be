@@ -72,7 +72,7 @@ public class StockController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Stock adjusted successfully")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid payload details or validation error")
     @PostMapping("/adjust")
-    @PreAuthorize("hasAnyRole('STORE_KEEPER','MANAGER','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('CASHIER','SUPERVISOR','MANAGER','SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<?>> adjustStock(@Valid @RequestBody StockAdjustmentDTO adjustmentDTO) {
         StockDTO stock = stockService.adjustStock(adjustmentDTO);
         return ResponseEntity.ok(ApiResponse.success("Stock adjusted successfully", stock));
@@ -81,7 +81,7 @@ public class StockController {
     @Operation(summary = "Increment stock quantity", description = "Increments available stock for a product in a branch by a target count")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Stock incremented successfully")
     @PostMapping("/add")
-    @PreAuthorize("hasAnyRole('STORE_KEEPER','MANAGER','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('CASHIER','SUPERVISOR','MANAGER','SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<?>> addStock(
             @RequestParam Long branchId,
             @RequestParam Long productId,
@@ -94,7 +94,7 @@ public class StockController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Stock decremented successfully")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Insufficient stock available to decrement")
     @PostMapping("/remove")
-    @PreAuthorize("hasAnyRole('STORE_KEEPER','MANAGER','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('CASHIER','SUPERVISOR','MANAGER','SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<?>> removeStock(
             @RequestParam Long branchId,
             @RequestParam Long productId,

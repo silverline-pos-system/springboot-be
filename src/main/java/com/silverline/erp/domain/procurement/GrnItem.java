@@ -8,26 +8,26 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+/**
+ * GRN line item. Goods are received into the GRN's branch (no per-line branch).
+ */
 @Entity
-@Table(name = "item_dispatch_lines")
+@Table(name = "grn_items")
 @Getter
 @Setter
 @NoArgsConstructor
-public class DispatchItem {
+public class GrnItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "dispatch_line_id")
-    private Long dispatchItemId;
+    @Column(name = "grn_item_id")
+    private Long grnItemId;
 
-    @Column(name = "dispatch_id", nullable = false)
-    private Long dispatchId;
+    @Column(name = "grn_id", nullable = false)
+    private Long grnId;
 
     @Column(name = "product_id", nullable = false)
     private Long productId;
-
-    @Column(name = "to_branch_id", nullable = false)
-    private Long toBranchId;
 
     @Column(name = "batch_id")
     private Long batchId;
@@ -38,8 +38,8 @@ public class DispatchItem {
     @Column(name = "expiry_date")
     private LocalDate expiryDate;
 
-    @Column(name = "qty_dispatched", precision = 15, scale = 3, nullable = false)
-    private BigDecimal qtyDispatched;
+    @Column(name = "qty_received", precision = 15, scale = 3, nullable = false)
+    private BigDecimal qtyReceived;
 
     @Column(name = "unit_price", precision = 15, scale = 2, nullable = false)
     private BigDecimal unitPrice;

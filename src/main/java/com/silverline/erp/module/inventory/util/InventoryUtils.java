@@ -16,27 +16,6 @@ public class InventoryUtils {
     }
 
     /**
-     * Validate Dispatch status for updates
-     */
-    public static boolean canModifyDispatch(String status) {
-        return "PENDING".equals(status);
-    }
-
-    /**
-     * Validate Dispatch status for approval
-     */
-    public static boolean canApproveDispatch(String status) {
-        return "PENDING".equals(status);
-    }
-
-    /**
-     * Validate payment status update
-     */
-    public static boolean canUpdatePaymentStatus(String dispatchStatus) {
-        return "APPROVED".equals(dispatchStatus);
-    }
-
-    /**
      * Check if payment status is valid
      */
     public static boolean isValidPaymentStatus(String paymentStatus) {

@@ -1,6 +1,6 @@
 package com.silverline.erp.infrastructure.reporting;
 
-import com.silverline.erp.domain.procurement.Dispatch;
+import com.silverline.erp.domain.procurement.Grn;
 import com.silverline.erp.domain.procurement.Supplier;
 import com.silverline.erp.module.analytics.dto.SalesReportDTO;
 import com.silverline.erp.module.analytics.service.SalesAnalyticsService;
@@ -10,7 +10,7 @@ import com.silverline.erp.module.manager.dto.ApprovalDTO;
 import com.silverline.erp.module.manager.dto.ManagerCustomerDTO;
 import com.silverline.erp.module.manager.service.ManagerService;
 import com.silverline.erp.module.pos.service.CustomerService;
-import com.silverline.erp.module.procurement.repository.DispatchRepository;
+import com.silverline.erp.module.procurement.repository.GrnRepository;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,7 +40,7 @@ public class JasperReportService {
     private SalesAnalyticsService salesAnalyticsService;
 
     @Autowired
-    private DispatchRepository dispatchRepository;
+    private GrnRepository grnRepository;
 
     @Autowired
     private SupplierRepository supplierRepository;
@@ -69,8 +69,8 @@ public class JasperReportService {
     }
 
     public byte[] generateDispatchListPdf() throws Exception {
-        List<Dispatch> dispatches = dispatchRepository.findAll();
-        List<Long> supplierIds = dispatches.stream()
+        List<Grn> grns = grnRepository.findAll();
+        List<Long> supplierIds = grns.stream()
                 .map(d -> d.getSupplierId())
                 .filter(java.util.Objects::nonNull)
                 .distinct()
@@ -80,13 +80,13 @@ public class JasperReportService {
                 supplierRepository.findAllById(supplierIds).stream()
                         .collect(Collectors.toMap(s -> s.getSupplierId(), s -> s.getName()));
 
-        List<DispatchReportDTO> reportData = dispatches.stream()
-                .map(dispatch -> DispatchReportDTO.builder()
-                        .dispatchNo(dispatch.getDispatchNo())
-                        .supplierName(supplierNames.getOrDefault(dispatch.getSupplierId(), "Unknown"))
-                        .dispatchDate(dispatch.getDispatchDate() != null ? dispatch.getDispatchDate().toString() : "")
-                        .totalAmount(dispatch.getTotalAmount() != null ? dispatch.getTotalAmount() : BigDecimal.ZERO)
-                        .status(dispatch.getStatus())
+        List<DispatchReportDTO> reportData = grns.stream()
+                .map(grn -> DispatchReportDTO.builder()
+                        .dispatchNo(grn.getGrnNo())
+                        .supplierName(supplierNames.getOrDefault(grn.getSupplierId(), "Unknown"))
+                        .dispatchDate(grn.getGrnDate() != null ? grn.getGrnDate().toString() : "")
+                        .totalAmount(grn.getTotalAmount() != null ? grn.getTotalAmount() : BigDecimal.ZERO)
+                        .status(grn.getStatus())
                         .build())
                 .collect(Collectors.toList());
 

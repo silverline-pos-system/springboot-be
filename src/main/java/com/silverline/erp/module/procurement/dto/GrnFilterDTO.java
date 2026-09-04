@@ -5,16 +5,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DispatchUpdateRequestDTO {
+public class GrnFilterDTO {
 
-    private LocalDate dispatchDate;
+    private Long branchId;
+    private Long supplierId;
+    private String status;
+    private String paymentStatus;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private String grnNo;
     private String invoiceNo;
-    private LocalDate invoiceDate;
-    private List<DispatchCreateRequestDTO.DispatchItemCreateDTO> items;
 }
-

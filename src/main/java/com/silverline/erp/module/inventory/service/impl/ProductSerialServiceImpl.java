@@ -190,7 +190,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
         if (serialDTO.getStatus() != null) {
             serial.setStatus(serialDTO.getStatus());
         }
-        serial.setDispatchId(serialDTO.getDispatchId());
+        serial.setGrnId(serialDTO.getGrnId());
         serial.setSaleId(serialDTO.getSaleId());
 
         return convertToDTO(productSerialRepository.save(serial));
@@ -345,7 +345,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
         dto.setBarcode(serial.getBarcode());
         dto.setBatchId(serial.getBatchId());
         dto.setStatus(serial.getStatus());
-        dto.setDispatchId(serial.getDispatchId());
+        dto.setGrnId(serial.getGrnId());
         dto.setSaleId(serial.getSaleId());
         dto.setTransferId(serial.getTransferId());
         dto.setCreatedAt(serial.getCreatedAt());
@@ -393,7 +393,7 @@ public class ProductSerialServiceImpl implements ProductSerialService {
         serial.setBarcode(dto.getBarcode());
         serial.setBatchId(dto.getBatchId());
         serial.setStatus(dto.getStatus());
-        serial.setDispatchId(dto.getDispatchId());
+        serial.setGrnId(dto.getGrnId());
         serial.setSaleId(dto.getSaleId());
         serial.setTransferId(dto.getTransferId());
         serial.setSoldAt(dto.getSoldAt());

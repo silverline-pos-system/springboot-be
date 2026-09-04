@@ -9,22 +9,26 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * GRN (Goods Received Note) header. Records a supplier delivery received into a
+ * single branch against a Purchase Order. Replaces the old Item Dispatch.
+ */
 @Entity
-@Table(name = "item_dispatches", indexes = {
-        @Index(name = "idx_dispatch_branch_status", columnList = "branch_id, status")
+@Table(name = "grn", indexes = {
+        @Index(name = "idx_grn_branch_status", columnList = "branch_id, status")
 })
 @Getter
 @Setter
 @NoArgsConstructor
-public class Dispatch {
+public class Grn {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "dispatch_id")
-    private Long dispatchId;
+    @Column(name = "grn_id")
+    private Long grnId;
 
-    @Column(name = "dispatch_no", unique = true, nullable = false, length = 50)
-    private String dispatchNo;
+    @Column(name = "grn_no", unique = true, nullable = false, length = 50)
+    private String grnNo;
 
     @Column(name = "branch_id", nullable = false)
     private Long branchId;
@@ -35,8 +39,8 @@ public class Dispatch {
     @Column(name = "po_id")
     private Long poId;
 
-    @Column(name = "dispatch_date", nullable = false)
-    private LocalDate dispatchDate;
+    @Column(name = "grn_date", nullable = false)
+    private LocalDate grnDate;
 
     @Column(name = "invoice_no", length = 100)
     private String invoiceNo;
@@ -53,17 +57,18 @@ public class Dispatch {
     @Column(name = "payment_status", length = 30)
     private String paymentStatus = "UNPAID";
 
+    /** DRAFT then POSTED (stock updated) or CANCELLED. */
     @Column(length = 20)
-    private String status = "PENDING";
+    private String status = "DRAFT";
 
-    @Column(name = "created_by")
-    private Long createdBy;
+    @Column(name = "received_by")
+    private Long receivedBy;
 
-    @Column(name = "approved_by")
-    private Long approvedBy;
+    @Column(name = "posted_by")
+    private Long postedBy;
 
-    @Column(name = "approved_at")
-    private LocalDateTime approvedAt;
+    @Column(name = "posted_at")
+    private LocalDateTime postedAt;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -71,7 +76,6 @@ public class Dispatch {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (dispatchDate == null) dispatchDate = LocalDate.now();
+        if (grnDate == null) grnDate = LocalDate.now();
     }
 }
-

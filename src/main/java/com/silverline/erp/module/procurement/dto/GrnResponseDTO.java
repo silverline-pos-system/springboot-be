@@ -12,28 +12,27 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DispatchResponseDTO {
+public class GrnResponseDTO {
 
-    private Long dispatchId;
-    private String dispatchNo;
+    private Long grnId;
+    private String grnNo;
     private Long branchId;
     private String branchName;
     private Long supplierId;
     private String supplierName;
     private Long poId;
     private String poNo;
-    private LocalDate dispatchDate;
+    private LocalDate grnDate;
     private String invoiceNo;
     private LocalDate invoiceDate;
     private BigDecimal totalAmount;
     private BigDecimal netAmount;
     private String paymentStatus;
     private String status;
-    private Long createdBy;
-    private String createdByName;
-    private Long approvedBy;
-    private String approvedByName;
+    private Long receivedBy;
+    private String receivedByName;
+    private Long postedBy;
+    private String postedByName;
     private LocalDateTime createdAt;
-    private List<DispatchItemDTO> items;
+    private List<GrnItemDTO> items;
 }
-

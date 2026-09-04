@@ -10,19 +10,18 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DispatchItemDTO {
+public class GrnItemDTO {
 
-    private Long dispatchItemId;
-    private Long dispatchId;
+    private Long grnItemId;
+    private Long grnId;
     private Long productId;
     private String productName;
     private String productSku;
     private String batchCode;
     private LocalDate expiryDate;
-    private BigDecimal qtyDispatched;
+    private BigDecimal qtyReceived;
     private BigDecimal unitPrice;
     private BigDecimal sellingPrice;
     private BigDecimal mrp;
     private BigDecimal total;
 }
-
