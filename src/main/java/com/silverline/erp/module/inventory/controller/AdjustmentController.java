@@ -36,7 +36,7 @@ public class AdjustmentController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Stock adjustment logged and updated successfully")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid payload or insufficient available inventory for negative adjustment")
     @PostMapping
-    @PreAuthorize("hasAnyRole('STORE_KEEPER','MANAGER','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('CASHIER','SUPERVISOR','MANAGER','SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<?>> createAdjustment(@Valid @RequestBody StockAdjustmentDTO adjustmentDTO) {
         StockAdjustmentDTO created = adjustmentService.createAdjustment(adjustmentDTO);
         return ResponseEntity.status(HttpStatus.CREATED)

@@ -71,12 +71,12 @@ class SecondaryRoleServiceTest {
             return a;
         });
 
-        SecondaryRoleAssignmentDTO dto = service.assignRole(request("STORE_KEEPER", utc));
+        SecondaryRoleAssignmentDTO dto = service.assignRole(request("DTV_TECHNICIAN", utc));
 
         ArgumentCaptor<SecondaryRoleAssignment> captor = ArgumentCaptor.forClass(SecondaryRoleAssignment.class);
         org.mockito.Mockito.verify(assignmentRepo).save(captor.capture());
         assertEquals(expectedLocal, captor.getValue().getExpiresAt());
-        assertEquals("STORE_KEEPER", dto.getSecondaryRole());
+        assertEquals("DTV_TECHNICIAN", dto.getSecondaryRole());
     }
 
     @Test
@@ -96,7 +96,7 @@ class SecondaryRoleServiceTest {
     void assignRole_rejectsPastExpiry() {
         when(userRepo.findById(5L)).thenReturn(Optional.of(cashier()));
         assertThrows(ValidationException.class, () ->
-                service.assignRole(request("STORE_KEEPER", "2000-01-01T00:00:00.000Z")));
+                service.assignRole(request("DTV_TECHNICIAN", "2000-01-01T00:00:00.000Z")));
     }
 
     @Test
@@ -104,6 +104,6 @@ class SecondaryRoleServiceTest {
         when(userRepo.findById(5L)).thenReturn(Optional.of(cashier()));
         when(assignmentRepo.existsByUserIdAndRevokedFalseAndExpiresAtAfter(eq(5L), any())).thenReturn(true);
         assertThrows(DuplicateResourceException.class, () ->
-                service.assignRole(request("STORE_KEEPER", "2030-06-15T18:30:00.000Z")));
+                service.assignRole(request("DTV_TECHNICIAN", "2030-06-15T18:30:00.000Z")));
     }
 }

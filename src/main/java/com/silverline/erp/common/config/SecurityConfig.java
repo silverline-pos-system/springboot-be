@@ -127,13 +127,13 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/inventory/po/status/**", "/api/inventory/po/*/items", "/api/inventory/po/*/process",
                                 "/api/v1/inventory/po/status/**", "/api/v1/inventory/po/*/items", "/api/v1/inventory/po/*/process")
-                        .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.STORE_KEEPER.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+                        .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
-                        // Inventory endpoints - accessible by STORE_KEEPER, MANAGER, SUPER_ADMIN.
+                        // Inventory endpoints - accessible by CASHIER, SUPERVISOR, MANAGER, SUPER_ADMIN.
                         // BOTH aliases gated: /api/v1/inventory/** previously had no matcher and fell through to
                         // anyRequest().authenticated(), letting any logged-in cashier adjust stock (SEC-08).
                         .requestMatchers("/api/inventory/**", "/api/v1/inventory/**")
-                        .hasAnyRole(Role.STORE_KEEPER.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+                        .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
                         // Dashboard endpoints - accessible by MANAGER, SUPER_ADMIN
                         .requestMatchers("/api/v1/dashboard/**")
@@ -179,7 +179,7 @@ public class SecurityConfig {
 
                         // Grant Store Keeper and Supervisor access to activity logs
                         .requestMatchers("/api/v1/manager/activity/**")
-                        .hasAnyRole(Role.STORE_KEEPER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+                        .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
                         // Manager endpoints
                         .requestMatchers("/api/v1/manager/**")

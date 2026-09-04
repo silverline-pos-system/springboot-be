@@ -61,7 +61,7 @@ class JwtFilterTest {
         when(jwtService.validateToken(eq("token123"), any())).thenReturn(true);
 
         SecondaryRoleAssignment active = new SecondaryRoleAssignment();
-        active.setSecondaryRole("STORE_KEEPER");
+        active.setSecondaryRole("DTV_TECHNICIAN");
         active.setExpiresAt(LocalDateTime.now().plusHours(2));
         when(secondaryRoleRepo.findFirstByUserIdAndRevokedFalseAndExpiresAtAfterOrderByCreatedAtDesc(eq(7L), any()))
                 .thenReturn(Optional.of(active));
@@ -72,7 +72,7 @@ class JwtFilterTest {
         assertNotNull(auth, "authentication should be set");
         var roles = AuthorityUtils.authorityListToSet(auth.getAuthorities());
         assertTrue(roles.contains("ROLE_CASHIER"), "primary role kept");
-        assertTrue(roles.contains("ROLE_STORE_KEEPER"), "active secondary role granted");
+        assertTrue(roles.contains("ROLE_DTV_TECHNICIAN"), "active secondary role granted");
     }
 
     @Test
@@ -94,6 +94,6 @@ class JwtFilterTest {
         assertNotNull(auth);
         var roles = AuthorityUtils.authorityListToSet(auth.getAuthorities());
         assertTrue(roles.contains("ROLE_CASHIER"));
-        assertFalse(roles.contains("ROLE_STORE_KEEPER"));
+        assertFalse(roles.contains("ROLE_DTV_TECHNICIAN"));
     }
 }

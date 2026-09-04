@@ -14,7 +14,7 @@ public class AssignSecondaryRoleRequest {
     private Long userId;
 
     @NotBlank(message = "Secondary role is required")
-    private String secondaryRole;       // "CASHIER", "SUPERVISOR", "STORE_KEEPER", "DTV_TECHNICIAN", "MOBILE_TECHNICIAN"
+    private String secondaryRole;       // "CASHIER", "SUPERVISOR", "DTV_TECHNICIAN", "MOBILE_TECHNICIAN"
 
     @NotBlank(message = "Expiry timestamp is required")
     private String expiresAt;           // ISO 8601 string e.g. "2025-07-15T23:59:59.999Z"

@@ -28,7 +28,7 @@ public class SecondaryRoleService {
     private final UserRepository userRepo;
 
     private static final Set<String> ALLOWED_ROLES = Set.of(
-            "CASHIER", "SUPERVISOR", "STORE_KEEPER", "DTV_TECHNICIAN", "MOBILE_TECHNICIAN"
+            "CASHIER", "SUPERVISOR", "DTV_TECHNICIAN", "MOBILE_TECHNICIAN"
     );
 
     public List<SecondaryRoleAssignmentDTO> getAssignments(Long branchId) {

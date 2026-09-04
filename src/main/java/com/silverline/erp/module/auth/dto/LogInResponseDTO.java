@@ -51,7 +51,6 @@ public class LogInResponseDTO {
             case SUPER_ADMIN -> "/admin";
             case MANAGER -> "/manager";
             case CASHIER, SUPERVISOR -> "/pos";
-            case STORE_KEEPER -> "/inventory";
             case DTV_TECHNICIAN -> "/dtv-tech";
             case MOBILE_TECHNICIAN -> "/mobile-tech";
         };
