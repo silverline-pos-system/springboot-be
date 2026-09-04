@@ -151,6 +151,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/dispatch-payments/**")
                         .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
 
+                        // GRN payment requests
+                        .requestMatchers("/api/v1/grn-payments/**")
+                        .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name())
+
                         // Services / Repair jobs
                         .requestMatchers("/api/v1/services/**")
                         .hasAnyRole(Role.CASHIER.name(), Role.SUPERVISOR.name(), Role.MANAGER.name(), Role.SUPER_ADMIN.name(), Role.DTV_TECHNICIAN.name(), Role.MOBILE_TECHNICIAN.name())
