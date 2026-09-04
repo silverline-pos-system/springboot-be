@@ -255,6 +255,14 @@ public class SaleRepositoryImpl implements SaleRepository {
     }
 
     @Override
+    public java.math.BigDecimal sumNetTotalForCurrentMonth() {
+        // Sales whose sale_date falls in the current calendar month (PostgreSQL date_trunc).
+        String sql = "SELECT SUM(net_total) FROM sales WHERE date_trunc('month', sale_date) = date_trunc('month', CURRENT_DATE)";
+        java.math.BigDecimal sum = jdbcTemplate.queryForObject(sql, java.math.BigDecimal.class);
+        return sum != null ? sum : java.math.BigDecimal.ZERO;
+    }
+
+    @Override
     public List<Object[]> findTopBranches(int limit) {
         String sql = "SELECT b.branch_id, b.name, SUM(s.net_total) as total " +
                 "FROM sales s " +
