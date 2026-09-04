@@ -59,6 +59,9 @@ public class ProductSerial {
     @Column(name = "dispatch_id")
     private Long dispatchId;
 
+    @Column(name = "grn_id")
+    private Long grnId;
+
     @Column(name = "sale_id")
     private Long saleId;
 
