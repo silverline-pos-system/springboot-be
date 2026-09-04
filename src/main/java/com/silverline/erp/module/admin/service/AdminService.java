@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Service interface for Admin Dashboard operations
+ * Service interface for Super Admin Dashboard operations
  */
 public interface AdminService {
 
@@ -45,4 +45,3 @@ public interface AdminService {
      */
     Map<String, Object> getDashboardOverview();
 }
-
