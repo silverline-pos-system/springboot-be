@@ -49,6 +49,7 @@ public class PosSaleServiceImpl implements PosSaleService {
     private final SaasFeatureService featureService;
     private final ProductSerialService productSerialService;
     private final SaleQueryService saleQueryService;
+    private final com.silverline.erp.module.inventory.repository.BranchProductRepository branchProductRepository;
 
     // Statuses a client is allowed to request. Anything else is coerced to PAID so the client
     // cannot inject an arbitrary status to skip stock deduction or validation (mass-assignment guard).
@@ -176,7 +177,7 @@ public class PosSaleServiceImpl implements PosSaleService {
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             for (SaleItemRequest itemReq : request.getItems()) {
                 Product product = productService.findById(itemReq.getProductId());
-                BigDecimal unitPrice = resolveUnitPrice(itemReq, product);
+                BigDecimal unitPrice = resolveUnitPrice(itemReq, product, branchId);
                 BigDecimal quantity = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ONE;
 
                 BigDecimal lineGross = unitPrice.multiply(quantity);
@@ -221,7 +222,7 @@ public class PosSaleServiceImpl implements PosSaleService {
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             for (SaleItemRequest itemReq : request.getItems()) {
                 Product product = productService.findById(itemReq.getProductId());
-                BigDecimal unitPrice = resolveUnitPrice(itemReq, product);
+                BigDecimal unitPrice = resolveUnitPrice(itemReq, product, branchId);
                 BigDecimal quantity = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ONE;
                 BigDecimal itemDiscount = clampDiscount(itemReq.getDiscount(), unitPrice.multiply(quantity));
 
@@ -327,20 +328,37 @@ public class PosSaleServiceImpl implements PosSaleService {
      * which blocks price manipulation (SEC-14). Service items (repairs, DTV installs) have no catalog price
      * and keep the POS-entered charge.
      */
-    private BigDecimal resolveUnitPrice(SaleItemRequest itemReq, Product product) {
+    private BigDecimal resolveUnitPrice(SaleItemRequest itemReq, Product product, Long branchId) {
         String name = product != null && product.getName() != null ? product.getName().toLowerCase() : "";
         boolean isService = itemReq.getProductId() == 332L
                 || name.contains("service") || name.contains("dialog tv") || name.contains("dtv");
 
+        // Per-branch price (branch_product) is authoritative; the global product
+        // price is only a catalog default/fallback when a branch has not set one.
+        BigDecimal effectivePrice = resolveEffectiveSellingPrice(product, branchId);
+
         if (isService) {
             BigDecimal entered = itemReq.getUnitPrice();
             if (entered != null) return entered;
-            return (product != null && product.getSellingPrice() != null) ? product.getSellingPrice() : BigDecimal.ZERO;
+            return effectivePrice != null ? effectivePrice : BigDecimal.ZERO;
         }
 
-        if (product == null || product.getSellingPrice() == null) {
+        if (product == null || effectivePrice == null) {
             throw new com.silverline.erp.common.exception.ValidationException(
-                    "Cannot sell product " + itemReq.getProductId() + ": no catalog price configured.");
+                    "Cannot sell product " + itemReq.getProductId() + ": no price configured for this branch.");
+        }
+        return effectivePrice;
+    }
+
+    /** Branch price from branch_product if present, else the global catalog default. */
+    private BigDecimal resolveEffectiveSellingPrice(Product product, Long branchId) {
+        if (product == null) return null;
+        if (branchId != null) {
+            BigDecimal branchPrice = branchProductRepository
+                    .findByBranchIdAndProductId(branchId, product.getProductId())
+                    .map(com.silverline.erp.domain.inventory.BranchProduct::getSellingPrice)
+                    .orElse(null);
+            if (branchPrice != null) return branchPrice;
         }
         return product.getSellingPrice();
     }

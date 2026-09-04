@@ -59,6 +59,8 @@ class PosSaleServiceImplTest {
     private ProductSerialService productSerialService;
     @Mock
     private SaleQueryService saleQueryService;
+    @Mock
+    private com.silverline.erp.module.inventory.repository.BranchProductRepository branchProductRepository;
 
     @InjectMocks
     private PosSaleServiceImpl posSaleService;

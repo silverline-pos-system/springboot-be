@@ -444,17 +444,9 @@ public class GrnServiceImpl implements GrnService {
             stockRepository.save(stock);
 
             // Per-branch price (decision 5): the canonical price lives on branch_product.
+            // POS pricing reads branch_product, so the global product price is no
+            // longer written here.
             upsertBranchProduct(grn.getBranchId(), item, grn.getReceivedBy());
-
-            // Interim: keep the global product price in sync so POS pricing keeps
-            // working until Phase 6 moves POS reads to branch_product and drops
-            // these columns. Remove this block in Phase 6.
-            productRepository.findById(item.getProductId()).ifPresent(product -> {
-                if (item.getUnitPrice() != null) product.setCostPrice(item.getUnitPrice());
-                if (item.getSellingPrice() != null) product.setSellingPrice(item.getSellingPrice());
-                if (item.getMrp() != null) product.setMrp(item.getMrp());
-                productRepository.save(product);
-            });
 
             Long createdBatchId = null;
             if (item.getBatchCode() != null && !item.getBatchCode().trim().isEmpty()) {

@@ -30,6 +30,7 @@ public class PosProductController {
     private final BatchService batchService;
     private final ProductSerialService productSerialService;
     private final QuickPickService quickPickService;
+    private final com.silverline.erp.module.inventory.repository.BranchProductRepository branchProductRepository;
 
     private Long getBranchIdFromParam(Long branchId) {
         return branchId != null ? branchId : 1L;
@@ -204,7 +205,12 @@ public class PosProductController {
         PosProductDTO dto = new PosProductDTO();
         dto.setProductId(product.getProductId());
         dto.setName(product.getName());
-        dto.setSellingPrice(product.getSellingPrice());
+        // Per-branch price is authoritative; the global product price is the fallback.
+        BigDecimal branchPrice = branchId == null ? null : branchProductRepository
+                .findByBranchIdAndProductId(branchId, product.getProductId())
+                .map(com.silverline.erp.domain.inventory.BranchProduct::getSellingPrice)
+                .orElse(null);
+        dto.setSellingPrice(branchPrice != null ? branchPrice : product.getSellingPrice());
         dto.setSku(product.getSku());
         dto.setBarcode(product.getBarcode());
         dto.setIsSerialized(product.getIsSerialized());
